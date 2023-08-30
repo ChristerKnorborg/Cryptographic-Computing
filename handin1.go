@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-type bloodtype int32
+type bloodtype uint8
 
 const (
 	ABplus  bloodtype = 0
@@ -30,29 +30,35 @@ func LookUpBloodType(recipient bloodtype, donor bloodtype) bool {
 	return bloodtype_compatibility[recipient][donor]
 }
 
-// BooleanFormula checks if blood type x can receive from y using Boolean operations.
-// x and y should be 3-bit encoded blood types.
-// func BooleanFormula(x uint8, y uint8) bool {
-// 	// Extract individual bits from x and y
-// 	x1 := (x >> 2) & 1
-// 	x2 := (x >> 1) & 1
-// 	x3 := x & 1
+// BooleanFormula checks if recipient blood type can receive donor blood type using Boolean formulation
+func BooleanFormula(recipient bloodtype, donor bloodtype) bool {
 
-// 	y1 := (y >> 2) & 1
-// 	y2 := (y >> 1) & 1
-// 	y3 := y & 1
+	x1 := (recipient >> 2) & 1 // extract 3rd rightmost bit
+	x2 := (recipient >> 1) & 1 // extract 2nd rightmost bit
+	x3 := recipient & 1        // extract rightmost bit
 
-// 	// Use Boolean formula to determine compatibility
-// 	condition1 := (x1) || y1
-// 	condition2 := (!x2) || y2
-// 	condition3 := (!x3) || y3
+	y1 := (donor >> 2) & 1 // extract 3rd rightmost bit
+	y2 := (donor >> 1) & 1 // extract 2nd rightmost bit
+	y3 := donor & 1        // extract rightmost bit
 
-// 	return condition1 && condition2 && condition3
-// }
+	condition1 := (x1 == 0) || (y1 == 1)
+	condition2 := (x2 == 0) || (y2 == 1)
+	condition3 := (x3 == 0) || (y3 == 1)
+
+	return condition1 && condition2 && condition3
+
+}
 
 func main() {
-	fmt.Printf("%t\n", LookUpBloodType(ABplus, ABplus))
-
-	fmt.Printf("%t\n", LookUpBloodType(Ominus, Ominus))
-	fmt.Printf("%t\n", LookUpBloodType(Ominus, ABplus))
+	for recipient := ABplus; recipient <= Ominus; recipient++ {
+		for donor := ABplus; donor <= Ominus; donor++ {
+			lookupResult := LookUpBloodType(recipient, donor)
+			formulaResult := BooleanFormula(recipient, donor)
+			if lookupResult != formulaResult {
+				fmt.Printf("Mismatch! Recipient: %d, Donor: %d, Lookup: %t, Formula: %t\n", recipient, donor, lookupResult, formulaResult)
+			} else {
+				fmt.Printf("Match! Recipient: %d, Donor: %d, Result: %t\n", recipient, donor, lookupResult)
+			}
+		}
+	}
 }
