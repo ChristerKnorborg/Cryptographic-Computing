@@ -17,11 +17,11 @@ const (
 
 var bloodtype_compatibility [8][8]bool = [8][8]bool{
 	{true, true, true, true, true, true, true, true},        // AB+
-	{false, true, false, true, false, true, false, false},   // AB-
-	{false, false, true, true, false, false, false, false},  // B+
-	{false, false, false, true, false, false, false, false}, // B-
-	{false, false, false, false, true, true, false, false},  // A+
-	{false, false, false, false, false, true, false, false}, // A-
+	{false, true, false, true, false, true, false, true},    // AB-
+	{false, false, true, true, false, false, true, true},    // B+
+	{false, false, false, true, false, false, false, true},  // B-
+	{false, false, false, false, true, true, true, true},    // A+
+	{false, false, false, false, false, true, false, true},  // A-
 	{false, false, false, false, false, false, true, true},  // O+
 	{false, false, false, false, false, false, false, true}, // O-
 }
