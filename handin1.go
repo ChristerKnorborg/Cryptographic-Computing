@@ -1,7 +1,5 @@
 package CryptographicComputing
 
-import "fmt"
-
 type bloodtype uint8
 
 const (
@@ -49,7 +47,7 @@ func BooleanFormula(recipient bloodtype, donor bloodtype) bool {
 
 }
 
-func main() {
+/* func main() {
 	for recipient := ABplus; recipient <= Ominus; recipient++ {
 		for donor := ABplus; donor <= Ominus; donor++ {
 			lookupResult := LookUpBloodType(recipient, donor)
@@ -61,4 +59,4 @@ func main() {
 			}
 		}
 	}
-}
+} */

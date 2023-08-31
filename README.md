@@ -21,11 +21,15 @@ To create a Boolean formula, we use the 8 bloodtypes corresponding to the number
 The Boolean formula we came up with is illustrated below as a Boolean circuit:
 ![Image description](./Pictures/Boolean-circuit-handin1.png)
 
+The reason why this works is because each of the three different bits represents a different property of the bloodtype:
+
+* The right most (least significant) bit represents wether it is positve or negative, 1 for negative and 0 for positive (not very intuitive). The same bloodgroup with a plus can always receive from plus and minus of the same group, where minus can only receive from minus. 
+* The middle of three (second rightmost) bit represents wether the bloodtype is part of the A group. (1 meaning it is not a part of the group and 0 vice versa.)
+* The last of the three (third rightmost) bit respresnt wether the bloodtype is part of the B group. (1 meaning it is not a part of the group and 0 vice versa.)
 
 
 
-
-In the main function we loop through all bloodtype combinations to see that the Boolean formula and lookup function provide the same output. There is also a test that does the same.
+In the test function we loop through all bloodtype combinations to see that the Boolean formula and lookup function provide the same output. There is also a test that does the same.
 
 
 # Instructions #
