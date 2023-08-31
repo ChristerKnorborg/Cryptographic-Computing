@@ -1,4 +1,4 @@
-package main
+package CryptographicComputing
 
 import "fmt"
 
