@@ -1,9 +1,9 @@
 # Cryptographic-Computing
 
 
-###Handin1###
+## Handin1 ##
 
-##Task1##
+## Task1 ##
 To solve the task we used the blood type chart seen below to create a lookup table representing whether a "recipient" is compatible with a "donor". 
 
 ![Image description](./Pictures/blood type compatibility.png)
