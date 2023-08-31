@@ -28,6 +28,8 @@ The reason why this works is because each of the three different bits represents
 * The last of the three (third rightmost) bit respresnt wether the bloodtype is part of the B group. (1 meaning it is not a part of the group and 0 vice versa.)
 
 
+Intuitively, one can think of the NOT X's in the Boolean formula as requirements. E.g. O- is 7 and therefore becomes 111 which is 000 when negated. Therefore, the Y's must be 111 to satisfy the OR's as O- only can recieve from itself. Finally, all the OR's are should be present at the same time. Hence the AND operations.
+
 
 In the test function we loop through all bloodtype combinations to see that the Boolean formula and lookup function provide the same output. There is also a test that does the same.
 
