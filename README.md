@@ -23,7 +23,7 @@ The Boolean formula we came up with is illustrated below as a Boolean circuit:
 
 The reason why this works is because each of the three different bits represents a different property of the bloodtype:
 
-* The right most (least significant) bit represents wether it is positve or negative, 1 for negative and 0 for positive (not very intuitive). The same bloodgroup with a plus can always receive from plus and minus of the same group, where minus can only receive from minus. 
+* The right most (least significant) bit represents wether it is positve or negative, 1 for negative and 0 for positive (not very intuitive). The same bloodgroup with a plus can always receive from plus and minus of the same group, where minus can only receive from minus.
 * The middle of three (second rightmost) bit represents wether the bloodtype is part of the A group. (1 meaning it is not a part of the group and 0 vice versa.)
 * The last of the three (third rightmost) bit respresnt wether the bloodtype is part of the B group. (1 meaning it is not a part of the group and 0 vice versa.)
 
@@ -43,6 +43,7 @@ To run the code, navigate to the folder Cryptographic-Computing and run the foll
 To run our main function to see that the Boolean formula and lookup function provide the same output, run the command:
 
 "go run handin1.go" 
+    - We commented out the main function due to issues when you use the the first time "go mod init CryptographicComputing". Therefore, simply remove the commented main function.
 
 To run our tests (all files that end with "..._test.go") run the command:
 "go test"
