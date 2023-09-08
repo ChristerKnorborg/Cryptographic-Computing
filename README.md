@@ -40,9 +40,9 @@ The Boolean formula we came up with is illustrated below as a Boolean circuit:
 
 The reason why this works is because each of the three different bits represents a different property of the bloodtype:
 
-* The right most (least significant) bit represents wether it is positve or negative, 1 for negative and 0 for positive (not very intuitive). The same bloodgroup with a plus can always receive from plus and minus of the same group, where minus can only receive from minus.
-* The middle of three (second rightmost) bit represents wether the bloodtype is part of the A group. (1 meaning it is not a part of the group and 0 vice versa.)
-* The last of the three (third rightmost) bit respresnt wether the bloodtype is part of the B group. (1 meaning it is not a part of the group and 0 vice versa.)
+* The right most (least significant) bit represents whether it is positve or negative, 1 for negative and 0 for positive (not very intuitive). The same bloodgroup with a plus can always receive from plus and minus of the same group, where minus can only receive from minus.
+* The middle of three (second rightmost) bit represents whether the bloodtype is part of the A group. (1 meaning it is not a part of the group and 0 vice versa.)
+* The last of the three (third rightmost) bit respresnt whether the bloodtype is part of the B group. (1 meaning it is not a part of the group and 0 vice versa.)
 
 
 Intuitively, one can think of the NOT X's in the Boolean formula as requirements. E.g. O- is 7 and therefore becomes 111 which is 000 when negated. Therefore, the Y's must be 111 to satisfy the OR's as O- only can recieve from itself. Finally, all the OR's are should be present at the same time. Hence the AND operations.
