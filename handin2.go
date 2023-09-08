@@ -29,14 +29,14 @@ type Bob struct {
 }
 
 func (d *Dealer) init() {
-	d.r = rand.Intn(7) // for i coordinate
-	d.s = rand.Intn(7) // for j coordinate
+	d.r = rand.Intn(8) // for i coordinate
+	d.s = rand.Intn(8) // for j coordinate
 
-	d.matrix_b = generateRandomMatrix()
+	d.matrix_b = generateRandomMatrix() // Generate random 8x8 matrix for Bob
 
-	shiftMatrix := shiftMatrix(d.r, d.s)
+	shiftMatrix := shiftMatrix(d.r, d.s) // Generate shift matrix
 
-	d.matrix_a = XORMatrix(d.matrix_b, shiftMatrix)
+	d.matrix_a = XORMatrix(d.matrix_b, shiftMatrix) // Generate Alice's matrix by XOR'ing Bob's matrix with the shift matrix
 }
 
 func (d *Dealer) getMatrixA() [8][8]bool {
@@ -115,9 +115,7 @@ func shiftMatrix(r int, s int) [8][8]bool {
 			shiftMatrix[i][j] = bloodtype_compatibility[(i-r+8)%8][(j-s+8)%8] // need to add 8 to make sure we get positive numbers. Go does not support negative modulo
 		}
 	}
-
 	return shiftMatrix
-
 }
 
 func generateRandomMatrix() [8][8]bool {
@@ -126,10 +124,10 @@ func generateRandomMatrix() [8][8]bool {
 	matrix := [8][8]bool{}
 	for i := 0; i < 8; i++ {
 		for j := 0; j < 8; j++ {
-			if rand.Intn(2) == 1 {
-				matrix[i][j] = true
+			if rand.Intn(2) == 1 { // generate random 0 or 1
+				matrix[i][j] = true // true = 1
 			} else {
-				matrix[i][j] = false
+				matrix[i][j] = false // false = 0
 			}
 		}
 	}
