@@ -126,7 +126,11 @@ func generateRandomMatrix() [8][8]bool {
 	matrix := [8][8]bool{}
 	for i := 0; i < 8; i++ {
 		for j := 0; j < 8; j++ {
-			matrix[i][j] = rand.Intn(2) == 1
+			if rand.Intn(2) == 1 {
+				matrix[i][j] = true
+			} else {
+				matrix[i][j] = false
+			}
 		}
 	}
 
@@ -181,7 +185,8 @@ func main() {
 
 	b.receive(a.send()) // Alice sends u to Bob
 
-	a.receive(b.send()) // Bob sends v and z_B to Alice
+	v, z_B := b.send()
+	a.receive(v, z_B) // Bob sends v and z_B to Alice
 
 	fmt.Println(a.computeOutput())
 }
