@@ -1,6 +1,23 @@
 # Cryptographic-Computing
 (The pictures can be navigated to with CTRL + left click)
 
+# Instructions #
+To run the code, navigate to the folder Cryptographic-Computing and run the following command on setup:
+
+"go mod init CryptographicComputing"
+    - Notice that the "-" is not recognized and therefore should be leftout.
+
+
+
+To run our main function to see that the Boolean formula and lookup function provide the same output, run the command:
+
+"go run handin1.go" 
+    - We commented out the main function due to issues when you use the the first time "go mod init CryptographicComputing". Therefore, simply remove the commented main function.
+
+To run our tests (all files that end with "..._test.go") run the command:
+"go test"
+
+
 ## Handin1 ##
 We made the eight bloodtypes correspond with a 8-bit integer value from the perspective of the recipient. E.g. which donor bloodtypes are compatible with the recipient. The bloodtype AB+ is 0 due to being able to recieve blood from everyone else, where O- is 7. since it is only able to recieve blood from its own bloodtype.
 
@@ -33,19 +50,3 @@ Intuitively, one can think of the NOT X's in the Boolean formula as requirements
 
 In the test function we loop through all bloodtype combinations to see that the Boolean formula and lookup function provide the same output. There is also a test that does the same.
 
-
-# Instructions #
-To run the code, navigate to the folder Cryptographic-Computing and run the following command on setup:
-
-"go mod init CryptographicComputing"
-    - Notice that the "-" is not recognized and therefore should be leftout.
-
-
-
-To run our main function to see that the Boolean formula and lookup function provide the same output, run the command:
-
-"go run handin1.go" 
-    - We commented out the main function due to issues when you use the the first time "go mod init CryptographicComputing". Therefore, simply remove the commented main function.
-
-To run our tests (all files that end with "..._test.go") run the command:
-"go test"
