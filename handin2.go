@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
-	"time"
 )
 
 type Dealer struct {
@@ -13,13 +13,16 @@ type Dealer struct {
 }
 
 type Alice struct {
-	x        bloodtype
+	x        int
 	matrix_a [8][8]bool
+	u        int
 	r        int
+	v        int
+	z_B      bool
 }
 
 type Bob struct {
-	y        bloodtype
+	y        int
 	matrix_b [8][8]bool
 	s        int
 	u        int
@@ -36,44 +39,59 @@ func (d *Dealer) init() {
 	d.matrix_a = XORMatrix(d.matrix_b, shiftMatrix)
 }
 
-func (d *Dealer) getRandA() ([8][8]bool, int) {
-	return d.matrix_a, d.r
+func (d *Dealer) getMatrixA() [8][8]bool {
+	return d.matrix_a
 }
 
-func (d *Dealer) getRandB() ([8][8]bool, int) {
-	return d.matrix_b, d.s
+func (d *Dealer) getMatrixB() [8][8]bool {
+	return d.matrix_b
 }
 
-func (a *Alice) init(x bloodtype, d Dealer) {
-	matrix, r := d.getRandA()
+func (d *Dealer) getR() int {
+	return d.r
+}
+
+func (d *Dealer) getS() int {
+	return d.s
+}
+
+func (a *Alice) init(x int, matrix [8][8]bool, r int) {
+	a.x = x
 	a.matrix_a = matrix
 	a.r = r
 
 }
 
-func (b *Bob) init(y bloodtype, d Dealer) {
-	matrix, s := d.getRandB()
+func (b *Bob) init(y int, matrix [8][8]bool, s int) {
+	b.y = y
 	b.matrix_b = matrix
 	b.s = s
 }
 
 func (a *Alice) send() int {
-	u := (a.x + a.r) % 8
+	u := (int(a.x) + a.r) % 8 // Alice computes u = x + r mod 2n and sends u to Bob
+	a.u = u                   // Alice stores u
 	return u
 }
 
-func (a *Alice) receive() {
-
+func (a *Alice) receive(v int, z_B bool) {
+	a.v = v
+	a.z_B = z_B
 }
 
-func (b *Bob) send() int {
-	v := (b.y + b.s) % 8
-	z_b := b.matrix_b[v][b.s]
-	return v
+func (a *Alice) computeOutput() bool {
+	z := XOR(a.matrix_a[a.u][a.v], a.z_B) // Alice outputs z = M_A[u, v] ⊕ z_B u
+	return z
 }
 
-func (b *Bob) receive(Alice Alice) {
-	b.u = Alice.send()
+func (b *Bob) send() (int, bool) {
+	v := (int(b.y) + b.s) % 8 // Bob computes v = y + s mod 2n,
+	z_B := b.matrix_b[v][b.s] // and z_B = M_B[u, v] and sends (v, z_B) to Alice
+	return v, z_B
+}
+
+func (b *Bob) receive(u int) {
+	b.u = u
 }
 
 func XOR(x bool, y bool) bool {
@@ -94,7 +112,7 @@ func shiftMatrix(r int, s int) [8][8]bool {
 	shiftMatrix := [8][8]bool{}
 	for i := 0; i < 8; i++ {
 		for j := 0; j < 8; j++ {
-			shiftMatrix[i][j] = bloodtype_compatibility[i-r%8][j-s%8]
+			shiftMatrix[i][j] = bloodtype_compatibility[(i-r+8)%8][(j-s+8)%8] // need to add 8 to make sure we get positive numbers. Go does not support negative modulo
 		}
 	}
 
@@ -103,7 +121,7 @@ func shiftMatrix(r int, s int) [8][8]bool {
 }
 
 func generateRandomMatrix() [8][8]bool {
-	rand.Seed(time.Now().UnixNano())
+	// rand.Seed(time.Now().UnixNano())
 
 	matrix := [8][8]bool{}
 	for i := 0; i < 8; i++ {
@@ -145,35 +163,25 @@ func LookUpBloodType(recipient bloodtype, donor bloodtype) bool {
 	return bloodtype_compatibility[recipient][donor]
 }
 
-// BooleanFormula checks if recipient blood type can receive donor blood type using Boolean formulation
-func BooleanFormula(recipient bloodtype, donor bloodtype) bool {
+// main function for testing that the protocol works. The dealer gives Alice and Bob their random matrices and coordinates.
+// Alice and Bob both initialize their matrices and coordinates. Alice sends u to Bob, Bob sends v and z_B to Alice.
+func main() {
+	AliceBloodType := ABplus
+	BobBloodType := Ominus
+	fmt.Println("Alice's blood type is", int(AliceBloodType), "and Bob's blood type is", int(BobBloodType))
 
-	x1 := (recipient >> 2) & 1 // extract 3rd rightmost bit
-	x2 := (recipient >> 1) & 1 // extract 2nd rightmost bit
-	x3 := recipient & 1        // extract rightmost bit
+	d := Dealer{}
+	d.init() // Dealer initializes the matrices and coordinates
 
-	y1 := (donor >> 2) & 1 // extract 3rd rightmost bit
-	y2 := (donor >> 1) & 1 // extract 2nd rightmost bit
-	y3 := donor & 1        // extract rightmost bit
+	a := Alice{}
+	a.init(int(AliceBloodType), d.getMatrixA(), d.getR()) // Alice initializes her matrix and coordinates
 
-	condition1 := (x1 == 0) || (y1 == 1)
-	condition2 := (x2 == 0) || (y2 == 1)
-	condition3 := (x3 == 0) || (y3 == 1)
+	b := Bob{}
+	b.init(int(BobBloodType), d.getMatrixB(), d.getS()) // Bob initializes his matrix and coordinates
 
-	return condition1 && condition2 && condition3
+	b.receive(a.send()) // Alice sends u to Bob
 
+	a.receive(b.send()) // Bob sends v and z_B to Alice
+
+	fmt.Println(a.computeOutput())
 }
-
-/* func main() {
-	for recipient := ABplus; recipient <= Ominus; recipient++ {
-		for donor := ABplus; donor <= Ominus; donor++ {
-			lookupResult := LookUpBloodType(recipient, donor)
-			formulaResult := BooleanFormula(recipient, donor)
-			if lookupResult != formulaResult {
-				fmt.Printf("Mismatch! Recipient: %d, Donor: %d, Lookup: %t, Formula: %t\n", recipient, donor, lookupResult, formulaResult)
-			} else {
-				fmt.Printf("Match! Recipient: %d, Donor: %d, Result: %t\n", recipient, donor, lookupResult)
-			}
-		}
-	}
-} */
