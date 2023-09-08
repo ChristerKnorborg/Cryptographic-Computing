@@ -12,6 +12,19 @@ type Dealer struct {
 	matrix_b [8][8]bool
 }
 
+type Alice struct {
+	x        bloodtype
+	matrix_a [8][8]bool
+	r        int
+}
+
+type Bob struct {
+	y        bloodtype
+	matrix_b [8][8]bool
+	s        int
+	u        int
+}
+
 func (d *Dealer) init() {
 	d.r = rand.Intn(7) // for i coordinate
 	d.s = rand.Intn(7) // for j coordinate
@@ -21,6 +34,46 @@ func (d *Dealer) init() {
 	shiftMatrix := shiftMatrix(d.r, d.s)
 
 	d.matrix_a = XORMatrix(d.matrix_b, shiftMatrix)
+}
+
+func (d *Dealer) getRandA() ([8][8]bool, int) {
+	return d.matrix_a, d.r
+}
+
+func (d *Dealer) getRandB() ([8][8]bool, int) {
+	return d.matrix_b, d.s
+}
+
+func (a *Alice) init(x bloodtype, d Dealer) {
+	matrix, r := d.getRandA()
+	a.matrix_a = matrix
+	a.r = r
+
+}
+
+func (b *Bob) init(y bloodtype, d Dealer) {
+	matrix, s := d.getRandB()
+	b.matrix_b = matrix
+	b.s = s
+}
+
+func (a *Alice) send() int {
+	u := (a.x + a.r) % 8
+	return u
+}
+
+func (a *Alice) receive() {
+
+}
+
+func (b *Bob) send() int {
+	v := (b.y + b.s) % 8
+	z_b := b.matrix_b[v][b.s]
+	return v
+}
+
+func (b *Bob) receive(Alice Alice) {
+	b.u = Alice.send()
 }
 
 func XOR(x bool, y bool) bool {
