@@ -13,23 +13,24 @@ type Dealer struct {
 }
 
 func (d *Dealer) init() {
-	d.s = rand.Intn(7)
-	d.r = rand.Intn(7)
+	d.r = rand.Intn(7) // for i coordinate
+	d.s = rand.Intn(7) // for j coordinate
 
 	d.matrix_b = generateRandomMatrix()
 
-	d.matrix_a = shiftMatrix(d.matrix_b, d.s)
+	shiftMatrix := shiftMatrix(d.r, d.s)
+	d.matrix_a = d.matrix_b
 }
 
 func XOR(x bool, y bool) bool {
 	return (x || y) && !(x && y)
 }
 
-func shiftMatrix(matrix [8][8]bool, s int) {
-	shiftMatrix = [8][8]bool{}
+func shiftMatrix(r int, s int) [8][8]bool {
+	shiftMatrix := [8][8]bool{}
 	for i := 0; i < 8; i++ {
 		for j := 0; j < 8; j++ {
-			shiftMatrix[i][j] = XOR(matrix[i][j], bloodtype_compatibility[i-s%8][j-s%8])
+			shiftMatrix[i][j] = bloodtype_compatibility[i-r%8][j-s%8]
 		}
 	}
 
