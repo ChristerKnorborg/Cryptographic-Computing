@@ -12,7 +12,7 @@ Afterwards, navigate to the folder called "handin2". To run our tests (handin2_t
 
 
 # Description #
-To solve the assignment, we made files with structs to represent the different entities of the protocol: Alice, Bob and the Dealer. The overall protocol can be seen in the "handin2.go"-file in the ComputeOTTTBloodTypeCompatability() function. To see the calculation of the different entities, navigate to the respective files. Furthermore, there is a utility file called "utils.go" with functionalities used throughout the other files - for example XOR methods, random numbers generations (though not cryptographically secure), and functionality from the previos assignment.
+To solve the assignment, we made files with structs to represent the different entities of the protocol: Alice, Bob and the Dealer. The overall protocol can be seen in the "handin2.go"-file in the ComputeOTTTBloodTypeCompatability() function. To see the calculation of the different entities, navigate to the respective files. Furthermore, there is a utility file called "utils.go" with functionalities used throughout the other files - for example XOR methods, random numbers generations (though not cryptographically secure), generation and shifting of the matrixes, and functionality from the previous assignment.
 
 
 
