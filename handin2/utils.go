@@ -24,7 +24,7 @@ func ShiftMatrix(r int, s int) [8][8]bool {
 	shiftMatrix := [8][8]bool{}
 	for i := 0; i < 8; i++ {
 		for j := 0; j < 8; j++ {
-			shiftMatrix[i][j] = bloodtype_compatibility[(math.Abs(i-r))%8][(math.Abs(j-s)%8] // Go does not support negative modulo, hence abs.
+			shiftMatrix[i][j] = bloodtype_compatibility[(i-r+8)%8][(j-s+8)%8] // Go does not support negative modulo, so we add 8 to the result and take modulo 8 again
 		}
 	}
 	return shiftMatrix
