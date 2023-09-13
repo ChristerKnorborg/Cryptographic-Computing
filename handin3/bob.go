@@ -42,15 +42,37 @@ func (b *Bob) ReceiveInput(x1 int, x2 int, x3 int) {
 	b.x3 = x3
 }
 
-func (b *Bob) SendValues() (int, int, int, int, int, int) {
-	return b.d1, b.d2, b.d3, b.e1, b.e2, b.e3
+func (b *Bob) MaskXandY() (int, int, int, int, int, int) {
+	d1_b := b.x1 ^ b.UVW[0].U // Bob masks first bit of her x share:  d1 = x1 ⊕ u1
+	d2_b := b.x2 ^ b.UVW[1].U // Bob masks second bit of her x share: d2 = x2 ⊕ u2
+	d3_b := b.x3 ^ b.UVW[2].U // Bob masks third bit of her x share:  d3 = x3 ⊕ u3
+
+	e1_b := b.y1 ^ b.UVW[0].V // Bob masks first bit of her y share:  e1 = y1 ⊕ v1
+	e2_b := b.y2 ^ b.UVW[1].V // Bob masks second bit of her y share: e2 = y2 ⊕ v2
+	e3_b := b.y3 ^ b.UVW[2].V // Bob masks third bit of her y share:  e3 = y3 ⊕ v3
+
+	return d1_b, d2_b, d3_b, e1_b, e2_b, e3_b
+
 }
 
 func (b *Bob) ReceiveValues(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) {
-	b.d1 = d1
-	b.d2 = d2
-	b.d3 = d3
-	b.e1 = e1
-	b.e2 = e2
-	b.e3 = e3
+
+	// Bob receives masked d from Alice and unmasks them using his own shares of d
+	b.d1 = d1 ^ b.d1
+	b.d2 = d2 ^ b.d2
+	b.d3 = d3 ^ b.d3
+
+	// Bob receives masked e from Alice and unmasks them using his own shares of e
+	b.e1 = e1 ^ b.e1
+	b.e2 = e2 ^ b.e2
+	b.e3 = e3 ^ b.e3
+}
+
+func (b *Bob) ComputeZinAND() (int, int, int) {
+	// [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
+	z1 := b.UVW[0].W ^ b.e1&b.x1 ^ b.d1&b.y1 ^ b.e1&b.d1
+	z2 := b.UVW[1].W ^ b.e2&b.x2 ^ b.d2&b.y2 ^ b.e2&b.d2
+	z3 := b.UVW[2].W ^ b.e3&b.x3 ^ b.d3&b.y3 ^ b.e3&b.d3
+
+	return z1, z2, z3
 }
