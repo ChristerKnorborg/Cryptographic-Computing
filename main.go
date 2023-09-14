@@ -52,4 +52,12 @@ func main() {
 		}
 	}
 
+	// Test dealer and Alice and Bob
+	dealer := handin3.Dealer{}
+	alice := handin3.Alice{}
+	bob := handin3.Bob{}
+
+	dealer.Init(5) // Dealer generates two shares of u, v and w for each AND gate - one for bob and one for alice
+	alice.In
+
 }

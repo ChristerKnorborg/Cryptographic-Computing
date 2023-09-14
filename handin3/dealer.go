@@ -44,10 +44,10 @@ func (d *Dealer) GenerateRandomNumbers() {
 
 // The function that returns a single tuple of the numbers u, v and w for Alice
 func (d *Dealer) GetAliceUVW() []UVW {
-	return d.AliceUVW // get first element of aliceNumbers slice
+	return d.AliceUVW // get Alice's numbers
 }
 
 // The function that returns a single tuple of the numbers u, v and w for Bob
 func (d *Dealer) GetBobUVW() []UVW {
-	return d.BobUVW // get first element of bobNumbers slice
+	return d.BobUVW // get  Bob's numbers
 }
