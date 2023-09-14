@@ -18,19 +18,14 @@ func (b *Bob) Init(uvw []UVW) {
 func (b *Bob) TakeInput(y1 int, y2 int, y3 int) (int, int, int) {
 
 	// Generate random shares for Alice from input bits
-	y1_b := rand.Intn(2)
-	y2_b := rand.Intn(2)
-	y3_b := rand.Intn(2)
+	y1_a := rand.Intn(2)
+	y2_a := rand.Intn(2)
+	y3_a := rand.Intn(2)
 
 	// Set Bob's shares
-	b.y1 = y1_b
-	b.y2 = y2_b
-	b.y3 = y3_b
-
-	// Calculate the complementing shares for Alice
-	y1_a := y1 ^ y1_b
-	y2_a := y2 ^ y2_b
-	y3_a := y3 ^ y3_b
+	b.y1 = y1 ^ y1_a
+	b.y2 = y2 ^ y2_a
+	b.y3 = y3 ^ y3_a
 
 	// Return shares to Alice
 	return y1_a, y2_a, y3_a
@@ -69,44 +64,51 @@ func (b *Bob) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) (int, int) 
 	b.e3 = e3 ^ b.e3
 
 	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
-	b.z1 = b.UVW[0].W ^ b.e1&b.x1 ^ b.d1&b.y1 ^ b.e1&b.d1
-	b.z2 = b.UVW[1].W ^ b.e2&b.x2 ^ b.d2&b.y2 ^ b.e2&b.d2
-	b.z3 = b.UVW[2].W ^ b.e3&b.x3 ^ b.d3&b.y3 ^ b.e3&b.d3
+	// The last step is NOT done for BOB as it is XORing with a constant for the recreated e and d
+	b.z1 = b.UVW[0].W ^ (b.e1 & b.x1) ^ (b.d1 & b.y1)
+	b.z2 = b.UVW[1].W ^ (b.e2 & b.x2) ^ (b.d2 & b.y2)
+	b.z3 = b.UVW[2].W ^ (b.e3 & b.x3) ^ (b.d3 & b.y3)
 
 	// Bob prepares the next AND between z1 and z2
-	b.e1 = b.z1
-	b.d1 = b.z2
+	b.d1 = b.z1 ^ b.UVW[3].U
+	b.e1 = b.z2 ^ b.UVW[3].V
 
-	return b.e1, b.d1
+	return b.d1, b.e1
 
 }
 
-func (b *Bob) Stage3(e_a int, d_a int) (int, int) {
+func (b *Bob) Stage3(d_a int, e_a int) (int, int) {
 
 	// Bob receives masked e and d from Alice and unmasks them using his own shares of e
-	b.e1 = b.e1 ^ e_a
 	b.d1 = b.d1 ^ d_a
+	b.e1 = b.e1 ^ e_a
 
 	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
-	b.z1 = b.UVW[3].W ^ b.e1&b.z1 ^ b.d1&b.z2 ^ b.e1&b.d1
+	// The last step is NOT done for BOB as it is XORing with a constant for the recreated e and d
+	b.z1 = b.UVW[3].W ^ (b.e1 & b.z1) ^ (b.d1 & b.z2)
 
 	// Bob prepares the next AND between the result of the AND above (saved in z1) and z3 to be used in the next stage.
-	b.e1 = b.z1 ^ b.UVW[4].V
-	b.d1 = b.z3 ^ b.UVW[4].U
+	b.d1 = b.z1 ^ b.UVW[4].U
+	b.e1 = b.z3 ^ b.UVW[4].V
 
-	return b.e1, b.d1
+	return b.d1, b.e1
 }
 
-func (b *Bob) Stage4(e_a int, e_b int) int {
+func (b *Bob) Stage4(d_a int, e_a int) int {
 
 	// Bob receives masked e from Alice and unmasks them using his own shares of e
+	b.d1 = b.d1 ^ d_a
 	b.e1 = b.e1 ^ e_a
-	b.e1 = b.e1 ^ e_b
 
 	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d.
 	// Notice, the last AND between z1 and z2 is stored in z1.
-	b.z1 = b.UVW[4].W ^ b.e1&b.z1 ^ b.d1&b.z3 ^ b.e1&b.d1
+	// Also notice, the last AND with the recreated e and d values ONLY appear for Alice (e.g. addition with constant)
+	b.z1 = b.UVW[4].W ^ (b.e1 & b.z1) ^ (b.d1 & b.z3)
 
 	return b.z1
 
+}
+
+func (b *Bob) GetYShares() (int, int, int) {
+	return b.y1, b.y2, b.y3
 }

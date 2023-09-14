@@ -13,7 +13,7 @@ func TestABplusCanRecieveFromAll(t *testing.T) {
 }
 
 func TestABminusCanRecieveFromABminusAndOminus(t *testing.T) {
-	validDonors := []bloodtype{ABminus, Aminus, Bminus, Ominus} // AB- can receive from AB-, A-, B-, O-
+	validDonors := []Bloodtype{ABminus, Aminus, Bminus, Ominus} // AB- can receive from AB-, A-, B-, O-
 	for _, donor := range validDonors {
 		if !LookUpBloodType(ABminus, donor) || !ComputeBeDOZaBloodTypeCompatability(ABminus, donor) {
 			t.Errorf("AB- should be able to receive from AB-, A-, B-, O-, failed for donor type: %d", donor)
@@ -22,7 +22,7 @@ func TestABminusCanRecieveFromABminusAndOminus(t *testing.T) {
 }
 
 func TestBplusCanRecieveFromBplusAndOplus(t *testing.T) {
-	validDonors := []bloodtype{Bplus, Bminus, Oplus, Ominus} // B+ can receive from B+, B-, O+, O-
+	validDonors := []Bloodtype{Bplus, Bminus, Oplus, Ominus} // B+ can receive from B+, B-, O+, O-
 	for _, donor := range validDonors {
 		if !LookUpBloodType(Bplus, donor) || !ComputeBeDOZaBloodTypeCompatability(Bplus, donor) {
 			t.Errorf("B+ should be able to receive from B+, B-, O+, O-, failed for donor type: %d", donor)
@@ -31,7 +31,7 @@ func TestBplusCanRecieveFromBplusAndOplus(t *testing.T) {
 }
 
 func TestBminusCanRecieveFromBminusAndOminus(t *testing.T) {
-	validDonors := []bloodtype{Bminus, Ominus} // B- can receive from B-, O-
+	validDonors := []Bloodtype{Bminus, Ominus} // B- can receive from B-, O-
 	for _, donor := range validDonors {
 		if !LookUpBloodType(Bminus, donor) || !ComputeBeDOZaBloodTypeCompatability(Bminus, donor) {
 			t.Errorf("B- should be able to receive from B-, O-, failed for donor type: %d", donor)
@@ -40,7 +40,7 @@ func TestBminusCanRecieveFromBminusAndOminus(t *testing.T) {
 }
 
 func TestAplusCanRecieveFromAplusAndOplus(t *testing.T) {
-	validDonors := []bloodtype{Aplus, Aminus, Oplus, Ominus} // A+ can receive from A+, A-, O+, O-
+	validDonors := []Bloodtype{Aplus, Aminus, Oplus, Ominus} // A+ can receive from A+, A-, O+, O-
 	for _, donor := range validDonors {
 		if !LookUpBloodType(Aplus, donor) || !ComputeBeDOZaBloodTypeCompatability(Aplus, donor) {
 			t.Errorf("A+ should be able to receive from A+, A-, O+, O-, failed for donor type: %d", donor)
@@ -49,7 +49,7 @@ func TestAplusCanRecieveFromAplusAndOplus(t *testing.T) {
 }
 
 func TestAminusCanRecieveFromAminusAndOminus(t *testing.T) {
-	validDonors := []bloodtype{Aminus, Ominus} // A- can receive from A-, O-
+	validDonors := []Bloodtype{Aminus, Ominus} // A- can receive from A-, O-
 	for _, donor := range validDonors {
 		if !LookUpBloodType(Aminus, donor) || !ComputeBeDOZaBloodTypeCompatability(Aminus, donor) {
 			t.Errorf("A- should be able to receive from A-, O-, failed for donor type: %d", donor)
@@ -58,7 +58,7 @@ func TestAminusCanRecieveFromAminusAndOminus(t *testing.T) {
 }
 
 func TestOplusCanRecieveFromOplusAndOminus(t *testing.T) {
-	validDonors := []bloodtype{Oplus, Ominus} // O+ can receive from O+, O-
+	validDonors := []Bloodtype{Oplus, Ominus} // O+ can receive from O+, O-
 	for _, donor := range validDonors {
 		if !LookUpBloodType(Oplus, donor) || !ComputeBeDOZaBloodTypeCompatability(Oplus, donor) {
 			t.Errorf("O+ should be able to receive from O+, O-, failed for donor type: %d", donor)

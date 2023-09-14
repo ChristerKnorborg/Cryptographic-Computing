@@ -1,7 +1,7 @@
 package handin3
 
 // One-Time Truth Table (OTTT) protocol that check if recipient blood type can receive donor blood type
-func ComputeBeDOZaBloodTypeCompatability(recipient bloodtype, donor bloodtype) bool {
+func ComputeBeDOZaBloodTypeCompatability(recipient Bloodtype, donor Bloodtype) bool {
 	x := int(recipient) // Alice input (blood type)
 	y := int(donor)     // Bob input (blood type)
 
@@ -45,20 +45,20 @@ func ComputeBeDOZaBloodTypeCompatability(recipient bloodtype, donor bloodtype) b
 	   Alice also negates the output of the AND gates (XOR with constant 1).
 	   Finally, they prepare the next AND between ???? */
 
-	e_a, d_a := alice.Stage2(d1_b, d2_b, d3_b, e1_b, e2_b, e3_b)
-	e_b, d_b := bob.Stage2(d1_a, d2_a, d3_a, e1_a, e2_a, e3_a)
+	d_a, e_a := alice.Stage2(d1_b, d2_b, d3_b, e1_b, e2_b, e3_b)
+	d_b, e_b := bob.Stage2(d1_a, d2_a, d3_a, e1_a, e2_a, e3_a)
 
 	/* Stage 3: Alice and Bob computes the AND of z1 and z2 of the 3 outputs from the the previous layer.
 	   Notice, the the final AND with z3 is the succeding stage. */
 
-	// Alice and Bob receive masked values from their counterpart
-	e_a2, d_a2 := alice.Stage3(e_b, d_b)
-	e_b2, d_b2 := bob.Stage3(e_a, d_a)
+	// Alice and Bob receive masked values from their counterpart and prepare the next AND between the result of this AND and z3
+	d_a2, e_a2 := alice.Stage3(d_b, e_b)
+	d_b2, e_b2 := bob.Stage3(d_a, e_a)
 
 	/* Stage 4: Alice and Bob computes the AND of last of the 3 outputs from the Stage2 and the output from the Stage3 */
 
-	z_a := alice.Stage4(e_b2, d_b2)
-	z_b := bob.Stage4(e_a2, d_a2)
+	z_a := alice.Stage4(d_b2, e_b2)
+	z_b := bob.Stage4(d_a2, e_a2)
 
 	z := z_a ^ z_b // Alice and Bob XOR their shares of the output to get the final output
 

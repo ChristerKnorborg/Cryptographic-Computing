@@ -5,20 +5,20 @@ func XOR(x bool, y bool) bool {
 	return (x || y) && !(x && y)
 }
 
-type bloodtype uint8
+type Bloodtype uint8
 
 const (
-	ABplus  bloodtype = 0
-	ABminus bloodtype = 1
-	Bplus   bloodtype = 2
-	Bminus  bloodtype = 3
-	Aplus   bloodtype = 4
-	Aminus  bloodtype = 5
-	Oplus   bloodtype = 6
-	Ominus  bloodtype = 7
+	ABplus  Bloodtype = 0
+	ABminus Bloodtype = 1
+	Bplus   Bloodtype = 2
+	Bminus  Bloodtype = 3
+	Aplus   Bloodtype = 4
+	Aminus  Bloodtype = 5
+	Oplus   Bloodtype = 6
+	Ominus  Bloodtype = 7
 )
 
-func ComputeBloodTypeCompatibility(recipient bloodtype, donor bloodtype) int {
+func ComputeBloodtypeCompatibility(recipient Bloodtype, donor Bloodtype) int {
 	// Extract the bits from Alice (recipient)
 	x := int(recipient)
 	y := int(donor)
@@ -35,8 +35,8 @@ func ComputeBloodTypeCompatibility(recipient bloodtype, donor bloodtype) int {
 	return (1 ^ ((1 ^ x1) & y1)) & (1 ^ ((1 ^ x2) & y2)) & (1 ^ ((1 ^ x3) & y3))
 }
 
-// bloodtype compatibility lookup table
-var bloodtype_compatibility [8][8]bool = [8][8]bool{
+// Bloodtype compatibility lookup table
+var Bloodtype_compatibility [8][8]bool = [8][8]bool{
 	{true, true, true, true, true, true, true, true},        // AB+
 	{false, true, false, true, false, true, false, true},    // AB-
 	{false, false, true, true, false, false, true, true},    // B+
@@ -47,7 +47,7 @@ var bloodtype_compatibility [8][8]bool = [8][8]bool{
 	{false, false, false, false, false, false, false, true}, // O-
 }
 
-// LookUpBloodType checks if recipient blood type can receive donor blood type using lookup table
-func LookUpBloodType(recipient bloodtype, donor bloodtype) bool {
-	return bloodtype_compatibility[recipient][donor]
+// LookUpBloodtype checks if recipient blood type can receive donor blood type using lookup table
+func LookUpBloodType(recipient Bloodtype, donor Bloodtype) bool {
+	return Bloodtype_compatibility[recipient][donor]
 }
