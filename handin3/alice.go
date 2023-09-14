@@ -33,6 +33,12 @@ func (a *Alice) TakeInput(x1 int, x2 int, x3 int) (int, int, int) {
 	x2_b := x2 - x2_a
 	x3_b := x3 - x3_a
 
+	// Make sure to mod by 2 to keep it a single bit.
+	// The + 2 is to make sure it's positive since golang's modulo operator does not support negative
+	x1_b = (x1_b + 2) % 2
+	x2_b = (x2_b + 2) % 2
+	x3_b = (x3_b + 2) % 2
+
 	// Return shares to Bob
 	return x1_b, x2_b, x3_b
 }
@@ -46,9 +52,9 @@ func (a *Alice) ReceiveInputShares(y1 int, y2 int, y3 int) {
 
 func (a *Alice) Stage1() (int, int, int, int, int, int) {
 
-	a.x1 = a.x1 ^ 1
-	a.x2 = a.x2 ^ 1
-	a.x3 = a.x3 ^ 1
+	a.x1 = a.x1 ^ 1 // Alice negates her first input bit by XORing with constant 1
+	a.x2 = a.x2 ^ 1 // Alice negates her second input bit by XORing with constant 1
+	a.x3 = a.x3 ^ 1 // Alice negates her third input bit by XORing with constant 1
 
 	d1_a := a.x1 ^ a.UVW[0].U // Alice masks first bit of her x share:  d1 = x1 ⊕ u1
 	d2_a := a.x2 ^ a.UVW[1].U // Alice masks second bit of her x share: d2 = x2 ⊕ u2
@@ -61,7 +67,7 @@ func (a *Alice) Stage1() (int, int, int, int, int, int) {
 	return d1_a, d2_a, d3_a, e1_a, e2_a, e3_a
 }
 
-func (a *Alice) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) {
+func (a *Alice) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) (int, int) {
 
 	// Alice receives masked d from Bob and unmasks them using her own shares of d
 	a.d1 = d1 ^ a.d1
@@ -83,18 +89,37 @@ func (a *Alice) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) {
 	a.z2 = a.z2 ^ 1
 	a.z3 = a.z3 ^ 1
 
+	// Alice prepares the next AND between z1 and z2 (z3 is not used until the next layer)
+	a.e1 = a.z1 ^ a.UVW[3].V
+	a.d1 = a.z2 ^ a.UVW[3].U
+
+	return a.e1, a.d1
 }
 
-func (a *Alice) MaskZ1AndZ2() (int, int) {
-	// Alice masks the output of the AND gates
-	e := a.z1 ^ a.UVW[3].U
-	d := a.z2 ^ a.UVW[3].V
+func (a *Alice) Stage3(e_b int, d_b int) (int, int) {
 
-	return e, d
+	// Alice receives masked e and d from Bob and unmasks them using her own shares of e
+	a.e1 = a.e1 ^ e_b
+	a.d1 = a.d1 ^ d_b
+
+	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
+	a.z1 = a.UVW[3].W ^ a.e1&a.z1 ^ a.d1&a.z2 ^ a.e1&a.d1
+
+	// Alice prepares the next AND between the result of the AND above (saved in z1) and z3 to be used in the next stage.
+	a.e1 = a.z1 ^ a.UVW[4].V
+	a.d1 = a.z3 ^ a.UVW[4].U
+
+	return a.e1, a.d1
 }
 
-func (a *Alice) ReceiveMasked(e int, d int) {
-	a.e1 = e ^ a.e1
-	a.d1 = d ^ a.d1
+func (a *Alice) Stage4(e_b int, d_b int) int {
+	// Alice receives masked e and d from Bob and unmasks them using her own shares of e
+	a.e1 = a.e1 ^ e_b
+	a.d1 = a.d1 ^ d_b
 
+	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d.
+	// Notice, the result from the AND between z1 and z2 is saved in z1.
+	a.z1 = a.UVW[4].W ^ a.e1&a.z1 ^ a.d1&a.z3 ^ a.e1&a.d1
+
+	return a.z1
 }

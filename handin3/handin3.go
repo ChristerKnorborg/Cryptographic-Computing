@@ -42,32 +42,25 @@ func ComputeBeDOZaBloodTypeCompatability(recipient bloodtype, donor bloodtype) b
 
 	/* Stage 2: Alice and Bob receive masked values from their counterpart.
 	   Then, they both compute the output shares [Z] of the 3 AND gates.
-	   Finally, Alice also negates the output of the AND gates (XOR with constant 1) */
+	   Alice also negates the output of the AND gates (XOR with constant 1).
+	   Finally, they prepare the next AND between ???? */
 
-	alice.Stage2(d1_b, d2_b, d3_b, e1_b, e2_b, e3_b)
-	bob.Stage2(d1_a, d2_a, d3_a, e1_a, e2_a, e3_a)
+	e_a, d_a := alice.Stage2(d1_b, d2_b, d3_b, e1_b, e2_b, e3_b)
+	e_b, d_b := bob.Stage2(d1_a, d2_a, d3_a, e1_a, e2_a, e3_a)
 
-	// Stage 3: Alice and Bob computes the AND of 2 of the 3 outputs from the the previous layer (the final AND is in layer4)
-	// Currently, Alice and Bob both have a share of [z], from the previous layer.
-
-	// Alice and Bob mask their respective shares of [z] s.t. d = z ⊕ u, and e = z ⊕ v.
-	e_a, d_a := alice.MaskZ1AndZ2() // Alice masks the output of the AND gates
-	e_b, d_b := bob.MaskZ1AndZ2()   // Bob masks the output of the AND gates
+	/* Stage 3: Alice and Bob computes the AND of z1 and z2 of the 3 outputs from the the previous layer.
+	   Notice, the the final AND with z3 is the succeding stage. */
 
 	// Alice and Bob receive masked values from their counterpart
-	alice.ReceiveMasked(e_b, d_b) // Alice receives masked values from Bob and unmasks them using her own shares of d and e
-	bob.ReceiveMasked(e_a, d_a)   // Bob receives masked values from Aliceand unmasks them using his own shares of d and e
+	e_a2, d_a2 := alice.Stage3(e_b, d_b)
+	e_b2, d_b2 := bob.Stage3(e_a, d_a)
 
-	// Alice and Bob compute the output shares.
-	alice.ComputeZinAND() //MISSING
-	bob.ComputeZinAND()   //MISSING
+	/* Stage 4: Alice and Bob computes the AND of last of the 3 outputs from the Stage2 and the output from the Stage3 */
 
-	// Layer 4: Alice and Bob computes the AND of last of the 3 outputs from the layer2 and the output from the layer3
-	// Currently, Alice and Bob both have a share of [z], from the previous layer.
-	e_a, d_a = alice.MaskZ1AndZ2() // Alice masks the output of the AND gates
-	e_b, d_b = bob.MaskZ1AndZ2()   // Bob masks the output of the AND gates
+	z_a := alice.Stage4(e_b2, d_b2)
+	z_b := bob.Stage4(e_a2, d_a2)
 
-	// Alice and Bob receive masked values from their counterpart
-	alice.ReceiveMasked(e_b, d_b) // Alice receives masked values from Bob and unmasks them using her own shares of d and e
+	z := z_a ^ z_b // Alice and Bob XOR their shares of the output to get the final output
 
+	return z == 1 // return true if z is 1, else return false
 }

@@ -37,7 +37,8 @@ func (d *Dealer) GenerateRandomNumbers() {
 	v_B := v - v_A
 	w_B := w - w_A
 
-	// Make sure to mod by 2 to keep it a single bit
+	// Make sure to mod by 2 to keep it a single bit.
+	// The + 2 is to make sure it's positive since golang's modulo operator does not support negative
 	u_B = (u_B + 2) % 2
 	v_B = (v_B + 2) % 2
 	w_B = (w_B + 2) % 2

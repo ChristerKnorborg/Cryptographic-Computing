@@ -32,6 +32,12 @@ func (b *Bob) TakeInput(y1 int, y2 int, y3 int) (int, int, int) {
 	y2_a := y2 - y2_b
 	y3_a := y3 - y3_b
 
+	// Make sure to mod by 2 to keep it a single bit.
+	// The + 2 is to make sure it's positive since golang's modulo operator does not support negative
+	y1_a = (y1_a + 2) % 2
+	y2_a = (y2_a + 2) % 2
+	y3_a = (y3_a + 2) % 2
+
 	// Return shares to Alice
 	return y1_a, y2_a, y3_a
 }
@@ -56,7 +62,7 @@ func (b *Bob) Stage1() (int, int, int, int, int, int) {
 
 }
 
-func (b *Bob) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) {
+func (b *Bob) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) (int, int) {
 
 	// Bob receives masked d from Alice and unmasks them using his own shares of d
 	b.d1 = d1 ^ b.d1
@@ -72,18 +78,41 @@ func (b *Bob) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) {
 	b.z1 = b.UVW[0].W ^ b.e1&b.x1 ^ b.d1&b.y1 ^ b.e1&b.d1
 	b.z2 = b.UVW[1].W ^ b.e2&b.x2 ^ b.d2&b.y2 ^ b.e2&b.d2
 	b.z3 = b.UVW[2].W ^ b.e3&b.x3 ^ b.d3&b.y3 ^ b.e3&b.d3
+
+	// Bob prepares the next AND between z1 and z2
+	b.e1 = b.z1
+	b.d1 = b.z2
+
+	return b.e1, b.d1
+
 }
 
-func (b *Bob) MaskZ1AndZ2() (int, int) {
-	// Alice masks the output of the AND gates
-	e := b.z1 ^ b.UVW[3].U
-	d := b.z2 ^ b.UVW[3].V
+func (b *Bob) Stage3(e_a int, d_a int) (int, int) {
 
-	return e, d
+	// Bob receives masked e and d from Alice and unmasks them using his own shares of e
+	b.e1 = b.e1 ^ e_a
+	b.d1 = b.d1 ^ d_a
+
+	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
+	b.z1 = b.UVW[3].W ^ b.e1&b.z1 ^ b.d1&b.z2 ^ b.e1&b.d1
+
+	// Bob prepares the next AND between the result of the AND above (saved in z1) and z3 to be used in the next stage.
+	b.e1 = b.z1 ^ b.UVW[4].V
+	b.d1 = b.z3 ^ b.UVW[4].U
+
+	return b.e1, b.d1
 }
 
-func (b *Bob) ReceiveMasked(e int, d int) {
-	b.e1 = e ^ b.e1
-	b.d1 = d ^ b.d1
+func (b *Bob) Stage4(e_a int, e_b int) int {
+
+	// Bob receives masked e from Alice and unmasks them using his own shares of e
+	b.e1 = b.e1 ^ e_a
+	b.e1 = b.e1 ^ e_b
+
+	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d.
+	// Notice, the last AND between z1 and z2 is stored in z1.
+	b.z1 = b.UVW[4].W ^ b.e1&b.z1 ^ b.d1&b.z3 ^ b.e1&b.d1
+
+	return b.z1
 
 }
