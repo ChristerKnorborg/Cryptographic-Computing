@@ -8,6 +8,7 @@ type Bob struct {
 	y1, y2, y3 int // Bob shares of his input bits from his input y
 	e1, e2, e3 int // e-values to be received from Alice
 	d1, d2, d3 int // d-values to be received from Alice
+	z1, z2, z3 int // z-values to be computed after first layer of AND gates with input bits.
 }
 
 func (b *Bob) Init(uvw []UVW) {
@@ -36,13 +37,13 @@ func (b *Bob) TakeInput(y1 int, y2 int, y3 int) (int, int, int) {
 }
 
 // Bob receives Alice's shares of her input x in bits x1, x2 and x3
-func (b *Bob) ReceiveInput(x1 int, x2 int, x3 int) {
+func (b *Bob) ReceiveInputShares(x1 int, x2 int, x3 int) {
 	b.x1 = x1
 	b.x2 = x2
 	b.x3 = x3
 }
 
-func (b *Bob) MaskXandY() (int, int, int, int, int, int) {
+func (b *Bob) Stage1() (int, int, int, int, int, int) {
 	d1_b := b.x1 ^ b.UVW[0].U // Bob masks first bit of her x share:  d1 = x1 ⊕ u1
 	d2_b := b.x2 ^ b.UVW[1].U // Bob masks second bit of her x share: d2 = x2 ⊕ u2
 	d3_b := b.x3 ^ b.UVW[2].U // Bob masks third bit of her x share:  d3 = x3 ⊕ u3
@@ -55,7 +56,7 @@ func (b *Bob) MaskXandY() (int, int, int, int, int, int) {
 
 }
 
-func (b *Bob) ReceiveValues(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) {
+func (b *Bob) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) {
 
 	// Bob receives masked d from Alice and unmasks them using his own shares of d
 	b.d1 = d1 ^ b.d1
@@ -66,13 +67,23 @@ func (b *Bob) ReceiveValues(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) {
 	b.e1 = e1 ^ b.e1
 	b.e2 = e2 ^ b.e2
 	b.e3 = e3 ^ b.e3
+
+	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
+	b.z1 = b.UVW[0].W ^ b.e1&b.x1 ^ b.d1&b.y1 ^ b.e1&b.d1
+	b.z2 = b.UVW[1].W ^ b.e2&b.x2 ^ b.d2&b.y2 ^ b.e2&b.d2
+	b.z3 = b.UVW[2].W ^ b.e3&b.x3 ^ b.d3&b.y3 ^ b.e3&b.d3
 }
 
-func (b *Bob) ComputeZinAND() (int, int, int) {
-	// [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
-	z1 := b.UVW[0].W ^ b.e1&b.x1 ^ b.d1&b.y1 ^ b.e1&b.d1
-	z2 := b.UVW[1].W ^ b.e2&b.x2 ^ b.d2&b.y2 ^ b.e2&b.d2
-	z3 := b.UVW[2].W ^ b.e3&b.x3 ^ b.d3&b.y3 ^ b.e3&b.d3
+func (b *Bob) MaskZ1AndZ2() (int, int) {
+	// Alice masks the output of the AND gates
+	e := b.z1 ^ b.UVW[3].U
+	d := b.z2 ^ b.UVW[3].V
 
-	return z1, z2, z3
+	return e, d
+}
+
+func (b *Bob) ReceiveMasked(e int, d int) {
+	b.e1 = e ^ b.e1
+	b.d1 = d ^ b.d1
+
 }

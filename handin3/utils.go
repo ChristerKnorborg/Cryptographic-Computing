@@ -34,3 +34,20 @@ func ComputeBloodTypeCompatibility(recipient bloodtype, donor bloodtype) int {
 
 	return (1 ^ ((1 ^ x1) & y1)) & (1 ^ ((1 ^ x2) & y2)) & (1 ^ ((1 ^ x3) & y3))
 }
+
+// bloodtype compatibility lookup table
+var bloodtype_compatibility [8][8]bool = [8][8]bool{
+	{true, true, true, true, true, true, true, true},        // AB+
+	{false, true, false, true, false, true, false, true},    // AB-
+	{false, false, true, true, false, false, true, true},    // B+
+	{false, false, false, true, false, false, false, true},  // B-
+	{false, false, false, false, true, true, true, true},    // A+
+	{false, false, false, false, false, true, false, true},  // A-
+	{false, false, false, false, false, false, true, true},  // O+
+	{false, false, false, false, false, false, false, true}, // O-
+}
+
+// LookUpBloodType checks if recipient blood type can receive donor blood type using lookup table
+func LookUpBloodType(recipient bloodtype, donor bloodtype) bool {
+	return bloodtype_compatibility[recipient][donor]
+}
