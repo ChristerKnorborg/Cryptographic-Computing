@@ -96,8 +96,6 @@ func (a *Alice) Stage3(d_b int, e_b int) (int, int) {
 	// Notice, the last AND with the recreated e and d values ONLY appear for Alice (e.g. addition with constant)
 	a.z1 = a.UVW[3].W ^ (a.e1 & a.z1) ^ (a.d1 & a.z2) ^ (a.e1 & a.d1)
 
-	println("z false", a.z1)
-
 	// Alice prepares the next AND between the result of the AND above (saved in z1) and z3 to be used in the next stage.
 	a.d1 = a.z1 ^ a.UVW[4].U
 	a.e1 = a.z3 ^ a.UVW[4].V

@@ -136,6 +136,7 @@ func (P *Party) Phase3(Bd0 int, Be0 int) (int, int) {
 	P.d0 = P.d0 ^ Bd0
 	P.e0 = P.e0 ^ Be0
 
+	println("d1, e1", P.d0, P.e0)
 	//println("z true", P.z1, P.z2)
 
 	P.z0 = P.T0.w ^ (P.e0 & P.T0.u) ^ (P.d0 & P.T0.v)
@@ -143,7 +144,7 @@ func (P *Party) Phase3(Bd0 int, Be0 int) (int, int) {
 		P.z0 = P.z0 ^ (P.d0 & P.e0)
 	}
 
-	println("z", P.isBob, P.z0)
+	//println("z", P.isBob, P.z0)
 	// Compute z0 & z2
 	P.T0, P.triples = P.triples[0], P.triples[1:]
 	P.d0 = P.z0 ^ P.T0.u
