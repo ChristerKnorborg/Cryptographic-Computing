@@ -65,13 +65,17 @@ func (b *Bob) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) (int, int) 
 
 	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
 	// The last step is NOT done for BOB as it is XORing with a constant for the recreated e and d
-	b.z1 = b.UVW[0].W ^ (b.e1 & b.x1) ^ (b.d1 & b.y1)
-	b.z2 = b.UVW[1].W ^ (b.e2 & b.x2) ^ (b.d2 & b.y2)
-	b.z3 = b.UVW[2].W ^ (b.e3 & b.x3) ^ (b.d3 & b.y3)
+	b.z1 = b.UVW[0].W ^ (b.e1 & b.UVW[0].U) ^ (b.d1 & b.UVW[0].V)
+	b.z2 = b.UVW[1].W ^ (b.e2 & b.UVW[1].U) ^ (b.d2 & b.UVW[1].V)
+	b.z3 = b.UVW[2].W ^ (b.e3 & b.UVW[2].U) ^ (b.d3 & b.UVW[2].V)
+
+	println("z1, z2, z3", b.z1, b.z2, b.z3)
 
 	// Bob prepares the next AND between z1 and z2
 	b.d1 = b.z1 ^ b.UVW[3].U
 	b.e1 = b.z2 ^ b.UVW[3].V
+
+	println("UVW:", b.UVW[3].U, b.UVW[3].V, b.UVW[3].W)
 
 	return b.d1, b.e1
 
