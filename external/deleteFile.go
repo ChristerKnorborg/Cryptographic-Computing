@@ -166,6 +166,7 @@ func DebugExternal() {
 
 	A := Party{}
 	B := Party{}
+	B.isBob = true
 
 	x1_a, x2_a, x3_a := 0, 0, 0
 	x1_b, x2_b, x3_b := 1, 1, 1
