@@ -118,9 +118,9 @@ func Debug() bool {
 
 	d_a, e_a := alice.Stage2(d1_b, d2_b, d3_b, e1_b, e2_b, e3_b)
 	d_b, e_b := bob.Stage2(d1_a, d2_a, d3_a, e1_a, e2_a, e3_a)
-	println("Phase2 ours:")
-	println("d_a, e_a", d_a, e_a)
-	println("d_b, e_b", d_b, e_b)
+	// println("Phase2 ours:")
+	// println("d_a, e_a", d_a, e_a)
+	// println("d_b, e_b", d_b, e_b)
 
 	/* Stage 3: Alice and Bob computes the AND of z1 and z2 of the 3 outputs from the the previous layer.
 	   Notice, the the final AND with z3 is the succeding stage. */
@@ -128,6 +128,9 @@ func Debug() bool {
 	// Alice and Bob receive masked values from their counterpart and prepare the next AND between the result of this AND and z3
 	d_a2, e_a2 := alice.Stage3(d_b, e_b)
 	d_b2, e_b2 := bob.Stage3(d_a, e_a)
+	println("Phase3 ours:")
+	println("d_a, e_a", d_a2, e_a2)
+	println("d_b, e_b", d_b2, e_b2)
 
 	/* Stage 4: Alice and Bob computes the AND of last of the 3 outputs from the Stage2 and the output from the Stage3 */
 

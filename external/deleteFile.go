@@ -122,14 +122,11 @@ func (P *Party) Phase2(Bd0 int, Be0 int, Bd1 int, Be1 int, Bd2 int, Be2 int) (in
 		P.z1 = P.z1 ^ 1
 		P.z2 = P.z2 ^ 1
 	}
-	println("z1, z2, z3", P.z0, P.z1, P.z2)
 
 	// Compute z0 & z1
 	P.T0, P.triples = P.triples[0], P.triples[1:]
 	P.d0 = P.z0 ^ P.T0.u
 	P.e0 = P.z1 ^ P.T0.v
-
-	println("triple: ", P.T0.u, P.T0.v, P.T0.w)
 
 	return P.d0, P.e0
 }
@@ -138,11 +135,15 @@ func (P *Party) Phase3(Bd0 int, Be0 int) (int, int) {
 	// Finalize z0 & z1
 	P.d0 = P.d0 ^ Bd0
 	P.e0 = P.e0 ^ Be0
+
+	//println("z true", P.z1, P.z2)
+
 	P.z0 = P.T0.w ^ (P.e0 & P.T0.u) ^ (P.d0 & P.T0.v)
 	if !P.isBob {
 		P.z0 = P.z0 ^ (P.d0 & P.e0)
 	}
 
+	println("z", P.isBob, P.z0)
 	// Compute z0 & z2
 	P.T0, P.triples = P.triples[0], P.triples[1:]
 	P.d0 = P.z0 ^ P.T0.u
@@ -199,13 +200,15 @@ func DebugExternal() {
 
 	dAp2, eAp2 := A.Phase2(dB0, eB0, dB1, eB1, dB2, eB2)
 	dBp2, eBp2 := B.Phase2(dA0, eA0, dA1, eA1, dA2, eA2)
-	println("Phase2 external:")
-	println("d_a, e_a", dAp2, eAp2)
-	println("d_b, e_b", dBp2, eBp2)
+	// println("Phase2 external:")
+	// println("d_a, e_a", dAp2, eAp2)
+	// println("d_b, e_b", dBp2, eBp2)
 
 	dAp3, eAp3 := A.Phase3(dBp2, eBp2)
 	dBp3, eBp3 := B.Phase3(dAp2, eAp2)
-	//println("Phase3 done")
+	println("Phase3 External:")
+	println("d_a, e_a", dAp3, eAp3)
+	println("d_b, e_b", dBp3, eBp3)
 
 	outA := A.Phase4(dBp3, eBp3)
 	outB := B.Phase4(dAp3, eAp3)

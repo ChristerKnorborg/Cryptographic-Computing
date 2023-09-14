@@ -78,12 +78,10 @@ func (a *Alice) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) (int, int
 	a.z1 = a.z1 ^ 1
 	a.z2 = a.z2 ^ 1
 	a.z3 = a.z3 ^ 1
-	println("z1, z2, z3", a.z1, a.z2, a.z3)
+
 	// Alice prepares the next AND between z1 and z2 (z3 is not used until the next layer)
 	a.d1 = a.z1 ^ a.UVW[3].U
 	a.e1 = a.z2 ^ a.UVW[3].V
-
-	println("UVW: ", a.UVW[3].U, a.UVW[3].V, a.UVW[3].W)
 
 	return a.d1, a.e1
 }
@@ -97,6 +95,8 @@ func (a *Alice) Stage3(d_b int, e_b int) (int, int) {
 	// The output share is computed: [z] = [w] ⊕ e & [x] ⊕ d & [y] ⊕ e & d
 	// Notice, the last AND with the recreated e and d values ONLY appear for Alice (e.g. addition with constant)
 	a.z1 = a.UVW[3].W ^ (a.e1 & a.z1) ^ (a.d1 & a.z2) ^ (a.e1 & a.d1)
+
+	println("z false", a.z1)
 
 	// Alice prepares the next AND between the result of the AND above (saved in z1) and z3 to be used in the next stage.
 	a.d1 = a.z1 ^ a.UVW[4].U
