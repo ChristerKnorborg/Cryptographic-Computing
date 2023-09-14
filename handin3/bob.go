@@ -28,15 +28,9 @@ func (b *Bob) TakeInput(y1 int, y2 int, y3 int) (int, int, int) {
 	b.y3 = y3_b
 
 	// Calculate the complementing shares for Alice
-	y1_a := y1 - y1_b
-	y2_a := y2 - y2_b
-	y3_a := y3 - y3_b
-
-	// Make sure to mod by 2 to keep it a single bit.
-	// The + 2 is to make sure it's positive since golang's modulo operator does not support negative
-	y1_a = (y1_a + 2) % 2
-	y2_a = (y2_a + 2) % 2
-	y3_a = (y3_a + 2) % 2
+	y1_a := y1 ^ y1_b
+	y2_a := y2 ^ y2_b
+	y3_a := y3 ^ y3_b
 
 	// Return shares to Alice
 	return y1_a, y2_a, y3_a
