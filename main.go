@@ -57,7 +57,20 @@ func main() {
 	alice := handin3.Alice{}
 	bob := handin3.Bob{}
 
-	dealer.Init(5) // Dealer generates two shares of u, v and w for each AND gate - one for bob and one for alice
-	alice.In
+	dealer.Init(5)                   // Dealer generates two shares of u, v and w for each AND gate - one for bob and one for alice
+	alice.Init(dealer.GetAliceUVW()) // Alice gets the shares of u's, v's and w's from the dealer
+	bob.Init(dealer.GetBobUVW())     // Bob gets the shares of u's, v's and w's from the dealer
+
+	dealerUMW := dealer.GetSolutionUVW()
+
+	for i := 0; i < 5; i++ {
+		u := alice.UVW[i].U ^ bob.UVW[i].U
+		v := alice.UVW[i].V ^ bob.UVW[i].V
+		w := alice.UVW[i].W ^ bob.UVW[i].W
+
+		println("u:", u == dealerUMW[i].U)
+		println("v:", v == dealerUMW[i].V)
+		println("W:", w == dealerUMW[i].W)
+	}
 
 }
