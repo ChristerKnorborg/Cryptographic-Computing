@@ -7,9 +7,8 @@ type UVW struct {
 }
 
 type Dealer struct {
-	AliceUVW    []UVW // alice's u, v, w value pairs for each andGate
-	BobUVW      []UVW // bob's u, v, w value pairs for each andGate
-	solutionUVM []UVW // solution u, v, w value pairs for each andGate
+	AliceUVW []UVW // alice's u, v, w value pairs for each andGate
+	BobUVW   []UVW // bob's u, v, w value pairs for each andGate
 }
 
 func (d *Dealer) Init(andGates int) {
@@ -27,8 +26,6 @@ func (d *Dealer) GenerateRandomNumbers() {
 	u := rand.Intn(2)
 	v := rand.Intn(2)
 	w := u & v // w = u * v
-
-	d.solutionUVM = append(d.solutionUVM, UVW{u, v, w})
 
 	// Generate random shares for Alice
 	u_A := rand.Intn(2)
@@ -53,9 +50,4 @@ func (d *Dealer) GetAliceUVW() []UVW {
 // The function that returns a single tuple of the numbers u, v and w for Bob
 func (d *Dealer) GetBobUVW() []UVW {
 	return d.BobUVW // get  Bob's numbers
-}
-
-// The function that returns a single tuple of the numbers u, v and w for Bob
-func (d *Dealer) GetSolutionUVW() []UVW {
-	return d.solutionUVM // get  Bob's numbers
 }

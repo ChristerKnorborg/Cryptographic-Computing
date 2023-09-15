@@ -1,21 +1,16 @@
 package handin3
 
-// XOR function that returns true if x and y are different, and false if they are the same
-func XOR(x bool, y bool) bool {
-	return (x || y) && !(x && y)
-}
-
 type Bloodtype uint8
 
 const (
-	ABplus  Bloodtype = 0
-	ABminus Bloodtype = 1
-	Bplus   Bloodtype = 2
-	Bminus  Bloodtype = 3
-	Aplus   Bloodtype = 4
-	Aminus  Bloodtype = 5
-	Oplus   Bloodtype = 6
-	Ominus  Bloodtype = 7
+	Ominus  Bloodtype = 0
+	Oplus   Bloodtype = 1
+	Bminus  Bloodtype = 2
+	Bplus   Bloodtype = 3
+	Aminus  Bloodtype = 4
+	Aplus   Bloodtype = 5
+	ABminus Bloodtype = 6
+	ABplus  Bloodtype = 7
 )
 
 func ComputeBloodtypeCompatibility(recipient Bloodtype, donor Bloodtype) int {
@@ -37,17 +32,40 @@ func ComputeBloodtypeCompatibility(recipient Bloodtype, donor Bloodtype) int {
 
 // Bloodtype compatibility lookup table
 var Bloodtype_compatibility [8][8]bool = [8][8]bool{
-	{true, true, true, true, true, true, true, true},        // AB+
-	{false, true, false, true, false, true, false, true},    // AB-
-	{false, false, true, true, false, false, true, true},    // B+
-	{false, false, false, true, false, false, false, true},  // B-
-	{false, false, false, false, true, true, true, true},    // A+
-	{false, false, false, false, false, true, false, true},  // A-
-	{false, false, false, false, false, false, true, true},  // O+
-	{false, false, false, false, false, false, false, true}, // O-
+	{true, false, false, false, false, false, false, false}, // O- can receive from O-
+	{true, true, false, false, false, false, false, false},  // O+ can receive from O+, O-
+	{true, false, true, false, false, false, false, false},  // B- can receive from B-, O-
+	{true, true, true, true, false, false, false, false},    // B+ can receive from B+, B-, O+, O-
+	{true, false, false, false, true, false, false, false},  // A- can receive from A-, O-
+	{true, true, false, false, true, true, false, false},    // A+ can receive from A+, A-, O+, O-
+	{true, false, true, false, true, false, true, false},    // AB- can receive from AB-, A-, B-, O-
+	{true, true, true, true, true, true, true, true},        // AB+ can receive from everyone
 }
 
 // LookUpBloodtype checks if recipient blood type can receive donor blood type using lookup table
 func LookUpBloodType(recipient Bloodtype, donor Bloodtype) bool {
 	return Bloodtype_compatibility[recipient][donor]
+}
+
+func GetBloodTypeName(bType Bloodtype) string {
+	switch bType {
+	case ABplus:
+		return "AB+"
+	case ABminus:
+		return "AB-"
+	case Bplus:
+		return "B+"
+	case Bminus:
+		return "B-"
+	case Aplus:
+		return "A+"
+	case Aminus:
+		return "A-"
+	case Oplus:
+		return "O+"
+	case Ominus:
+		return "O-"
+	default:
+		return "Unknown"
+	}
 }

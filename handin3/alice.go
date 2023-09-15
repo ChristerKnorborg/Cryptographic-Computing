@@ -45,15 +45,15 @@ func (a *Alice) Stage1() (int, int, int, int, int, int) {
 	a.x2 = a.x2 ^ 1 // Alice negates her second input bit by XORing with constant 1
 	a.x3 = a.x3 ^ 1 // Alice negates her third input bit by XORing with constant 1
 
-	d1_a := a.x1 ^ a.UVW[0].U // Alice masks first bit of her x share:  d1 = x1 ⊕ u1
-	d2_a := a.x2 ^ a.UVW[1].U // Alice masks second bit of her x share: d2 = x2 ⊕ u2
-	d3_a := a.x3 ^ a.UVW[2].U // Alice masks third bit of her x share:  d3 = x3 ⊕ u3
+	a.d1 = a.x1 ^ a.UVW[0].U // Alice masks first bit of her x share:  d1 = x1 ⊕ u1
+	a.d2 = a.x2 ^ a.UVW[1].U // Alice masks second bit of her x share: d2 = x2 ⊕ u2
+	a.d3 = a.x3 ^ a.UVW[2].U // Alice masks third bit of her x share:  d3 = x3 ⊕ u3
 
-	e1_a := a.y1 ^ a.UVW[0].V // Alice masks first bit of her y share:  e1 = y1 ⊕ v1
-	e2_a := a.y2 ^ a.UVW[1].V // Alice masks second bit of her y share: e2 = y2 ⊕ v2
-	e3_a := a.y3 ^ a.UVW[2].V // Alice masks third bit of her y share:  e3 = y3 ⊕ v3
+	a.e1 = a.y1 ^ a.UVW[0].V // Alice masks first bit of her y share:  e1 = y1 ⊕ v1
+	a.e2 = a.y2 ^ a.UVW[1].V // Alice masks second bit of her y share: e2 = y2 ⊕ v2
+	a.e3 = a.y3 ^ a.UVW[2].V // Alice masks third bit of her y share:  e3 = y3 ⊕ v3
 
-	return d1_a, d2_a, d3_a, e1_a, e2_a, e3_a
+	return a.d1, a.d2, a.d3, a.e1, a.e2, a.e3
 }
 
 func (a *Alice) Stage2(d1 int, d2 int, d3 int, e1 int, e2 int, e3 int) (int, int) {
@@ -114,8 +114,4 @@ func (a *Alice) Stage4(d_b int, e_b int) int {
 	a.z1 = a.UVW[4].W ^ (a.e1 & a.z1) ^ (a.d1 & a.z3) ^ (a.e1 & a.d1)
 
 	return a.z1
-}
-
-func (a *Alice) GetXShares() (int, int, int) {
-	return a.x1, a.x2, a.x3
 }
