@@ -75,3 +75,26 @@ var bloodtype_compatibility [8][8]bool = [8][8]bool{
 func LookUpBloodType(recipient bloodtype, donor bloodtype) bool {
 	return bloodtype_compatibility[recipient][donor]
 }
+
+func GetBloodTypeName(bType bloodtype) string {
+	switch bType {
+	case ABplus:
+		return "AB+"
+	case ABminus:
+		return "AB-"
+	case Bplus:
+		return "B+"
+	case Bminus:
+		return "B-"
+	case Aplus:
+		return "A+"
+	case Aminus:
+		return "A-"
+	case Oplus:
+		return "O+"
+	case Ominus:
+		return "O-"
+	default:
+		return "Unknown"
+	}
+}
