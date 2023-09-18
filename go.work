@@ -2,7 +2,5 @@ go 1.21.0
 
 use (
 	.
-	./handin1
-	./handin2
 	./handin3
 )
