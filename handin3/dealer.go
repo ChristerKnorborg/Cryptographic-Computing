@@ -37,17 +37,17 @@ func (d *Dealer) GenerateRandomNumbers() {
 	v_B := v ^ v_A
 	w_B := w ^ w_A
 
-	// Append u, v, w to alice slice and bob slice
+	// Append u, v, w to alice slice and bob slice to be send to both parties
 	d.AliceUVW = append(d.AliceUVW, UVW{u_A, v_A, w_A})
 	d.BobUVW = append(d.BobUVW, UVW{u_B, v_B, w_B})
 }
 
-// The function that returns a single tuple of the numbers u, v and w for Alice
+// The function that returns a single tuple of the numbers u, v and w for Alice (represents sending to Alice)
 func (d *Dealer) GetAliceUVW() []UVW {
 	return d.AliceUVW // get Alice's numbers
 }
 
-// The function that returns a single tuple of the numbers u, v and w for Bob
+// The function that returns a single tuple of the numbers u, v and w for Bob (represents sending to Bob)
 func (d *Dealer) GetBobUVW() []UVW {
 	return d.BobUVW // get  Bob's numbers
 }

@@ -11,11 +11,12 @@ type Alice struct {
 	z1, z2, z3 int // z-values to be computed after first layer of AND gates with input bits.
 }
 
+// Get random values u, v, w from the dealer and store them in Alice's UVW
 func (a *Alice) Init(uvw []UVW) {
 	a.UVW = uvw
 }
 
-// Generate shares of Alice's input x.
+// Generate shares of Alice's input x. Stores Alice's shares in her x1, x2 and x3 variables, and return Bob's shares.
 func (a *Alice) TakeInput(x1 int, x2 int, x3 int) (int, int, int) {
 
 	// Generate random shares for Alice from input bits

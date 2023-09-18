@@ -11,6 +11,7 @@ type Bob struct {
 	z1, z2, z3 int // z-values to be computed after first layer of AND gates with input bits.
 }
 
+// Get random values u, v, w from the dealer and store them in Bob's UVW
 func (b *Bob) Init(uvw []UVW) {
 	b.UVW = uvw
 }
