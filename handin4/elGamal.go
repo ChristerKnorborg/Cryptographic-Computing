@@ -9,11 +9,19 @@ type ElGamal struct {
 	q *big.Int // order of group G (cyclic subgroup of F_p). Notice, q | p-1
 	p *big.Int // prime number defining the finite field F_p
 	g *big.Int // generator of group G
+
+	r *big.Int // random number r ∈ [0, q-1]
+}
+
+// Ciphertext is a struct containing the two parts of a ciphertext (Due to GO being unable to return a list of tuple values).
+// Used for encrypt since Bob needs to return a list of 8 ciphertexts each containing c1, c2.
+type Ciphertext struct {
+	c1 *big.Int
+	c2 *big.Int
 }
 
 // Generate the public parameters p, q, g for the ElGamal cryptosystem
 func (elGamal *ElGamal) Init() {
-
 	elGamal.q, _ = rand.Prime(rand.Reader, 256) // Generate a large prime q of 256 bits length
 
 	// Generate a prime p such that p = kq + 1 for some k
@@ -36,16 +44,35 @@ func (elGamal *ElGamal) Init() {
 	}
 }
 
-func (elGamal *ElGamal) Gen(sk *big.Int) (*big.Int, *big.Int) {
+func (elGamal *ElGamal) makeSecretKey() *big.Int {
+	sk, _ := rand.Int(rand.Reader, elGamal.q) // sk ∈ [0, q-1]. Notice, we include 0 - even though it is technically a bad choice.
+	return sk
+}
+
+func (elGamal *ElGamal) Gen(sk *big.Int) *big.Int {
 
 	h := new(big.Int).Exp(elGamal.g, sk, elGamal.p) // h = g^sk mod p
 
-	return elGamal.g, h // return public key
+	return h // return public key
 }
 
-func (elGamal *ElGamal) Encrypt(m *big.Int) (*big.Int, *big.Int) {
-	// sample random r ∈ Z_q. Notice, we include 0 - even though it is technically a bad choice for r
-	//r := new(big.Int).Rand(rand.New(rand.NewSource(1)), elGamal.q) // r ∈ [0, q-1]
+// OGen is the oblivious version of Gen. It returns a random "fake" public key
+func (elGamal *ElGamal) OGen() *big.Int {
+
+	// Make a random big int r ∈ [0, p]
+	r, _ := rand.Int(rand.Reader, elGamal.p)
+
+	return r
+}
+
+func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
+	// Generate a random number r ∈ [0, q-1]. Notice, we include 0 - even though it is technically a bad choice.
+	r, _ := rand.Int(rand.Reader, elGamal.q)
+
+	c1 := new(big.Int).Exp(elGamal.g, r, elGamal.p)               // c1 = g^r mod p
+	c2 := new(big.Int).Mul(m, new(big.Int).Exp(pk, r, elGamal.p)) // c2 = m * pk^r mod p
+
+	return &Ciphertext{c1, c2}
 
 }
 

@@ -31,20 +31,23 @@ func ComputeBloodtypeCompatibility(recipient Bloodtype, donor Bloodtype) int {
 }
 
 // Bloodtype compatibility lookup table
-var Bloodtype_compatibility [8][8]bool = [8][8]bool{
-	{true, false, false, false, false, false, false, false}, // O- can receive from O-
-	{true, true, false, false, false, false, false, false},  // O+ can receive from O+, O-
-	{true, false, true, false, false, false, false, false},  // B- can receive from B-, O-
-	{true, true, true, true, false, false, false, false},    // B+ can receive from B+, B-, O+, O-
-	{true, false, false, false, true, false, false, false},  // A- can receive from A-, O-
-	{true, true, false, false, true, true, false, false},    // A+ can receive from A+, A-, O+, O-
-	{true, false, true, false, true, false, true, false},    // AB- can receive from AB-, A-, B-, O-
-	{true, true, true, true, true, true, true, true},        // AB+ can receive from everyone
+var Bloodtype_compatibility [8][8]int = [8][8]int{
+	{1, 0, 0, 0, 0, 0, 0, 0}, // O- can receive from O-
+	{1, 1, 0, 0, 0, 0, 0, 0}, // O+ can receive from O+, O-
+	{1, 0, 1, 0, 0, 0, 0, 0}, // B- can receive from B-, O-
+	{1, 1, 1, 1, 0, 0, 0, 0}, // B+ can receive from B+, B-, O+, O-
+	{1, 0, 0, 0, 1, 0, 0, 0}, // A- can receive from A-, O-
+	{1, 1, 0, 0, 1, 1, 0, 0}, // A+ can receive from A+, A-, O+, O-
+	{1, 0, 1, 0, 1, 0, 1, 0}, // AB- can receive from AB-, A-, B-, O-
+	{1, 1, 1, 1, 1, 1, 1, 1}, // AB+ can receive from everyone
 }
 
 // LookUpBloodtype checks if recipient blood type can receive donor blood type using lookup table
 func LookUpBloodType(recipient Bloodtype, donor Bloodtype) bool {
-	return Bloodtype_compatibility[recipient][donor]
+	if Bloodtype_compatibility[recipient][donor] == 1 {
+		return true
+	}
+	return false
 }
 
 func GetBloodTypeName(bType Bloodtype) string {

@@ -1,24 +1,43 @@
 package handin4
 
-import "math/big"
+import (
+	"math/big"
+)
 
 type Alice struct {
-	q *big.Int // order of group G (cyclic subgroup of F_p). Notice, q | p-1
-	p *big.Int // prime number defining the finite field F_p
-	g *big.Int // generator of group G
+	x  int      // Alice input
+	sk *big.Int // secret key
 }
 
-func (alice *Alice) Init(p *big.Int, q *big.Int, g *big.Int) {
-	alice.q = q
-	alice.p = p
-	alice.g = g
+func (alice *Alice) Init(x int) {
+	// Set alice's input as the x provided by the ObliviousTransfer function
+	alice.x = x
 }
 
-func (alice *Alice) MakePublicKeys(x int) {
-	// Make list of 8 public keys
+func (alice *Alice) Choose(x int, elGamal *ElGamal) []*big.Int {
+
+	// Generate a secret key
+	alice.sk = elGamal.makeSecretKey()
+
+	// Generate Secret Key and real public key
 	publicKeys := make([]*big.Int, 8)
 
-	pkList := make([]interface{}, 8)
+	for i := 0; i < 8; i++ {
+		if i == x {
+			publicKeys[i] = elGamal.Gen(alice.sk)
+		} else {
+			publicKeys[i] = elGamal.OGen()
+		}
+	}
+	return publicKeys
+}
 
-	alice.x = x
+func (alice *Alice) Retrieve(ciphertexts []*Ciphertext, elGamal *ElGamal) *big.Int {
+	ciphertext := ciphertexts[alice.x] // Extract the ciphertext corresponding to Alice's input x from Bob's list of ciphertexts
+	c1, c2 := ciphertext.c1, ciphertext.c2
+
+	// Decrypt the ciphertext
+	result := elGamal.Decrypt(c1, c2, alice.sk)
+	return result
+
 }
