@@ -11,11 +11,22 @@ func main() {
 			bobBloodType := donor
 			ObliviousTransferResult := h4.ObliviousTransfer(aliceBloodType, bobBloodType)
 			lookupTableResult := h4.LookUpBloodType(aliceBloodType, bobBloodType)
-			if ObliviousTransferResult != lookupTableResult {
-				println("Error: Blood type compatibility lookup table and ObliviousTransfer protocol does not agree for recipient: " + h4.GetBloodTypeName(aliceBloodType) + " and donor: " + h4.GetBloodTypeName(bobBloodType))
+			if ObliviousTransferResult == lookupTableResult {
+				println("TRUE FOR: " + h4.GetBloodTypeName(aliceBloodType) + " and donor: " + h4.GetBloodTypeName(bobBloodType))
 
 			}
 		}
 	}
+
+	// Try a single combination of blood types and compare with the lookup table
+	// aliceBloodType := h4.ABplus
+	// bobBloodType := h4.ABplus
+	// ObliviousTransferResult := h4.ObliviousTransfer(aliceBloodType, bobBloodType)
+	// lookupTableResult := h4.LookUpBloodType(aliceBloodType, bobBloodType)
+	// if ObliviousTransferResult != lookupTableResult {
+	// 	print(false)
+	// } else {
+	// 	print(true)
+	// }
 
 }

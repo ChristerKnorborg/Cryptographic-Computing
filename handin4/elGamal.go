@@ -2,7 +2,6 @@ package handin4
 
 import (
 	"crypto/rand"
-	"fmt"
 	"math/big"
 )
 
@@ -25,7 +24,6 @@ func (elGamal *ElGamal) Init() {
 
 	// Generate a prime p such that p = kq + 1 for some k
 	for {
-		fmt.Printf("making p\n")
 		k, _ := rand.Int(rand.Reader, big.NewInt(1<<16)) // choose a random k up to 2^16
 		elGamal.p = new(big.Int).Mul(k, elGamal.q)
 		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))
@@ -37,7 +35,6 @@ func (elGamal *ElGamal) Init() {
 
 	// Find a generator g of the subgroup of order q in Z_p^*
 	for {
-		fmt.Printf("making g\n")
 		elGamal.g, _ = rand.Int(rand.Reader, elGamal.p) // random number less than p
 
 		// Condition 1: g != 1
@@ -93,11 +90,13 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 
 }
 
+// m = c2 * c1^(-sk) mod p
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
-	// m = c2 * c1^(-sk) mod p
 
-	s := new(big.Int).Exp(c1, sk, elGamal.p)      // s = c1^sk mod p
-	sInv := new(big.Int).ModInverse(s, elGamal.p) // sInv = temp^-1 mod p.
-	m := new(big.Int).Mul(c2, sInv)               // m = c2 * sInv
-	return m.Mod(m, elGamal.p)                    // m = m mod p
+	// Compute c1^{-sk} mod p using the property a^{-b} mod p = a^{p-1-b} mod p
+	negSk := new(big.Int).Sub(elGamal.p, sk)    // negSk = p - sk
+	s := new(big.Int).Exp(c1, negSk, elGamal.p) // s = c1^{-sk} mod p
+
+	m := new(big.Int).Mul(c2, s) // m = c2 * s
+	return m.Mod(m, elGamal.p)   // m = m mod p
 }
