@@ -44,10 +44,7 @@ var Bloodtype_compatibility [8][8]int = [8][8]int{
 
 // LookUpBloodtype checks if recipient blood type can receive donor blood type using lookup table
 func LookUpBloodType(recipient Bloodtype, donor Bloodtype) bool {
-	if Bloodtype_compatibility[recipient][donor] == 1 {
-		return true
-	}
-	return false
+	return Bloodtype_compatibility[recipient][donor] == 1
 }
 
 func GetBloodTypeName(bType Bloodtype) string {
