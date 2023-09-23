@@ -2,6 +2,7 @@ package handin4
 
 import (
 	"crypto/rand"
+	"fmt"
 	"math/big"
 )
 
@@ -9,8 +10,6 @@ type ElGamal struct {
 	q *big.Int // order of group G (cyclic subgroup of F_p). Notice, q | p-1
 	p *big.Int // prime number defining the finite field F_p
 	g *big.Int // generator of group G
-
-	r *big.Int // random number r ∈ [0, q-1]
 }
 
 // Ciphertext is a struct containing the two parts of a ciphertext (Due to GO being unable to return a list of tuple values).
@@ -26,22 +25,40 @@ func (elGamal *ElGamal) Init() {
 
 	// Generate a prime p such that p = kq + 1 for some k
 	for {
+		fmt.Printf("making p\n")
 		k, _ := rand.Int(rand.Reader, big.NewInt(1<<16)) // choose a random k up to 2^16
 		elGamal.p = new(big.Int).Mul(k, elGamal.q)
 		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))
 
-		if elGamal.p.ProbablyPrime(40) { // Test with 40 rounds of Miller-Rabin. Otherwise repeat.
+		if elGamal.p.ProbablyPrime(400) { // Test with 400 rounds of Miller-Rabin. Otherwise repeat.
 			break
 		}
 	}
 
 	// Find a generator g of the subgroup of order q in Z_p^*
 	for {
+		fmt.Printf("making g\n")
 		elGamal.g, _ = rand.Int(rand.Reader, elGamal.p) // random number less than p
-		if new(big.Int).Exp(elGamal.g, elGamal.q, elGamal.p).Cmp(big.NewInt(1)) == 0 && elGamal.g.Cmp(big.NewInt(1)) != 0 {
-			break
+
+		// Condition 1: g != 1
+		if elGamal.g.Cmp(big.NewInt(1)) == 0 {
+			continue
 		}
+
+		// Condition 2: g^q mod p = 1
+		if new(big.Int).Exp(elGamal.g, elGamal.q, elGamal.p).Cmp(big.NewInt(1)) != 0 {
+			continue
+		}
+
+		// Condition 3: g^(p-1)/q mod p != 1
+		order := new(big.Int).Div(elGamal.p.Sub(elGamal.p, big.NewInt(1)), elGamal.q)
+		if new(big.Int).Exp(elGamal.g, order, elGamal.p).Cmp(big.NewInt(1)) == 0 {
+			continue
+		}
+
+		break
 	}
+
 }
 
 func (elGamal *ElGamal) makeSecretKey() *big.Int {
