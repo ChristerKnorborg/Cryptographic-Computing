@@ -24,7 +24,7 @@ func (elGamal *ElGamal) Init() {
 	// Generate a prime p such that p = kq + 1 for some k
 	for {
 		elGamal.q, _ = rand.Prime(rand.Reader, 256) // Generate a large prime q of 256 bits length
-		// k, _ := rand.Int(rand.Reader, big.NewInt(1<<16))    // choose a random k up to 2^16
+		// k, _ := rand.Int(rand.Reader, big.NewInt(1<<16))    // choose a random k up to 2^16 (2 for faster testing)
 		elGamal.p = new(big.Int).Mul(big.NewInt(2), elGamal.q) // p = kq
 		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))    // p = kq + 1
 
@@ -106,24 +106,11 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 }
 
 // m = c2 * (c1^sk)^-1 mod p
-// func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
-
-// 	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
-// 	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
-
-// 	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
-// 	return m.Mod(m, elGamal.p)        // m = m mod p
-// }
-
-// m = c2 * (c1^(p-1-sk)) mod p
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
-	// Calculate exponent for multiplicative inverse: p-1-sk
-	exp := new(big.Int).Sub(elGamal.p, big.NewInt(1))
-	exp = exp.Sub(exp, sk)
+	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
+	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
 
-	s := new(big.Int).Exp(c1, exp, elGamal.p) // s = c1^(p-1-sk) mod p
-
-	m := new(big.Int).Mul(c2, s) // m = c2 * s
-	return m.Mod(m, elGamal.p)   // m = m mod p
+	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
+	return m.Mod(m, elGamal.p)        // m = m mod p
 }
