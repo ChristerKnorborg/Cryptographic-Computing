@@ -35,7 +35,10 @@ func (elGamal *ElGamal) Init() {
 
 	// Find a generator g of the subgroup of order q in Z_p^*
 	for {
-		elGamal.g, _ = rand.Int(rand.Reader, elGamal.p) // random number less than p
+		// number should be in range [1,q-1]
+		pMinusOne := new(big.Int).Sub(elGamal.p, big.NewInt(1))
+		elGamal.g, _ = rand.Int(rand.Reader, pMinusOne) // random number less than p
+		elGamal.g = elGamal.g.Add(elGamal.g, big.NewInt(1))
 
 		// Condition 1: g != 1
 		if elGamal.g.Cmp(big.NewInt(1)) == 0 {
@@ -109,7 +112,7 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
 	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
-	modInv := new(big.Int).ModInverse(s, elGamal.q) // modInv = s^-1 mod q
+	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod q
 
 	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
 	return m.Mod(m, elGamal.p)        // m = m mod p
