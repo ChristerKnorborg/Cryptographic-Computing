@@ -1,6 +1,6 @@
 package handin4
 
-func ObliviousTransfer(recipient Bloodtype, donor Bloodtype) bool {
+func ObliviousTransfer(recipient Bloodtype, donor Bloodtype) int {
 	x := int(recipient) // Alice input (blood type)
 	y := int(donor)     // Bob input (blood type)
 
@@ -17,6 +17,6 @@ func ObliviousTransfer(recipient Bloodtype, donor Bloodtype) bool {
 	resultBigInt := alice.Retrieve(ciphertexts, &elGamal)
 
 	result := int(resultBigInt.Int64())
-	return result == 1
+	return result
 
 }

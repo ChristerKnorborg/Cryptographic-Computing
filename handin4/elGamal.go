@@ -20,13 +20,13 @@ type Ciphertext struct {
 
 // Generate the public parameters p, q, g for the ElGamal cryptosystem
 func (elGamal *ElGamal) Init() {
-	elGamal.q, _ = rand.Prime(rand.Reader, 256) // Generate a large prime q of 256 bits length
 
 	// Generate a prime p such that p = kq + 1 for some k
 	for {
-		k, _ := rand.Int(rand.Reader, big.NewInt(1<<16))    // choose a random k up to 2^16
-		elGamal.p = new(big.Int).Mul(k, elGamal.q)          // p = kq
-		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1)) // p = kq + 1
+		elGamal.q, _ = rand.Prime(rand.Reader, 256) // Generate a large prime q of 256 bits length
+		// k, _ := rand.Int(rand.Reader, big.NewInt(1<<16))    // choose a random k up to 2^16
+		elGamal.p = new(big.Int).Mul(big.NewInt(2), elGamal.q) // p = kq
+		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))    // p = kq + 1
 
 		if elGamal.p.ProbablyPrime(400) { // Test with 400 rounds of Miller-Rabin. Otherwise repeat.
 			break
@@ -39,18 +39,18 @@ func (elGamal *ElGamal) Init() {
 
 		// Condition 1: g != 1
 		if elGamal.g.Cmp(big.NewInt(1)) == 0 {
-			continue
+			continue // try again
 		}
 
 		// Condition 2: g^q mod p = 1
 		if new(big.Int).Exp(elGamal.g, elGamal.q, elGamal.p).Cmp(big.NewInt(1)) != 0 {
-			continue
+			continue // try again
 		}
 
 		// Condition 3: g^(p-1)/q mod p != 1
 		order := new(big.Int).Div(elGamal.p.Sub(elGamal.p, big.NewInt(1)), elGamal.q)
 		if new(big.Int).Exp(elGamal.g, order, elGamal.p).Cmp(big.NewInt(1)) == 0 {
-			continue
+			continue // try again
 		}
 
 		break
@@ -106,11 +106,24 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 }
 
 // m = c2 * (c1^sk)^-1 mod p
+// func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
+
+// 	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
+// 	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
+
+// 	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
+// 	return m.Mod(m, elGamal.p)        // m = m mod p
+// }
+
+// m = c2 * (c1^(p-1-sk)) mod p
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
-	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
-	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
+	// Calculate exponent for multiplicative inverse: p-1-sk
+	exp := new(big.Int).Sub(elGamal.p, big.NewInt(1))
+	exp = exp.Sub(exp, sk)
 
-	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
-	return m.Mod(m, elGamal.p)        // m = m mod p
+	s := new(big.Int).Exp(c1, exp, elGamal.p) // s = c1^(p-1-sk) mod p
+
+	m := new(big.Int).Mul(c2, s) // m = c2 * s
+	return m.Mod(m, elGamal.p)   // m = m mod p
 }

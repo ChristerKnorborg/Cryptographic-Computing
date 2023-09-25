@@ -21,7 +21,7 @@ func main() {
 	// }
 
 	//Try a single combination of blood types and compare with the lookup table
-	aliceBloodType := h4.ABplus
+	aliceBloodType := h4.ABminus
 	bobBloodType := h4.ABplus
 	ObliviousTransferResult := h4.ObliviousTransfer(aliceBloodType, bobBloodType)
 	lookupTableResult := h4.LookUpBloodType(aliceBloodType, bobBloodType)
