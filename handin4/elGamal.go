@@ -2,6 +2,7 @@ package handin4
 
 import (
 	"crypto/rand"
+	"fmt"
 	"math/big"
 )
 
@@ -35,7 +36,10 @@ func (elGamal *ElGamal) Init() {
 
 	// Find a generator g of the subgroup of order q in Z_p^*
 	for {
-		elGamal.g, _ = rand.Int(rand.Reader, elGamal.p) // random number less than p
+		// number should be in range [1, q-1]
+		pMinusOne := new(big.Int).Sub(elGamal.p, big.NewInt(1)) // pMinusOne = p-1
+		elGamal.g, _ = rand.Int(rand.Reader, pMinusOne)         // random number ∈ [0, p-2]
+		elGamal.g = elGamal.g.Add(elGamal.g, big.NewInt(1))     // random number ∈ [1, p-1]
 
 		// Condition 1: g != 1
 		if elGamal.g.Cmp(big.NewInt(1)) == 0 {
@@ -109,8 +113,24 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
 	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
-	modInv := new(big.Int).ModInverse(s, elGamal.q) // modInv = s^-1 mod q
+	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod q
 
 	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
 	return m.Mod(m, elGamal.p)        // m = m mod p
+}
+
+func (elGamal *ElGamal) InitFixedValues() {
+	// Fix the public parameters p, q, g for the ElGamal cryptosystem
+	elGamal.q = new(big.Int)
+	elGamal.p = new(big.Int)
+	elGamal.g = new(big.Int)
+
+	elGamal.q.SetString("FCA682CE8E12CABA26EFCCF7110E526DB078B05EDECBCD1EB4A208F3AE1617AE01F", 16)
+	elGamal.p.SetString("9A4D6792295A090D5771133B60E8AB2FC6C4E1299B6FE6C3B6E46BDE4107A4C954FEB4FD9ADA8E6DD04F80B3EF2D9ED4B304F564A1C895C57B49509B758AC841B6E65B877C3109D27A7AA0E6A42E294F0E4E507663DB5F504CF3B80887FAA7BE8EF590FE7B3E8CE4A7B4D69C15B5FCB642", 16)
+	elGamal.g.SetString("2", 16)
+
+	fmt.Println("q: ", elGamal.q)
+	fmt.Println("p: ", elGamal.p)
+	fmt.Println("g: ", elGamal.g)
+
 }

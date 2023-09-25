@@ -8,9 +8,9 @@ func ObliviousTransfer(recipient Bloodtype, donor Bloodtype) bool {
 	alice := Alice{}
 	bob := Bob{}
 
-	elGamal.Init() // initialize the ElGamal with public parameters p, q, g.
-	alice.Init(x)  // Alice set her input x.
-	bob.Init(y)    // Bob set his input y
+	elGamal.InitFixedValues() // initialize the ElGamal with public parameters p, q, g.
+	alice.Init(x)             // Alice set her input x.
+	bob.Init(y)               // Bob set his input y
 
 	publicKeys := alice.Choose(&elGamal)              // Alice choose her input x and generate public keys - 7 fake and 1 real
 	ciphertexts := bob.Transfer(publicKeys, &elGamal) // Bob receives public keys, computes and transfers encrypted messages to Alice
