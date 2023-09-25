@@ -158,6 +158,6 @@ func testProperties(p, q, g *big.Int) {
 	qDiv2 := new(big.Int).Div(q, big.NewInt(2))
 	gToQDiv2 := new(big.Int).Exp(g, qDiv2, p)
 	if gToQDiv2.Cmp(big.NewInt(1)) == 0 {
-		fmt.Println("Error: g^(q/2) is congruent to 1 mod p")
+		fmt.Println("Error: g^(q/2) is congruent to 1 mod p ")
 	}
 }
