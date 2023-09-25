@@ -24,9 +24,9 @@ func (elGamal *ElGamal) Init() {
 
 	// Generate a prime p such that p = kq + 1 for some k
 	for {
-		k, _ := rand.Int(rand.Reader, big.NewInt(1<<16)) // choose a random k up to 2^16
-		elGamal.p = new(big.Int).Mul(k, elGamal.q)
-		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))
+		k, _ := rand.Int(rand.Reader, big.NewInt(1<<16))    // choose a random k up to 2^16
+		elGamal.p = new(big.Int).Mul(k, elGamal.q)          // p = kq
+		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1)) // p = kq + 1
 
 		if elGamal.p.ProbablyPrime(400) { // Test with 400 rounds of Miller-Rabin. Otherwise repeat.
 			break
@@ -59,7 +59,11 @@ func (elGamal *ElGamal) Init() {
 }
 
 func (elGamal *ElGamal) makeSecretKey() *big.Int {
-	sk, _ := rand.Int(rand.Reader, elGamal.q) // sk ∈ [0, q-1]. Notice, we include 0 - even though it is technically a bad choice.
+	// sk ∈ [1, q-1]. Notice, we exclude 0 due to weak properties.
+	qMinusOne := new(big.Int).Sub(elGamal.q, big.NewInt(1))
+	sk, _ := rand.Int(rand.Reader, qMinusOne) // random number ∈ [0, q-2]
+	sk = sk.Add(sk, big.NewInt(1))            // random number ∈ [1, q-1]
+
 	return sk
 }
 
@@ -70,33 +74,44 @@ func (elGamal *ElGamal) Gen(sk *big.Int) *big.Int {
 	return h // return public key
 }
 
-// OGen is the oblivious version of Gen. It returns a random "fake" public key
+// OGen is the oblivious version of Gen. It returns a random "fake" public key following the 2. exercise 5 point.
 func (elGamal *ElGamal) OGen() *big.Int {
 
-	// Make a random big int r ∈ [0, p]
-	r, _ := rand.Int(rand.Reader, elGamal.p)
+	n := elGamal.p.BitLen() // Get the bit length of p
 
-	return r
+	// Create 2^(2n) upper bound for random number
+	upperBound := new(big.Int).Lsh(big.NewInt(1), uint(2*n)) // Left shift is equivalent to multiplying by 2 raised to a power
+
+	// Generate a random big int r ∈ [1, 2^(2n)]
+	r, _ := rand.Int(rand.Reader, upperBound)
+	if r.Sign() == 0 {
+		r = r.Add(r, big.NewInt(1)) // Ensure r is not zero
+	}
+
+	// Return r mod p
+	return r.Mod(r, elGamal.p)
 }
-
 func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
-	// Generate a random number r ∈ [0, q-1]. Notice, we include 0 - even though it is technically a bad choice.
-	r, _ := rand.Int(rand.Reader, elGamal.q)
+	// Generate a random number r ∈ [1, q-1]. Notice, we exclude 0 due to weak properties.
+	qMinusOne := new(big.Int).Sub(elGamal.q, big.NewInt(1))
+	r, _ := rand.Int(rand.Reader, qMinusOne) // random number ∈ [0, q-2]
+	r = r.Add(r, big.NewInt(1))              // random number ∈ [1, q-1]
 
 	c1 := new(big.Int).Exp(elGamal.g, r, elGamal.p)               // c1 = g^r mod p
-	c2 := new(big.Int).Mul(m, new(big.Int).Exp(pk, r, elGamal.p)) // c2 = m * pk^r mod p
+	c2 := new(big.Int).Mul(m, new(big.Int).Exp(pk, r, elGamal.p)) // c2 = m * (pk^r mod p)
+	c2 = c2.Mod(c2, elGamal.p)                                    // c2 = m * pk^r mod p
 
 	return &Ciphertext{c1, c2}
 
 }
 
-// m = c2 * c1^(-sk) mod p
+// m = c2 * (c1^sk)^-1 mod p
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
 	// Compute c1^{-sk} mod p using the property a^{-b} mod p = a^{p-1-b} mod p
-	negSk := new(big.Int).Sub(elGamal.p, sk)    // negSk = p - sk
-	s := new(big.Int).Exp(c1, negSk, elGamal.p) // s = c1^{-sk} mod p
+	s := new(big.Int).Exp(c1, sk, elGamal.p) // s = c1^{-sk} mod p
+	modInv := new(big.Int).ModInverse(s, elGamal.p)
 
-	m := new(big.Int).Mul(c2, s) // m = c2 * s
-	return m.Mod(m, elGamal.p)   // m = m mod p
+	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
+	return m.Mod(m, elGamal.p)        // m = m mod p
 }

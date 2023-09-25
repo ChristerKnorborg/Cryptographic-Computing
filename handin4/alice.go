@@ -1,7 +1,6 @@
 package handin4
 
 import (
-	"fmt"
 	"math/big"
 )
 
@@ -37,8 +36,6 @@ func (alice *Alice) Retrieve(ciphertexts []*Ciphertext, elGamal *ElGamal) *big.I
 	ciphertext := ciphertexts[alice.x] // Extract the ciphertext corresponding to Alice's input x from Bob's list of ciphertexts
 	c1, c2 := ciphertext.c1, ciphertext.c2
 
-	fmt.Printf("c1: %v\n", c1)
-	fmt.Printf("c2: %v\n", c2)
 	// Decrypt the ciphertext
 	result := elGamal.Decrypt(c1, c2, alice.sk)
 	return result
