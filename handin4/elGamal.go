@@ -108,9 +108,8 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 // m = c2 * (c1^sk)^-1 mod p
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
-	// Compute c1^{-sk} mod p using the property a^{-b} mod p = a^{p-1-b} mod p
-	s := new(big.Int).Exp(c1, sk, elGamal.p) // s = c1^{-sk} mod p
-	modInv := new(big.Int).ModInverse(s, elGamal.p)
+	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
+	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
 
 	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
 	return m.Mod(m, elGamal.p)        // m = m mod p
