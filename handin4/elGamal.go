@@ -22,34 +22,35 @@ type Ciphertext struct {
 // Generate the public parameters p, q, g for the ElGamal cryptosystem
 func (elGamal *ElGamal) Init() {
 
-	// Generate a primes q and p such that p = kq + 1 for some k
+	// Generate primes q and p such that p = kq + 1 for some k
 	for {
-
-		elGamal.q, _ = rand.Prime(rand.Reader, 256) // Generate a large prime q of 256 bits length
+		// Generate a large prime q of 256 bits length. Usually this should be around 2000 bits,
+		// but for computation reasons we only use 256 bits.
+		elGamal.q, _ = rand.Prime(rand.Reader, 256)
 
 		elGamal.p = new(big.Int).Mul((big.NewInt(2)), elGamal.q) // p = kq (we use k = 2 for simplicity as said in the notes)
 		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))      // p = kq + 1
 
-		if elGamal.p.ProbablyPrime(400) { // Test with 400 rounds of Miller-Rabin. Otherwise repeat.
+		if elGamal.p.ProbablyPrime(400) { // Test with 400 rounds of Miller-Rabin. Otherwise try new q and p values
 			break
 		}
 
 	}
 
-	// Find a generator g of the subgroup of order q in Z_p^*
-	// Pick arbitrary x from Z_p^* where x != 1 and x != -1
-	pMinusTwo := new(big.Int).Sub(elGamal.p, big.NewInt(1))           // pMinusOne = p-2
-	elGamal.g, _ = rand.Int(rand.Reader, pMinusTwo)                   // random number ∈ [0, p-3]
-	elGamal.g = elGamal.g.Add(elGamal.g, big.NewInt(2))               // random number ∈ [2, p-1]
-	elGamal.g = new(big.Int).Exp(elGamal.g, big.NewInt(2), elGamal.p) // g = g^2 mod p
+	// Generate a DDH-safe group g of order q in Z_p^* by using the second suggesting from the notes:
+	// "Pick arbitrary x from Z_p^* where x != 1 and x != -1, and compute g = x2 mod p".
+	pMinusTwo := new(big.Int).Sub(elGamal.p, big.NewInt(1))   // pMinusOne = p-2
+	x, _ := rand.Int(rand.Reader, pMinusTwo)                  // random number x ∈ [0, p-3]
+	x = x.Add(x, big.NewInt(2))                               // random number x ∈ [2, p-1]
+	elGamal.g = new(big.Int).Exp(x, big.NewInt(2), elGamal.p) // g = x^2 mod p
 
 }
 
 func (elGamal *ElGamal) makeSecretKey() *big.Int {
 	// sk ∈ [1, q-1]. Notice, we exclude 0 due to weak properties.
 	qMinusOne := new(big.Int).Sub(elGamal.q, big.NewInt(1))
-	sk, _ := rand.Int(rand.Reader, qMinusOne) // random number ∈ [0, q-2]
-	sk = sk.Add(sk, big.NewInt(1))            // random number ∈ [1, q-1]
+	x, _ := rand.Int(rand.Reader, qMinusOne) // random number x ∈ [0, q-2]
+	sk := x.Add(x, big.NewInt(1))            // random sk ∈ [1, q-1]
 
 	return sk
 }
@@ -61,7 +62,7 @@ func (elGamal *ElGamal) Gen(sk *big.Int) *big.Int {
 	return h // return public key
 }
 
-// OGen is the oblivious version of Gen. It returns a random "fake" public key following the 2. exercise 5 point.
+// OGen is the oblivious version of Gen. It returns a random "fake" public key following the second method in exercise 5
 func (elGamal *ElGamal) OGen() *big.Int {
 
 	n := elGamal.p.BitLen() // Get the bit length of p
@@ -78,6 +79,10 @@ func (elGamal *ElGamal) OGen() *big.Int {
 	// Return r mod p
 	return r.Mod(r, elGamal.p)
 }
+
+// The encrypt method first encodes the message m with the thrid encoding method from the notes:
+// "check if (m + 1)^q = 1 mod p. If yes, encrypt M = m + 1. If not, encrypt M = −(m + 1)".
+// Afterwards, it use the ElGamal encryption scheme to encrypt the encoded message M.
 func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 
 	// Encoding of m
@@ -99,19 +104,20 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 	c2 := new(big.Int).Mul(M, new(big.Int).Exp(pk, r, elGamal.p)) // c2 = m * (pk^r mod p)
 	c2 = c2.Mod(c2, elGamal.p)                                    // c2 = m * pk^r mod p
 
-	return &Ciphertext{c1, c2}
+	return &Ciphertext{c1, c2} // return ciphertext struct since GO does not support tuple values
 
 }
 
-// M = c2 * (c1^sk)^-1 mod p
+// Regular ElGamal decryption method with decoding afterwards. First M = c2 * (c1^sk)^-1 mod p is computed.
+// Then the decoding method from the notes is used: "If M ≤ q, then m = M − 1, otherwise m = −M − 1."
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
+	// Calculate M = c2 * (c1^sk)^-1 mod p
 	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
 	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
+	M := new(big.Int).Mul(c2, modInv)               // M = c2 * s
 
-	M := new(big.Int).Mul(c2, modInv) // M = c2 * s
-
-	// Get m from decoding M
+	// Decode M
 	var m *big.Int
 	// Check if M ≤ q and set m accordingly
 	if M.Cmp(elGamal.q) <= 0 {
@@ -124,7 +130,10 @@ func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int 
 	return m.Mod(m, elGamal.p) // M = m mod p
 }
 
-func (elGamal *ElGamal) InitFixedValues() {
+// Exactly the same method as Init(), except that we use harcoded large primes for q which we found online.
+// There seem to be a problem with the random number generator in GO, since the properties of the ElGamal cryptosystem
+// does not hold for a prime found by rand.Prime(rand.Reader, 256).
+func (elGamal *ElGamal) InitFixedQ() {
 	// Fix the public parameters p, q, g for the ElGamal cryptosystem
 	elGamal.q = new(big.Int)
 	elGamal.p = new(big.Int)
@@ -156,15 +165,12 @@ func (elGamal *ElGamal) InitFixedValues() {
 	elGamal.g, _ = rand.Int(rand.Reader, pMinusTwo)                   // random number ∈ [0, p-3]
 	elGamal.g = elGamal.g.Add(elGamal.g, big.NewInt(2))               // random number ∈ [2, p-1]
 	elGamal.g = new(big.Int).Exp(elGamal.g, big.NewInt(2), elGamal.p) // g = g^2 mod p
-
-	// fmt.Println("q: ", elGamal.q)
-	// fmt.Println("p: ", elGamal.p)
-	// fmt.Println("g: ", elGamal.g)
-
-	// Check if properties hold for hardcoded values of p, q, g
-	elGamal.TestProperties()
 }
 
+// Test if the properties of the ElGamal cryptosystem holds for the public parameters p, q, g
+// as explained in the cryptography course book by Ivan Damgård. The method was primarily used
+// for debugging purposes with regards to the random number generator rand.Prime(rand.Reader, 256)
+// as mentioned in the README. The methods prints an error if the properties does not hold.
 func (elGamal *ElGamal) TestProperties() {
 	// Check if q divides p-1
 	pMinusOne := new(big.Int).Sub(elGamal.p, big.NewInt(1))

@@ -20,7 +20,7 @@ func (bob *Bob) Transfer(publicKeys []*big.Int, elGamal *ElGamal) []*Ciphertext 
 		messages[i] = big.NewInt(int64(Bloodtype_compatibility[i][bob.y]))
 	}
 
-	// Encrypt messages using the public keys provided by Alice
+	// Encrypt messages using the public keys provided by Alice. One of which is the real public key, but Bob does not know which.
 	ciphertexts := make([](*Ciphertext), 8)
 	for i := 0; i < 8; i++ {
 		ciphertexts[i] = elGamal.Encrypt(messages[i], publicKeys[i])
