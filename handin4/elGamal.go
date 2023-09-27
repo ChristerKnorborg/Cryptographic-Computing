@@ -24,8 +24,8 @@ func (elGamal *ElGamal) Init() {
 
 	// Generate a prime p such that p = kq + 1 for some k
 	for {
-		elGamal.q, _ = rand.Prime(rand.Reader, 256) // Generate a large prime q of 256 bits length
-		// k, _ := rand.Int(rand.Reader, big.NewInt(1<<16))    // choose a random k up to 2^16 (2 for faster testing)
+		elGamal.q, _ = rand.Prime(rand.Reader, 64) // Generate a large prime q of 256 bits length
+		// k, _ := rand.Int(rand.Reader, big.NewInt(1<<16))       // choose a random k up to 2^16 (2 for faster testing. Line below)
 		elGamal.p = new(big.Int).Mul(big.NewInt(2), elGamal.q) // p = kq
 		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))    // p = kq + 1
 
@@ -48,12 +48,6 @@ func (elGamal *ElGamal) Init() {
 
 		// Condition 2: g^q mod p = 1
 		if new(big.Int).Exp(elGamal.g, elGamal.q, elGamal.p).Cmp(big.NewInt(1)) != 0 {
-			continue // try again
-		}
-
-		// Condition 3: g^(p-1)/q mod p != 1
-		order := new(big.Int).Div(elGamal.p.Sub(elGamal.p, big.NewInt(1)), elGamal.q)
-		if new(big.Int).Exp(elGamal.g, order, elGamal.p).Cmp(big.NewInt(1)) == 0 {
 			continue // try again
 		}
 
@@ -96,13 +90,24 @@ func (elGamal *ElGamal) OGen() *big.Int {
 	return r.Mod(r, elGamal.p)
 }
 func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
+
+	// Encoding of m
+	var M *big.Int
+	// Check if check if (m + 1)^q = 1 mod p.
+	mPlusOne := new(big.Int).Add(m, big.NewInt(1))
+	if new(big.Int).Exp(mPlusOne, elGamal.q, elGamal.p).Cmp(big.NewInt(1)) != 0 {
+		M = mPlusOne // M = m + 1. If  (m + 1)^q = 1 mod p
+	} else {
+		M = new(big.Int).Neg(mPlusOne) // M = -(m + 1)
+	}
+
 	// Generate a random number r ∈ [1, q-1]. Notice, we exclude 0 due to weak properties.
 	qMinusOne := new(big.Int).Sub(elGamal.q, big.NewInt(1))
 	r, _ := rand.Int(rand.Reader, qMinusOne) // random number ∈ [0, q-2]
 	r = r.Add(r, big.NewInt(1))              // random number ∈ [1, q-1]
 
 	c1 := new(big.Int).Exp(elGamal.g, r, elGamal.p)               // c1 = g^r mod p
-	c2 := new(big.Int).Mul(m, new(big.Int).Exp(pk, r, elGamal.p)) // c2 = m * (pk^r mod p)
+	c2 := new(big.Int).Mul(M, new(big.Int).Exp(pk, r, elGamal.p)) // c2 = m * (pk^r mod p)
 	c2 = c2.Mod(c2, elGamal.p)                                    // c2 = m * pk^r mod p
 
 	return &Ciphertext{c1, c2}
@@ -115,8 +120,22 @@ func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int 
 	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
 	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
 
-	m := new(big.Int).Mul(c2, modInv) // m = c2 * s
-	return m.Mod(m, elGamal.p)        // m = m mod p
+	//gcd := new(big.Int).GCD(nil, nil, s, elGamal.p)
+	//fmt.Printf("gcd: %v\n", gcd)
+
+	M := new(big.Int).Mul(c2, modInv) // m = c2 * s
+
+	// Get m from decoding M
+	var m *big.Int
+	// Check if M ≤ q and set m accordingly
+	if M.Cmp(elGamal.q) <= 0 {
+		m = new(big.Int).Sub(M, big.NewInt(1)) // m = M - 1. If M ≤ q
+	} else {
+		negatedM := new(big.Int).Neg(M)
+		m = new(big.Int).Sub(negatedM, big.NewInt(1)) // m = -M - 1
+	}
+
+	return m.Mod(m, elGamal.p) // m = m mod p
 }
 
 func (elGamal *ElGamal) InitFixedValues() {

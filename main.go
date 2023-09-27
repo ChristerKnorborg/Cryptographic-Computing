@@ -1,9 +1,8 @@
 package main
 
 import (
-	"fmt"
-
 	h4 "Handin4"
+	"fmt"
 )
 
 func main() {
@@ -22,7 +21,7 @@ func main() {
 	}
 
 	//Try a single combination of blood types and compare with the lookup table
-	// aliceBloodType := h4.Oplus
+	// aliceBloodType := h4.Ominus
 	// bobBloodType := h4.Ominus
 	// ObliviousTransferResult := h4.ObliviousTransfer(aliceBloodType, bobBloodType)
 	// lookupTableResult := h4.LookUpBloodType(aliceBloodType, bobBloodType)
