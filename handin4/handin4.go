@@ -8,7 +8,7 @@ func ObliviousTransfer(recipient Bloodtype, donor Bloodtype) bool {
 	alice := Alice{}
 	bob := Bob{}
 
-	elGamal.InitFixedQ()     // initialize the ElGamal with public parameters p, q, g. Notice, q is fixed (Explained in the README)
+	elGamal.Init()           // initialize the ElGamal with public parameters p, q, g. Notice, q is fixed (Explained in the README)
 	elGamal.TestProperties() // Test the properties of the ElGamal cryptosystem as described in Ivan Damgård's cryptography course book
 
 	alice.Init(x) // Alice set her input x
