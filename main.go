@@ -15,8 +15,11 @@ func main() {
 			ObliviousTransferResult := h4.ObliviousTransfer(aliceBloodType, bobBloodType)
 			lookupTableResult := h4.LookUpBloodType(aliceBloodType, bobBloodType)
 			if ObliviousTransferResult != lookupTableResult {
-				fmt.Printf("Different results for recipient: %s and donor: %s\n", h4.GetBloodTypeName(recipient), h4.GetBloodTypeName(donor))
+				fmt.Printf("Incorrect result for recipient: %s and donor: %s\n", h4.GetBloodTypeName(recipient), h4.GetBloodTypeName(donor))
+			} else {
+				fmt.Printf("Correct result for recipient: %s and donor: %s\n", h4.GetBloodTypeName(recipient), h4.GetBloodTypeName(donor))
 			}
+
 		}
 	}
 
