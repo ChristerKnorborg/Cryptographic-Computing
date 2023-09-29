@@ -9,7 +9,6 @@ type Bob struct {
 func (bob *Bob) Init(y int) {
 	// Set Bob's input as the y provided by the ObliviousTransfer function
 	bob.y = y
-
 }
 
 func (bob *Bob) Transfer(publicKeys []*big.Int, elGamal *ElGamal) []*Ciphertext {

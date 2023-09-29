@@ -3,8 +3,10 @@ package handin5
 import "math/big"
 
 type Alice struct {
-	x  int      // Alice input
-	sk *big.Int // Secret key
+	x   int          // Alice input
+	sk  *big.Int     // El Gamal secret key
+	e_x []GarbleKeys // Encode values for Alice
+	d   GarbleKeys   // The Z values from the ouput of the garbled circuit
 }
 
 // Set alice's input as the x provided by the GarbledCircuit function
@@ -17,15 +19,10 @@ func (alice *Alice) Choose(elGamal *ElGamal) []*big.Int {
 	// Generate a secret key
 	alice.sk = elGamal.makeSecretKey()
 
-	// Initialize a list of 8 public keys to be sent to Bob
-	publicKeys := make([]*big.Int, 8)
+	// Make two public keys for the ObliviousTransfer
+	publicKeys := make([]*big.Int, 2)
+	publicKeys[0] = elGamal.Gen(alice.sk)
+	publicKeys[1] = elGamal.OGen()
 
-	for i := 0; i < 8; i++ {
-		if i == alice.x {
-			publicKeys[i] = elGamal.Gen(alice.sk) // Generate the real public key corresponding to Alice's input x
-		} else {
-			publicKeys[i] = elGamal.OGen() // Generate 7 fake public keys using the oblivious version of Gen
-		}
-	}
 	return publicKeys
 }

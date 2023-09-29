@@ -12,7 +12,7 @@ func main() {
 		for donor := h4.Ominus; donor <= h4.ABplus; donor++ {
 			aliceBloodType := recipient
 			bobBloodType := donor
-			ObliviousTransferResult := h4.ObliviousTransfer(aliceBloodType, bobBloodType)
+			ObliviousTransferResult := h4.GarbledCircuit(aliceBloodType, bobBloodType)
 			lookupTableResult := h4.LookUpBloodType(aliceBloodType, bobBloodType)
 			if ObliviousTransferResult != lookupTableResult {
 				fmt.Printf("Incorrect result for recipient: %s and donor: %s\n", h4.GetBloodTypeName(recipient), h4.GetBloodTypeName(donor))
