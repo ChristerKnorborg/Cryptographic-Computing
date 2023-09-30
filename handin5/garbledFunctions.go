@@ -69,42 +69,47 @@ func ANDGate(inputL [2]string, inputR [2]string, output [2]string) []string {
 	return gg
 }
 
-// Make the garbled circuit of the bloodtype compatibility formula
-func MakeGarbledCircuit(y int) ([][]string, [2]string, [][2]string, [][2]string, [][2]string) {
+// Create a garbled circuit from the bloodtype compatibility formula (Claudio's Master solution from handin 1)
+// For each wire i ∈ [1..T] in the circuit: choose two random strings
+func MakeGarbledCircuit() ([][]string, [2]string, [][2]string, [][2]string, [][2]string) {
 
-	// Create two labels for each wire in the circuit
-	var labels [23][2]string
+	// Initialize every wire to two empty strings
+	var wires [23][2]string
 	for i := 0; i < 22; i++ {
-		labels[i] = [2]string{"", ""} // Initialize the labels to empty
+		wires[i] = [2]string{Random128BitString(), Random128BitString()}
 	}
 
+	// Create the circuit F from the bloodtype compatibility formula. For every wire, we define a garbled table
+	// with the corresponding input and output keys. The first line "XORGate(wires[0], wires[1], wires[2])" represent
+	// the left input "wires[0]", the right input "wires[1]" and the output "wires[2]".
 	var F [][]string
 
 	// Block 1: x1 and y1
-	F = append(F, XORGate(labels[0], labels[1], labels[2])) // XOR constant 1 and x1. Result is ¬x1
-	F = append(F, ANDGate(labels[2], labels[3], labels[4])) // AND ¬x1 with y1. Result is z1
-	F = append(F, XORGate(labels[4], labels[5], labels[6])) // XOR z1 with constant 1
+	F = append(F, XORGate(wires[0], wires[1], wires[2])) // XOR constant 1 and x1. Result is ¬x1
+	F = append(F, ANDGate(wires[2], wires[3], wires[4])) // AND ¬x1 with y1. Result is z1
+	F = append(F, XORGate(wires[4], wires[5], wires[6])) // XOR z1 with constant 1
 
 	// Block 2: x2 and y2
-	F = append(F, XORGate(labels[7], labels[8], labels[9]))    // XOR constant 1 and x2. Result is ¬x2
-	F = append(F, ANDGate(labels[9], labels[10], labels[11]))  // AND ¬x2 with y2. Result is z2
-	F = append(F, XORGate(labels[11], labels[12], labels[13])) // XOR z2 with constant 1
+	F = append(F, XORGate(wires[7], wires[8], wires[9]))    // XOR constant 1 and x2. Result is ¬x2
+	F = append(F, ANDGate(wires[9], wires[10], wires[11]))  // AND ¬x2 with y2. Result is z2
+	F = append(F, XORGate(wires[11], wires[12], wires[13])) // XOR z2 with constant 1
 
 	// Block 3: x3 and y3
-	F = append(F, XORGate(labels[14], labels[15], labels[16])) // XOR constant 1 and x3. Result is ¬x3
-	F = append(F, ANDGate(labels[16], labels[17], labels[18])) // AND ¬x3 with y3. Result is z3
-	F = append(F, XORGate(labels[18], labels[19], labels[20])) // XOR z3 with constant 1
+	F = append(F, XORGate(wires[14], wires[15], wires[16])) // XOR constant 1 and x3. Result is ¬x3
+	F = append(F, ANDGate(wires[16], wires[17], wires[18])) // AND ¬x3 with y3. Result is z3
+	F = append(F, XORGate(wires[18], wires[19], wires[20])) // XOR z3 with constant 1
 
-	F = append(F, ANDGate(labels[6], labels[13], labels[21])) // AND z1 and z2. Result is z4
+	F = append(F, ANDGate(wires[6], wires[13], wires[21])) // AND z1 and z2. Result is z4
 
-	F = append(F, ANDGate(labels[20], labels[21], labels[22])) // AND z3 and z4. Final
+	F = append(F, ANDGate(wires[20], wires[21], wires[22])) // AND z3 and z4. Final
 
-	d := labels[22]
+	// Define d = (Z_0, Z_1) = (K^T_0 , K^T_1)
+	d := wires[22]
 
-	// Alice's input labels for AND gates
-	e_x := [][2]string{labels[1], labels[8], labels[15]}                                      // Alice input bits x1, x2, x3 goes in these labels respectively
-	e_y := [][2]string{labels[3], labels[10], labels[17]}                                     // Bob input bits y1, y2, y3 goes in these labels respectively
-	e_xor := [][2]string{labels[0], labels[4], labels[7], labels[11], labels[14], labels[18]} // constants from XOR gates
+	// Alice's input wires for AND gates
+	e_x := [][2]string{wires[1], wires[8], wires[15]}                                   // Alice input bits x1, x2, x3 goes in these wires respectively
+	e_y := [][2]string{wires[3], wires[10], wires[17]}                                  // Bob input bits y1, y2, y3 goes in these wires respectively
+	e_xor := [][2]string{wires[0], wires[4], wires[7], wires[11], wires[14], wires[18]} // constants from XOR gates
 
 	return F, d, e_x, e_y, e_xor
 }
@@ -166,4 +171,41 @@ func CalculateGate(gate []string, leftKey string, rightKey string) string {
 
 	// Decrypt the output key with the input keys
 	return XORStrings(c1_hash, gate[0])
+}
+
+// The garbled evaluation function Ev that evaluates a garbled circuit F on a garbled input X and produces a garbled output Z′
+func GarbledEvaluation() {
+
+}
+
+// Encoding function En uses e to map Bob's input y to a garbled input Y, by encoding each bit of y into the corresponding label
+func Encode(e_y [][2]string, y int) []string {
+
+	// Make an array of the three bits of Bob's input y
+	inputInBits := extractBits(y)
+
+	var Y []string
+
+	for i := 0; i < 3; i++ {
+		// Match the input bit with the corresponding label
+		Y = append(Y, e_y[i][inputInBits[i]])
+	}
+
+	return Y
+}
+
+// The decoding function De, decodes the garbled output Z′ into a plaintext output z.
+func Decode() {
+
+}
+
+// This function extract the three bits from an bloodtype input and returns them as an array
+func extractBits(n int) [3]int {
+	// Extract the bits from Bob (donor)
+
+	n1 := (n >> 2) & 1 // extract 3rd rightmost bit
+	n2 := (n >> 1) & 1 // extract 2nd rightmost bit
+	n3 := n & 1        // extract rightmost bit
+
+	return [3]int{n1, n2, n3}
 }

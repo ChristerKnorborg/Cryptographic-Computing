@@ -13,3 +13,13 @@ type Bob struct {
 func (bob *Bob) Init(y int) {
 	bob.y = y
 }
+
+func CreateGarbledCircuit() {
+	F, d, e_y, e_x, e_xor := MakeGarbledCircuit()
+
+	e_y = Encode(e_y, bob.y)
+	Y := [][][2]string{e_y, e_xor}
+
+	return F, Y, d
+
+}

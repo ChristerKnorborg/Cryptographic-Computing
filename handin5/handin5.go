@@ -8,11 +8,11 @@ func GarbledCircuit(recipient Bloodtype, donor Bloodtype) bool {
 	bob := Bob{}
 	elGamal := ElGamal{}
 
-	input_write := 5
-
 	elGamal.InitFixedQ() // initialize the ElGamal with public parameters p, q, g. Notice, q is fixed from handin4 (Explained in the README)
 	alice.Init(x)        // Alice set her input x
 	bob.Init(y)          // Bob set his input y
+
+	bob. // Bob runs Gb to make the garbled circuit
 
 	// For each wire in the circuit, create 2 random strings of 128 bits
 
