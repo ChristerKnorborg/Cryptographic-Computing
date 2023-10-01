@@ -78,7 +78,7 @@ func (bob *Bob) MakeGarbledCircuit() ([][]string, [2]string, [][2]string) {
 func (bob *Bob) Encode() Y {
 
 	// Make an array of the three bits of Bob's input y
-	inputInBits := extractBits(bob.y)
+	inputInBits := ExtractBits(bob.y)
 
 	var encoded_y []string
 
