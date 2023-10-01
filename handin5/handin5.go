@@ -22,6 +22,7 @@ func GarbledCircuit(recipient Bloodtype, donor Bloodtype) bool {
 	publicKeys := alice.MakeAndTransferKeys(&elGamal) // Alice uses ElGamal to make herself a secret key, and two public keys for Bob
 	bob.ReceiveKeys(publicKeys)                       // Bob receives the public keys from Alice
 	e_x := bob.Encrypt(&elGamal)                      // Bob encrypts his ?wire values? with the public keys from Alice
+	alice.Decrypt(&elGamal, e_x)                      // Alice decrypts the ?wire values? from Bob and stores them locally in the Alice struct
 
 	// Alice receives the encrypted values from Bob and evaluates the garbled circuit to get result Z′.
 	// She outputs z = 0 if Z′ = Z_0, z = 1 if Z′ = Z_1 or Panic (due to non-honest opposition) if Z′ ∉ {Z0, Z1}.
