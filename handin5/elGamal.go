@@ -13,7 +13,7 @@ type ElGamal struct {
 }
 
 // Ciphertext is a struct containing the two parts of a ciphertext (Due to GO being unable to return a list of tuple values).
-// Used for encrypt since Bob needs to return a list of 8 ciphertexts each containing c1, c2.
+// Used for encrypt since Bob needs to return a list of 2 ciphertexts each containing c1, c2.
 type Ciphertext struct {
 	c1 *big.Int
 	c2 *big.Int

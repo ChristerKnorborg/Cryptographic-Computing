@@ -1,7 +1,5 @@
 package handin5
 
-import "math/big"
-
 type Bloodtype uint8
 
 const (
@@ -17,8 +15,8 @@ const (
 
 // Struct used for the key values in the garbled circuit
 type GarbleKeys struct {
-	K_0 *big.Int //
-	K_1 *big.Int
+	K_0 string //
+	K_1 string
 }
 
 // Bloodtype compatibility lookup table
