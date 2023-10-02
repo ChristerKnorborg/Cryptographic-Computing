@@ -70,6 +70,10 @@ func ANDGate(inputL KeyPair, inputR KeyPair, output KeyPair) GarbledGate {
 	c3_concat := output.K_0 + stringOfZeros // output is 0, as AND(1,0) = 0
 	c4_concat := output.K_1 + stringOfZeros // output is 1, as AND(1,1) = 1
 
+	fmt.Println("c1_hash: ", c1_hash)
+	fmt.Println("c1_concat: ", c1_concat)
+	fmt.Println("Zeroes: ", stringOfZeros)
+
 	// Encrypt the output key with the input keys
 	gg.C_0 = XORStrings(c1_hash, c1_concat)
 	gg.C_1 = XORStrings(c2_hash, c2_concat)
@@ -108,9 +112,9 @@ func (gg *GarbledGate) Shuffle() {
 	gg.C_0, gg.C_1, gg.C_2, gg.C_3 = *entries[0], *entries[1], *entries[2], *entries[3]
 }
 
-// Creates a string of 128 zeros
+// Creates a string of 128 zeros (hex-encoded as 32 characters of 0)
 func Zeros128BitString() string {
-	return strings.Repeat("0", 128)
+	return strings.Repeat("0", 32) // 32 hex characters = 128 bits
 }
 
 // Creates a random 128-bit string
@@ -128,8 +132,8 @@ func XORStrings(a string, b string) string {
 	bytesA, errA := hex.DecodeString(a)
 	bytesB, errB := hex.DecodeString(b)
 	if errA != nil || errB != nil || len(bytesA) != len(bytesB) {
-		fmt.Println("bytesA", bytesA)
-		fmt.Println("bytesB", bytesB)
+		fmt.Println("a: ", a)
+		fmt.Println("b: ", b)
 		panic("invalid input or length mismatch")
 	}
 

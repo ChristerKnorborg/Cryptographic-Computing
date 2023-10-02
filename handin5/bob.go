@@ -1,6 +1,9 @@
 package handin5
 
-import "math/big"
+import (
+	"fmt"
+	"math/big"
+)
 
 type Bob struct {
 	y      int           // Bob input
@@ -27,7 +30,7 @@ func (bob *Bob) MakeGarbledCircuit() ([]GarbledGate, KeyPair, []KeyPair) {
 
 	// Initialize every wire to two empty strings
 	var wires [23]KeyPair
-	for i := 0; i < 22; i++ {
+	for i := 0; i < 23; i++ {
 		wires[i] = KeyPair{Random128BitString(), Random128BitString()}
 	}
 
@@ -41,19 +44,29 @@ func (bob *Bob) MakeGarbledCircuit() ([]GarbledGate, KeyPair, []KeyPair) {
 	F = append(F, ANDGate(wires[2], wires[3], wires[4])) // AND ¬x1 with y1. Result is z1
 	F = append(F, XORGate(wires[4], wires[5], wires[6])) // XOR z1 with constant 1
 
+	fmt.Println("block 1 done")
+
 	// Block 2: x2 and y2
 	F = append(F, XORGate(wires[7], wires[8], wires[9]))    // XOR constant 1 and x2. Result is ¬x2
 	F = append(F, ANDGate(wires[9], wires[10], wires[11]))  // AND ¬x2 with y2. Result is z2
 	F = append(F, XORGate(wires[11], wires[12], wires[13])) // XOR z2 with constant 1
+
+	fmt.Println("block 2 done")
 
 	// Block 3: x3 and y3
 	F = append(F, XORGate(wires[14], wires[15], wires[16])) // XOR constant 1 and x3. Result is ¬x3
 	F = append(F, ANDGate(wires[16], wires[17], wires[18])) // AND ¬x3 with y3. Result is z3
 	F = append(F, XORGate(wires[18], wires[19], wires[20])) // XOR z3 with constant 1
 
+	fmt.Println("block 3 done")
+
 	F = append(F, ANDGate(wires[6], wires[13], wires[21])) // AND z1 and z2. Result is z4
 
+	fmt.Println("block 4 done")
+
 	F = append(F, ANDGate(wires[20], wires[21], wires[22])) // AND z3 and z4. Final
+
+	fmt.Println("block 5 done")
 
 	// Define d = (Z_0, Z_1) = (K^T_0 , K^T_1)
 	d := wires[22]
