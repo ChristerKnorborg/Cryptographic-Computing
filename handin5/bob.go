@@ -3,18 +3,13 @@ package handin5
 import "math/big"
 
 type Bob struct {
-	y          int        // Bob input
-	publicKeys []*big.Int // Public keys from Alice
-	F          [][]string // Garbled circuit
-	d          [2]string  // The Z values from the ouput of the garbled circuit
-	e_x        [][2]string
-	e_y        [][2]string
-	e_xor      [][2]string
-}
-
-type Y struct {
-	encoded_y []string
-	e_xor     [][2]string
+	y          int           // Bob input
+	publicKeys []*big.Int    // Public keys from Alice
+	F          []GarbledGate // Garbled circuit
+	d          KeyPair       // The Z values from the ouput of the garbled circuit
+	e_x        []KeyPair
+	e_y        []KeyPair
+	e_xor      []KeyPair
 }
 
 // Set Bob's input as the y provided by the GarbledCircuit function
@@ -28,18 +23,18 @@ func (bob *Bob) ReceiveKeys(publicKeys []*big.Int) {
 
 // Create a garbled circuit from the bloodtype compatibility formula (Claudio's Master solution from handin 1)
 // For each wire i ∈ [1..T] in the circuit: choose two random strings
-func (bob *Bob) MakeGarbledCircuit() ([][]string, [2]string, [][2]string) {
+func (bob *Bob) MakeGarbledCircuit() ([]GarbledGate, KeyPair, []KeyPair) {
 
 	// Initialize every wire to two empty strings
-	var wires [23][2]string
+	var wires [23]KeyPair
 	for i := 0; i < 22; i++ {
-		wires[i] = [2]string{Random128BitString(), Random128BitString()}
+		wires[i] = KeyPair{Random128BitString(), Random128BitString()}
 	}
 
 	// Create the circuit F from the bloodtype compatibility formula. For every wire, we define a garbled table
 	// with the corresponding input and output keys. The first line "XORGate(wires[0], wires[1], wires[2])" represent
 	// the left input "wires[0]", the right input "wires[1]" and the output "wires[2]".
-	var F [][]string
+	var F []GarbledGate
 
 	// Block 1: x1 and y1
 	F = append(F, XORGate(wires[0], wires[1], wires[2])) // XOR constant 1 and x1. Result is ¬x1
@@ -63,9 +58,9 @@ func (bob *Bob) MakeGarbledCircuit() ([][]string, [2]string, [][2]string) {
 	// Define d = (Z_0, Z_1) = (K^T_0 , K^T_1)
 	d := wires[22]
 
-	e_x := [][2]string{wires[1], wires[8], wires[15]}                                   // Alice input bits x1, x2, x3 goes in these wires respectively
-	e_y := [][2]string{wires[3], wires[10], wires[17]}                                  // Bob input bits y1, y2, y3 goes in these wires respectively
-	e_xor := [][2]string{wires[0], wires[4], wires[7], wires[11], wires[14], wires[18]} // constants from XOR gates goes in these wires
+	e_x := []KeyPair{wires[1], wires[8], wires[15]}                                   // Alice input bits x1, x2, x3 goes in these wires respectively
+	e_y := []KeyPair{wires[3], wires[10], wires[17]}                                  // Bob input bits y1, y2, y3 goes in these wires respectively
+	e_xor := []KeyPair{wires[0], wires[4], wires[7], wires[11], wires[14], wires[18]} // constants from XOR gates goes in these wires
 
 	// Store the values locally in the Bob struct
 	bob.e_y = e_y // for encoding (in the Encode function)
@@ -75,18 +70,21 @@ func (bob *Bob) MakeGarbledCircuit() ([][]string, [2]string, [][2]string) {
 }
 
 // Encoding function En uses e to map Bob's input y to a garbled input Y, by encoding each bit of y into the corresponding wire
-func (bob *Bob) Encode() Y {
+func (bob *Bob) Encode() []string {
 
-	// Make an array of the three bits of Bob's input y
-	inputInBits := ExtractBits(bob.y)
+	// Make an slice of the three bits of Bob's input y
+	inputInBits := ExtractBits(bob.y) // [y1, y2, y3]
 
-	var encoded_y []string
+	var Y []string // Single key for each wire
 
 	for i := 0; i < 3; i++ {
 		// Match the input bit with the corresponding wire e_y
-		encoded_y = append(encoded_y, bob.e_y[i][inputInBits[i]])
+		if inputInBits[i] == 0 {
+			Y = append(Y, bob.e_y[i].K_0)
+		} else {
+			Y = append(Y, bob.e_y[i].K_1)
+		}
 	}
-	Y := Y{encoded_y, bob.e_xor}
 
 	return Y
 }

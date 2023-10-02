@@ -13,12 +13,6 @@ const (
 	ABplus  Bloodtype = 7
 )
 
-// Struct used for the key values in the garbled circuit
-type GarbleKeys struct {
-	K_0 string //
-	K_1 string
-}
-
 // Bloodtype compatibility lookup table
 var Bloodtype_compatibility [8][8]int = [8][8]int{
 	{1, 0, 0, 0, 0, 0, 0, 0}, // O- can receive from O-

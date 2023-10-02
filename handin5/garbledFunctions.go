@@ -9,62 +9,75 @@ import (
 	"strings"
 )
 
-// Create a garbled table for the XOR gate
-func XORGate(inputL [2]string, inputR [2]string, output [2]string) []string {
+// Struct used for the key values in the garbled circuit
+type KeyPair struct {
+	K_0 string //
+	K_1 string
+}
+
+// Struct used for the garbled gate with 4 truth table entries randomly permuted
+type GarbledGate struct {
+	C_0 string // Truth table entry 0
+	C_1 string // Truth table entry 1
+	C_2 string // Truth table entry 2
+	C_3 string // Truth table entry 3
+}
+
+// Create a garbled gate for the XOR gate
+func XORGate(inputL KeyPair, inputR KeyPair, output KeyPair) GarbledGate {
 
 	stringOfZeros := Zeros128BitString() // Create a string of 128 zeros
-	gg := make([]string, 4)              // Initialize 4 truth table entries
+	gg := GarbledGate{}                  // Initialize the garbled gate
 
 	// Hash 256 bits of input 128-bit keys concatenated
-	c1_hash := Hash(inputL[0], inputR[0])
-	c2_hash := Hash(inputL[0], inputR[1])
-	c3_hash := Hash(inputL[1], inputR[0])
-	c4_hash := Hash(inputL[1], inputR[1])
+	c1_hash := Hash(inputL.K_0, inputR.K_0)
+	c2_hash := Hash(inputL.K_0, inputR.K_1)
+	c3_hash := Hash(inputL.K_1, inputR.K_0)
+	c4_hash := Hash(inputL.K_1, inputR.K_1)
 
 	// Add redundancy (later used to check if decryption is successful)
-	c1_concat := output[0] + stringOfZeros // output is 0, as XOR(0,0) = 0
-	c2_concat := output[1] + stringOfZeros // output is 1, as XOR(0,1) = 1
-	c3_concat := output[1] + stringOfZeros // output is 1, as XOR(1,0) = 1
-	c4_concat := output[0] + stringOfZeros // output is 0, as XOR(1,1) = 0
+	c1_concat := output.K_0 + stringOfZeros // output is 0, as XOR(0,0) = 0
+	c2_concat := output.K_1 + stringOfZeros // output is 1, as XOR(0,1) = 1
+	c3_concat := output.K_1 + stringOfZeros // output is 1, as XOR(1,0) = 1
+	c4_concat := output.K_0 + stringOfZeros // output is 0, as XOR(1,1) = 0
 
 	// Encrypt the output key with the input keys
-	gg = append(gg, XORStrings(c1_hash, c1_concat))
-	gg = append(gg, XORStrings(c2_hash, c2_concat))
-	gg = append(gg, XORStrings(c3_hash, c3_concat))
-	gg = append(gg, XORStrings(c4_hash, c4_concat))
+	gg.C_0 = XORStrings(c1_hash, c1_concat)
+	gg.C_1 = XORStrings(c2_hash, c2_concat)
+	gg.C_2 = XORStrings(c3_hash, c3_concat)
+	gg.C_3 = XORStrings(c4_hash, c4_concat)
 
 	// Randomly shuffle the ciphertexts (to hide information about inputs/outputs)
-	gg = Shuffle(gg)
-
+	gg.Shuffle()
 	return gg
 }
 
-// Create a garbled table for the AND gate
-func ANDGate(inputL [2]string, inputR [2]string, output [2]string) []string {
+// Create a garbled gate for the AND gate
+func ANDGate(inputL KeyPair, inputR KeyPair, output KeyPair) GarbledGate {
 
 	stringOfZeros := Zeros128BitString() // Create a string of 128 zeros
-	gg := make([]string, 4)              // Initialize 4 truth table entries
+	gg := GarbledGate{}                  // Initialize the garbled gate
 
 	// Hash 256 bits of input 128-bit keys concatenated
-	c1_hash := Hash(inputL[0], inputR[0])
-	c2_hash := Hash(inputL[0], inputR[1])
-	c3_hash := Hash(inputL[1], inputR[0])
-	c4_hash := Hash(inputL[1], inputR[1])
+	c1_hash := Hash(inputL.K_0, inputR.K_0)
+	c2_hash := Hash(inputL.K_0, inputR.K_1)
+	c3_hash := Hash(inputL.K_1, inputR.K_0)
+	c4_hash := Hash(inputL.K_1, inputR.K_1)
 
 	// Add redundancy (later used to check if decryption is successful)
-	c1_concat := output[0] + stringOfZeros // output is 0, as AND(0,0) = 0
-	c2_concat := output[0] + stringOfZeros // output is 0, as AND(0,1) = 0
-	c3_concat := output[0] + stringOfZeros // output is 0, as AND(1,0) = 0
-	c4_concat := output[1] + stringOfZeros // output is 1, as AND(1,1) = 1
+	c1_concat := output.K_0 + stringOfZeros // output is 0, as AND(0,0) = 0
+	c2_concat := output.K_0 + stringOfZeros // output is 0, as AND(0,1) = 0
+	c3_concat := output.K_0 + stringOfZeros // output is 0, as AND(1,0) = 0
+	c4_concat := output.K_1 + stringOfZeros // output is 1, as AND(1,1) = 1
 
 	// Encrypt the output key with the input keys
-	gg = append(gg, XORStrings(c1_hash, c1_concat))
-	gg = append(gg, XORStrings(c2_hash, c2_concat))
-	gg = append(gg, XORStrings(c3_hash, c3_concat))
-	gg = append(gg, XORStrings(c4_hash, c4_concat))
+	gg.C_0 = XORStrings(c1_hash, c1_concat)
+	gg.C_1 = XORStrings(c2_hash, c2_concat)
+	gg.C_2 = XORStrings(c3_hash, c3_concat)
+	gg.C_3 = XORStrings(c4_hash, c4_concat)
 
 	// Randomly shuffle the ciphertexts (to hide information about inputs/outputs)
-	gg = Shuffle(gg)
+	gg.Shuffle()
 
 	return gg
 }
@@ -78,15 +91,21 @@ func Hash(leftKey string, rightKey string) string {
 	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
-// Shuffle shuffles the given slice of strings using the Fisher-Yates algorithm.
+// Shuffle shuffles the given GarbleGate by making a slice of strings using the Fisher-Yates algorithm.
 // This algorithm is taken directly from ChatGPT, since we found out the standard library
 // shuffle function is not cryptographically secure.
-func Shuffle(slice []string) []string {
-	for i := len(slice) - 1; i > 0; i-- {
+func (gg *GarbledGate) Shuffle() {
+	// Create a slice of the truth table entries
+	entries := []*string{&gg.C_0, &gg.C_1, &gg.C_2, &gg.C_3}
+
+	// Use the Fisher-Yates shuffle
+	for i := len(entries) - 1; i > 0; i-- {
 		j, _ := rand.Int(rand.Reader, big.NewInt(int64(i+1)))
-		slice[i], slice[j.Int64()] = slice[j.Int64()], slice[i]
+		*entries[i], *entries[j.Int64()] = *entries[j.Int64()], *entries[i]
 	}
-	return slice
+
+	// Reassign the shuffled values back to the struct
+	gg.C_0, gg.C_1, gg.C_2, gg.C_3 = *entries[0], *entries[1], *entries[2], *entries[3]
 }
 
 // Creates a string of 128 zeros
@@ -164,6 +183,8 @@ func EvaluateGarbledGate(gate []string, leftKey string, rightKey string) string 
 			// return the first 128 bits of the decrypted table entry.
 			// Notice, that this get the correct truth table entry with overwhelming probability (but not with certainty)
 			return decryptedTableEntry[:128]
+		} else {
+			panic("Decryption failed. The decrypted table entry does not end with a string of 128 zeros")
 		}
 
 	}

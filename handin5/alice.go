@@ -3,10 +3,10 @@ package handin5
 import "math/big"
 
 type Alice struct {
-	x   int         // Alice input
-	sk  *big.Int    // El Gamal secret key
-	e_x [][2]string // Encode values for Alice
-	d   [][2]string // The Z values from the ouput of the garbled circuit
+	x   int        // Alice input
+	sk  []*big.Int // El Gamal secret keys - one to encrypt each of Alice's three input bits
+	e_x []KeyPair  // Encode values for Alice
+	d   []KeyPair  // The Z values from the ouput of the garbled circuit
 }
 
 // Set alice's input as the x provided by the GarbledCircuit function
@@ -14,17 +14,36 @@ func (alice *Alice) Init(x int) {
 	alice.x = x
 }
 
-func (alice *Alice) MakeAndTransferKeys(elGamal *ElGamal) []*big.Int {
+type OTPublicKeys struct {
+	// Public keys from Alice used in the 1 over 2 obliviousTransfer protocol.
+	// One key pair for each of Alice's three input bits. Each pair contains a real and a fake key,
+	// where the real key corresponds to the chosen input bit of Alice.
+	keys [3][2]*big.Int
+}
 
-	// Generate a secret key
-	alice.sk = elGamal.makeSecretKey()
+func (alice *Alice) MakeAndTransferKeys(elGamal *ElGamal) OTPublicKeys {
 
-	// Make two public keys for the ObliviousTransfer
-	publicKeys := make([]*big.Int, 2)
-	publicKeys[0] = elGamal.Gen(alice.sk)
-	publicKeys[1] = elGamal.OGen()
+	// Generate three secret keys for Alice - one for each of her three input bits
+	for i := 0; i < 3; i++ {
+		alice.sk[i] = elGamal.makeSecretKey()
+	}
 
-	return publicKeys
+	// Extract the bits from Alice's input
+	inputInBits := ExtractBits(alice.x) // [x1, x2, x3]
+
+	OTKeys := OTPublicKeys{}
+
+	// Encode Alice's input bits. If input bit is 0, then the real key is the first key in the pair. Otherwise, opposite.
+	for i := 0; i < 3; i++ {
+		if inputInBits[i] == 0 {
+			OTKeys.keys[i][0] = elGamal.Gen(alice.sk[i]) // Real key
+			OTKeys.keys[i][1] = elGamal.OGen()           // Fake key
+		} else {
+			OTKeys.keys[i][0] = elGamal.OGen()           // Fake key
+			OTKeys.keys[i][1] = elGamal.Gen(alice.sk[i]) // Real key
+		}
+	}
+	return OTKeys
 }
 
 func (alice *Alice) EvaluateGarbledCircuit(F [][]string, e_x [][2]string, d [2]string, Y Y, e_xor [][2]string) int {
@@ -56,4 +75,24 @@ func (alice *Alice) EvaluateGarbledCircuit(F [][]string, e_x [][2]string, d [2]s
 	} else {
 		panic("Decoding failed. Result is neither Z_0 or Z_1 from d = (Z_0, Z_1)")
 	}
+}
+
+func (alice *Alice) Decrypt(ciphertexts [][2]*Ciphertext, elGamal *ElGamal) string {
+	var result string
+
+	// Loop through the ciphertexts
+	for i, _ := range ciphertexts {
+		// Decrypt each value in the pair
+		decryptedValue1 := elGamal.Decrypt(ciphertexts[i], alice.sk)
+		decryptedValue2 := elGamal.Decrypt(pair[1], alice.sk)
+
+		// Convert the decrypted big.Int values to binary strings
+		binaryStr1 := decryptedValue1.Text(2) // 2 for binary
+		binaryStr2 := decryptedValue2.Text(2) // 2 for binary
+
+		// Append or process the binary strings as required (e.g., concatenate)
+		result += binaryStr1 + binaryStr2
+	}
+
+	return result
 }
