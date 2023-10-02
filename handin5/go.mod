@@ -1,3 +1,3 @@
-module Handin5
+module handin5
 
 go 1.19

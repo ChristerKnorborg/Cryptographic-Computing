@@ -1,7 +1,6 @@
 package handin5
 
 import (
-	"fmt"
 	"math/big"
 )
 
@@ -61,7 +60,7 @@ func (bob *Bob) MakeGarbledCircuit() ([]GarbledGate, KeyPair, []KeyPair) {
 
 	e_x := []KeyPair{wires[1], wires[8], wires[15]}                                   // Alice input bits x1, x2, x3 goes in these wires respectively
 	e_y := []KeyPair{wires[3], wires[10], wires[17]}                                  // Bob input bits y1, y2, y3 goes in these wires respectively
-	e_xor := []KeyPair{wires[0], wires[4], wires[7], wires[11], wires[14], wires[18]} // constants from XOR gates goes in these wires
+	e_xor := []KeyPair{wires[0], wires[5], wires[7], wires[12], wires[14], wires[19]} // constants from XOR gates goes in these wires
 
 	// Store the values locally in the Bob struct
 	bob.e_y = e_y // for encoding (in the Encode function)
@@ -98,8 +97,6 @@ func (bob *Bob) Encrypt(elGamal *ElGamal) [3][2]*Ciphertext {
 
 	for i := 0; i < 3; i++ {
 
-		fmt.Println("bob.e_x[i].K_0: ", bob.e_x[i].K_0)
-		fmt.Println("bob.e_x[i].K_1: ", bob.e_x[i].K_1)
 		keyString0, err0 := new(big.Int).SetString(bob.e_x[i].K_0, 16) // Base 16 for hexadecimal string
 		keyString1, err1 := new(big.Int).SetString(bob.e_x[i].K_1, 16) // Base 16 for hexadecimal string
 
@@ -111,8 +108,8 @@ func (bob *Bob) Encrypt(elGamal *ElGamal) [3][2]*Ciphertext {
 		wire_i_0 := keyString0 // Convert the first random string for Alice's input wire to big.Int
 		wire_i_1 := keyString1 // Convert the second random string for Alice's input wire to big.Int
 
-		encrypted_x[i][0] = elGamal.Encrypt(wire_i_0, bob.OTKeys.keys[i][0])
-		encrypted_x[i][1] = elGamal.Encrypt(wire_i_1, bob.OTKeys.keys[i][1])
+		encrypted_x[i][0] = elGamal.Encrypt(wire_i_0, bob.OTKeys.Keys[i][0])
+		encrypted_x[i][1] = elGamal.Encrypt(wire_i_1, bob.OTKeys.Keys[i][1])
 
 	}
 

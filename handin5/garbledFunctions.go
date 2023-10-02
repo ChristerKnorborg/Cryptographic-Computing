@@ -70,10 +70,6 @@ func ANDGate(inputL KeyPair, inputR KeyPair, output KeyPair) GarbledGate {
 	c3_concat := output.K_0 + stringOfZeros // output is 0, as AND(1,0) = 0
 	c4_concat := output.K_1 + stringOfZeros // output is 1, as AND(1,1) = 1
 
-	fmt.Println("c1_hash: ", c1_hash)
-	fmt.Println("c1_concat: ", c1_concat)
-	fmt.Println("Zeroes: ", stringOfZeros)
-
 	// Encrypt the output key with the input keys
 	gg.C_0 = XORStrings(c1_hash, c1_concat)
 	gg.C_1 = XORStrings(c2_hash, c2_concat)
@@ -166,6 +162,7 @@ func EvaluateGarbledGate(gate GarbledGate, leftKey string, rightKey string) stri
 	gateEntries := []string{gate.C_0, gate.C_1, gate.C_2, gate.C_3}
 
 	for i, entry := range gateEntries {
+
 		decryptedTableEntry := XORStrings(entry, hashValue)
 
 		fmt.Printf("Decrypted table entry %d: %s\n", i, decryptedTableEntry)
@@ -173,7 +170,7 @@ func EvaluateGarbledGate(gate GarbledGate, leftKey string, rightKey string) stri
 		// Check if the last 128 bits of the decrypted table entry is a string of 128 zeros.
 		// If it is, return the first 128 bits of the decrypted table entry.
 		if strings.HasSuffix(decryptedTableEntry, zeroString) {
-			return decryptedTableEntry[:128]
+			return decryptedTableEntry[:32]
 		}
 	}
 

@@ -15,8 +15,8 @@ type ElGamal struct {
 // Ciphertext is a struct containing the two parts of a ciphertext (Due to GO being unable to return a list of tuple values).
 // Used for encrypt since Bob needs to return a list of 2 ciphertexts each containing c1, c2.
 type Ciphertext struct {
-	c1 *big.Int
-	c2 *big.Int
+	C1 *big.Int
+	C2 *big.Int
 }
 
 // Generate the public parameters p, q, g for the ElGamal cryptosystem
@@ -46,7 +46,7 @@ func (elGamal *ElGamal) Init() {
 
 }
 
-func (elGamal *ElGamal) makeSecretKey() *big.Int {
+func (elGamal *ElGamal) MakeSecretKey() *big.Int {
 	// sk ∈ [1, q-1]. Notice, we exclude 0 due to weak properties.
 	qMinusOne := new(big.Int).Sub(elGamal.q, big.NewInt(1))
 	x, _ := rand.Int(rand.Reader, qMinusOne) // random number x ∈ [0, q-2]
