@@ -6,12 +6,15 @@ type Alice struct {
 	x   int        // Alice input
 	sk  []*big.Int // El Gamal secret keys - one to encrypt each of Alice's three input bits
 	e_x []string   // The input bits values from alice to be used in the garbled circuit
-	d   []KeyPair  // The Z values from the ouput of the garbled circuit
 }
 
 // Set alice's input as the x provided by the GarbledCircuit function
 func (alice *Alice) Init(x int) {
 	alice.x = x
+
+	// Initialize slice for secret keys
+	alice.sk = make([]*big.Int, 3)
+
 }
 
 type OTPublicKeys struct {
@@ -99,7 +102,7 @@ func (alice *Alice) Decrypt(ciphertexts [3][2]*Ciphertext, elGamal *ElGamal) {
 		}
 
 		plaintextBigInt := elGamal.Decrypt(c1, c2, alice.sk[i]) // Plaintext still in big int format
-		plaintext := plaintextBigInt.Text(2)                    // Plaintext in binary string format
+		plaintext := plaintextBigInt.Text(16)                   // Plaintext in binary string format
 
 		alice.e_x = append(alice.e_x, plaintext)
 	}

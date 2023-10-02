@@ -8,11 +8,9 @@ import (
 type Bob struct {
 	y      int           // Bob input
 	OTKeys OTPublicKeys  // Public keys from Alice
-	F      []GarbledGate // Garbled circuit
-	d      KeyPair       // The Z values from the ouput of the garbled circuit
+	F      []GarbledGate // Garbled circuit is a list of garbled gates
 	e_x    []KeyPair
 	e_y    []KeyPair
-	e_xor  []KeyPair
 }
 
 // Set Bob's input as the y provided by the GarbledCircuit function
@@ -44,29 +42,19 @@ func (bob *Bob) MakeGarbledCircuit() ([]GarbledGate, KeyPair, []KeyPair) {
 	F = append(F, ANDGate(wires[2], wires[3], wires[4])) // AND ¬x1 with y1. Result is z1
 	F = append(F, XORGate(wires[4], wires[5], wires[6])) // XOR z1 with constant 1
 
-	fmt.Println("block 1 done")
-
 	// Block 2: x2 and y2
 	F = append(F, XORGate(wires[7], wires[8], wires[9]))    // XOR constant 1 and x2. Result is ¬x2
 	F = append(F, ANDGate(wires[9], wires[10], wires[11]))  // AND ¬x2 with y2. Result is z2
 	F = append(F, XORGate(wires[11], wires[12], wires[13])) // XOR z2 with constant 1
-
-	fmt.Println("block 2 done")
 
 	// Block 3: x3 and y3
 	F = append(F, XORGate(wires[14], wires[15], wires[16])) // XOR constant 1 and x3. Result is ¬x3
 	F = append(F, ANDGate(wires[16], wires[17], wires[18])) // AND ¬x3 with y3. Result is z3
 	F = append(F, XORGate(wires[18], wires[19], wires[20])) // XOR z3 with constant 1
 
-	fmt.Println("block 3 done")
-
 	F = append(F, ANDGate(wires[6], wires[13], wires[21])) // AND z1 and z2. Result is z4
 
-	fmt.Println("block 4 done")
-
 	F = append(F, ANDGate(wires[20], wires[21], wires[22])) // AND z3 and z4. Final
-
-	fmt.Println("block 5 done")
 
 	// Define d = (Z_0, Z_1) = (K^T_0 , K^T_1)
 	d := wires[22]
@@ -110,8 +98,10 @@ func (bob *Bob) Encrypt(elGamal *ElGamal) [3][2]*Ciphertext {
 
 	for i := 0; i < 3; i++ {
 
-		keyString0, err0 := new(big.Int).SetString(bob.e_x[i].K_0, 2)
-		keyString1, err1 := new(big.Int).SetString(bob.e_x[i].K_1, 2)
+		fmt.Println("bob.e_x[i].K_0: ", bob.e_x[i].K_0)
+		fmt.Println("bob.e_x[i].K_1: ", bob.e_x[i].K_1)
+		keyString0, err0 := new(big.Int).SetString(bob.e_x[i].K_0, 16) // Base 16 for hexadecimal string
+		keyString1, err1 := new(big.Int).SetString(bob.e_x[i].K_1, 16) // Base 16 for hexadecimal string
 
 		if !err0 || !err1 {
 			panic("Could not convert string to big.Int")

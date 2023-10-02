@@ -145,24 +145,6 @@ func XORStrings(a string, b string) string {
 	return hex.EncodeToString(result)
 }
 
-func CalculateGate(gate []string, leftKey string, rightKey string) string {
-	// Hash 256 bits of input 128-bit keys concatenated
-	c1_hash := Hash(leftKey, rightKey)
-
-	// Decrypt the output key with the input keys
-	return XORStrings(c1_hash, gate[0])
-}
-
-// The garbled evaluation function Ev that evaluates a garbled circuit F on a garbled input X and produces a garbled output Z′
-func GarbledEvaluation() {
-
-}
-
-// The decoding function De, decodes the garbled output Z′ into a plaintext output z.
-func Decode() {
-
-}
-
 // This function extract the three bits from an bloodtype input and returns them as an array
 func ExtractBits(n int) [3]int {
 	// Extract the bits from Bob (donor)
@@ -183,8 +165,10 @@ func EvaluateGarbledGate(gate GarbledGate, leftKey string, rightKey string) stri
 	// List of garbled gate entries
 	gateEntries := []string{gate.C_0, gate.C_1, gate.C_2, gate.C_3}
 
-	for _, entry := range gateEntries {
+	for i, entry := range gateEntries {
 		decryptedTableEntry := XORStrings(entry, hashValue)
+
+		fmt.Printf("Decrypted table entry %d: %s\n", i, decryptedTableEntry)
 
 		// Check if the last 128 bits of the decrypted table entry is a string of 128 zeros.
 		// If it is, return the first 128 bits of the decrypted table entry.
