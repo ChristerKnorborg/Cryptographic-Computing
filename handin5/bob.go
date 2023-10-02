@@ -3,13 +3,13 @@ package handin5
 import "math/big"
 
 type Bob struct {
-	y          int           // Bob input
-	publicKeys []*big.Int    // Public keys from Alice
-	F          []GarbledGate // Garbled circuit
-	d          KeyPair       // The Z values from the ouput of the garbled circuit
-	e_x        []KeyPair
-	e_y        []KeyPair
-	e_xor      []KeyPair
+	y      int           // Bob input
+	OTKeys OTPublicKeys  // Public keys from Alice
+	F      []GarbledGate // Garbled circuit
+	d      KeyPair       // The Z values from the ouput of the garbled circuit
+	e_x    []KeyPair
+	e_y    []KeyPair
+	e_xor  []KeyPair
 }
 
 // Set Bob's input as the y provided by the GarbledCircuit function
@@ -17,8 +17,8 @@ func (bob *Bob) Init(y int) {
 	bob.y = y
 }
 
-func (bob *Bob) ReceiveKeys(publicKeys []*big.Int) {
-	bob.publicKeys = publicKeys
+func (bob *Bob) ReceiveKeys(OTKeys OTPublicKeys) {
+	bob.OTKeys = OTKeys
 }
 
 // Create a garbled circuit from the bloodtype compatibility formula (Claudio's Master solution from handin 1)
