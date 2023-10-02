@@ -128,6 +128,8 @@ func XORStrings(a string, b string) string {
 	bytesA, errA := hex.DecodeString(a)
 	bytesB, errB := hex.DecodeString(b)
 	if errA != nil || errB != nil || len(bytesA) != len(bytesB) {
+		fmt.Println("bytesA", bytesA)
+		fmt.Println("bytesB", bytesB)
 		panic("invalid input or length mismatch")
 	}
 
@@ -169,24 +171,23 @@ func ExtractBits(n int) [3]int {
 }
 
 // EvaluateGarbledGate evaluates a single garbled gate using the keys from the OT
-func EvaluateGarbledGate(gate []string, leftKey string, rightKey string) string {
+func EvaluateGarbledGate(gate GarbledGate, leftKey string, rightKey string) string {
 
-	zeroStrng := Zeros128BitString()
+	zeroString := Zeros128BitString()
+	hashValue := Hash(leftKey, rightKey)
 
-	// Try all truth table entries that are randomly shuffled
-	for i := 0; i < 4; i++ {
-		decryptedTableEntry := XORStrings(gate[i], Hash(leftKey, rightKey))
+	// List of garbled gate entries
+	gateEntries := []string{gate.C_0, gate.C_1, gate.C_2, gate.C_3}
 
-		// Check if the last 128 bits of the decrypted table entry is a string of 128 zeros
-		if strings.HasSuffix(decryptedTableEntry, zeroStrng) {
+	for _, entry := range gateEntries {
+		decryptedTableEntry := XORStrings(entry, hashValue)
 
-			// return the first 128 bits of the decrypted table entry.
-			// Notice, that this get the correct truth table entry with overwhelming probability (but not with certainty)
+		// Check if the last 128 bits of the decrypted table entry is a string of 128 zeros.
+		// If it is, return the first 128 bits of the decrypted table entry.
+		if strings.HasSuffix(decryptedTableEntry, zeroString) {
 			return decryptedTableEntry[:128]
-		} else {
-			panic("Decryption failed. The decrypted table entry does not end with a string of 128 zeros")
 		}
-
 	}
 
+	panic("Decryption failed. The decrypted table entry does not end with a string of 128 zeros")
 }

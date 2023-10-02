@@ -89,26 +89,30 @@ func (bob *Bob) Encode() []string {
 	return Y
 }
 
-func (bob *Bob) Encrypt(elGamal *ElGamal) [][2]*Ciphertext {
+func (bob *Bob) Encrypt(elGamal *ElGamal) [3][2]*Ciphertext {
 
-	// Make 2 ciphertexts using the Public keys from Alice
-	ciphertexts := make([][2]*Ciphertext, 2)
+	// Make 2 ciphertexts (of c1, c2) for each of Alice three input wires.
+	// Two ciphertexts is due to encryption of both bits for each wire where one of the bits use is a real key and the other use a fake
+	encrypted_x := [3][2]*Ciphertext{}
 
-	for i := 0; i < 2; i++ {
-		// Convert the string to a big.Int.
-		// Assuming the string is a binary representation, you might adjust this for different representations.
-		intValue1 := new(big.Int)
-		intValue2 := new(big.Int)
+	for i := 0; i < 3; i++ {
+
+		keyString0, err0 := new(big.Int).SetString(bob.e_x[i].K_0, 2)
+		keyString1, err1 := new(big.Int).SetString(bob.e_x[i].K_1, 2)
+
+		if !err0 || !err1 {
+			panic("Could not convert string to big.Int")
+		}
 
 		// Convert the strings to a big.Int
-		intValue1.SetString(bob.e_x[i][0], 2) // 2 for binary
-		intValue2.SetString(bob.e_x[i][1], 2) // 2 for binary
+		wire_i_0 := keyString0 // Convert the first random string for Alice's input wire to big.Int
+		wire_i_1 := keyString1 // Convert the second random string for Alice's input wire to big.Int
 
-		// Encrypts both values from the wire in the same ciphertext
-		ciphertexts[i][0] = elGamal.Encrypt(intValue1, bob.publicKeys[i])
-		ciphertexts[i][1] = elGamal.Encrypt(intValue2, bob.publicKeys[i])
+		encrypted_x[i][0] = elGamal.Encrypt(wire_i_0, bob.OTKeys.keys[i][0])
+		encrypted_x[i][1] = elGamal.Encrypt(wire_i_1, bob.OTKeys.keys[i][1])
+
 	}
 
-	return ciphertexts
+	return encrypted_x
 
 }
