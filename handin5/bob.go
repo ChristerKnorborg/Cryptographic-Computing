@@ -1,6 +1,7 @@
 package handin5
 
 import (
+	"fmt"
 	"math/big"
 )
 
@@ -15,6 +16,11 @@ type Bob struct {
 // Set Bob's input as the y provided by the GarbledCircuit function
 func (bob *Bob) Init(y int) {
 	bob.y = y
+
+	bob.e_x = make([]KeyPair, 0)
+	bob.e_y = make([]KeyPair, 0)
+	bob.F = make([]GarbledGate, 0)
+	bob.OTKeys = OTPublicKeys{}
 }
 
 func (bob *Bob) ReceiveKeys(OTKeys OTPublicKeys) {
@@ -81,8 +87,10 @@ func (bob *Bob) Encode() []string {
 		// Match the input bit with the corresponding wire e_y
 		if inputInBits[i] == 0 {
 			Y = append(Y, bob.e_y[i].K_0)
-		} else {
+		} else if inputInBits[i] == 1 {
 			Y = append(Y, bob.e_y[i].K_1)
+		} else {
+			panic("Input bit is not 0 or 1")
 		}
 	}
 
@@ -100,6 +108,8 @@ func (bob *Bob) Encrypt(elGamal *ElGamal) [3][2]*Ciphertext {
 		keyString0, err0 := new(big.Int).SetString(bob.e_x[i].K_0, 16) // Base 16 for hexadecimal string
 		keyString1, err1 := new(big.Int).SetString(bob.e_x[i].K_1, 16) // Base 16 for hexadecimal string
 
+		fmt.Printf("keystring 0: %s\n", keyString0)
+		fmt.Printf("keystring 1: %s\n", keyString1)
 		if !err0 || !err1 {
 			panic("Could not convert string to big.Int")
 		}

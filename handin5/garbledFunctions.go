@@ -88,13 +88,14 @@ func Hash(leftKey string, rightKey string) string {
 	hasher.Write([]byte(leftKey))
 	hasher.Write([]byte(rightKey))
 
-	return fmt.Sprintf("%x", hasher.Sum(nil))
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 // Shuffle shuffles the given GarbleGate by making a slice of strings using the Fisher-Yates algorithm.
 // This algorithm is taken directly from ChatGPT, since we found out the standard library
 // shuffle function is not cryptographically secure.
 func (gg *GarbledGate) Shuffle() {
+
 	// Create a slice of the truth table entries
 	entries := []*string{&gg.C_0, &gg.C_1, &gg.C_2, &gg.C_3}
 
@@ -115,12 +116,12 @@ func Zeros128BitString() string {
 
 // Creates a random 128-bit string
 func Random128BitString() string {
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
-	if err != nil {
+	bytes := make([]byte, 16)
+	if _, err := rand.Read(bytes); err != nil {
 		panic(err)
 	}
-	return fmt.Sprintf("%x", b)
+	return hex.EncodeToString(bytes)
+
 }
 
 // XORStrings XORs two hex-encoded strings and returns the result as a hex-encoded string.

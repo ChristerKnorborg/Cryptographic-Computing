@@ -25,8 +25,8 @@ func main() {
 	// }
 
 	// Try a single combination of blood types
-	aliceBloodType := h5.Ominus
-	bobBloodType := h5.Aminus
+	aliceBloodType := h5.ABplus
+	bobBloodType := h5.ABplus
 	ObliviousTransferResult := h5.GarbledCircuit(aliceBloodType, bobBloodType)
 	lookupTableResult := h5.LookUpBloodType(aliceBloodType, bobBloodType)
 	if ObliviousTransferResult != lookupTableResult {

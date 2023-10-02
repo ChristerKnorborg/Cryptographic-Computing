@@ -1,6 +1,9 @@
 package handin5
 
-import "math/big"
+import (
+	"fmt"
+	"math/big"
+)
 
 type Alice struct {
 	x   int        // Alice input
@@ -10,10 +13,12 @@ type Alice struct {
 
 // Set alice's input as the x provided by the GarbledCircuit function
 func (alice *Alice) Init(x int) {
-	alice.x = x
 
+	alice.x = x
 	// Initialize slice for secret keys
 	alice.sk = make([]*big.Int, 3)
+
+	alice.e_x = make([]string, 0)
 
 }
 
@@ -41,9 +46,11 @@ func (alice *Alice) MakeAndTransferKeys(elGamal *ElGamal) OTPublicKeys {
 		if inputInBits[i] == 0 {
 			OTKeys.Keys[i][0] = elGamal.Gen(alice.sk[i]) // Real key
 			OTKeys.Keys[i][1] = elGamal.OGen()           // Fake key
-		} else {
+		} else if inputInBits[i] == 1 {
 			OTKeys.Keys[i][0] = elGamal.OGen()           // Fake key
 			OTKeys.Keys[i][1] = elGamal.Gen(alice.sk[i]) // Real key
+		} else {
+			panic("Input bit is neither 0 or 1")
 		}
 	}
 	return OTKeys
@@ -88,8 +95,8 @@ func (alice *Alice) Decrypt(ciphertexts [3][2]*Ciphertext, elGamal *ElGamal) {
 	// Decrypt the ciphertexts
 	for i := 0; i < 3; i++ {
 
-		c1 := big.NewInt(0)
-		c2 := big.NewInt(0)
+		c1 := new(big.Int)
+		c2 := new(big.Int)
 
 		//
 		if inputInBits[i] == 0 {
@@ -99,10 +106,13 @@ func (alice *Alice) Decrypt(ciphertexts [3][2]*Ciphertext, elGamal *ElGamal) {
 		} else if inputInBits[i] == 1 {
 			c1 = ciphertexts[i][1].C1
 			c2 = ciphertexts[i][1].C2
+		} else {
+			panic("Input bit is neither 0 or 1")
 		}
 
 		plaintextBigInt := elGamal.Decrypt(c1, c2, alice.sk[i]) // Plaintext still in big int format
 		plaintext := plaintextBigInt.Text(16)                   // Plaintext in binary string format
+		fmt.Println("Alice decrypted len: ", len(plaintext))
 
 		alice.e_x = append(alice.e_x, plaintext)
 	}
