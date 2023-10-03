@@ -162,11 +162,12 @@ func EvaluateGarbledGate(gate GarbledGate, leftKey string, rightKey string) stri
 	// List of garbled gate entries
 	gateEntries := []string{gate.C_0, gate.C_1, gate.C_2, gate.C_3}
 
+	debugString := []string{}
 	for i, entry := range gateEntries {
 
 		decryptedTableEntry := XORStrings(entry, hashValue)
 
-		fmt.Printf("Decrypted table entry %d: %s\n", i, decryptedTableEntry)
+		debugString = append(debugString, fmt.Sprintf("Decrypted table entry %d: %s\n", i, decryptedTableEntry))
 
 		// Check if the last 128 bits of the decrypted table entry is a string of 128 zeros.
 		// If it is, return the first 128 bits of the decrypted table entry.
@@ -174,6 +175,8 @@ func EvaluateGarbledGate(gate GarbledGate, leftKey string, rightKey string) stri
 			return decryptedTableEntry[:32]
 		}
 	}
+	fmt.Println("Decryption failed. The decrypted table entry does not end with a string of 128 zeros")
+	fmt.Println(debugString)
+	panic("ERROR ABOVE:")
 
-	panic("Decryption failed. The decrypted table entry does not end with a string of 128 zeros")
 }

@@ -8,7 +8,7 @@ func GarbledCircuit(recipient Bloodtype, donor Bloodtype) bool {
 	bob := Bob{}
 	elGamal := ElGamal{}
 
-	elGamal.InitFixedQ() // initialize the ElGamal with public parameters p, q, g. Notice, q is fixed from handin4 (Explained in the README for handin4)
+	elGamal.Init() // initialize the ElGamal with public parameters p, q, g. Notice, q is fixed from handin4 (Explained in the README for handin4)
 	elGamal.TestProperties()
 	alice.Init(x) // Alice set her input x
 	bob.Init(y)   // Bob set his input y

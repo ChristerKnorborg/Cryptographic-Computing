@@ -1,7 +1,6 @@
 package handin5
 
 import (
-	"fmt"
 	"math/big"
 )
 
@@ -104,19 +103,13 @@ func (bob *Bob) Encrypt(elGamal *ElGamal) [3][2]*Ciphertext {
 	encrypted_x := [3][2]*Ciphertext{}
 
 	for i := 0; i < 3; i++ {
+		// Convert the strings to a big.Int
+		wire_i_0, err0 := new(big.Int).SetString(bob.e_x[i].K_0, 16) // Base 16 for hexadecimal string
+		wire_i_1, err1 := new(big.Int).SetString(bob.e_x[i].K_1, 16) // Base 16 for hexadecimal string
 
-		keyString0, err0 := new(big.Int).SetString(bob.e_x[i].K_0, 16) // Base 16 for hexadecimal string
-		keyString1, err1 := new(big.Int).SetString(bob.e_x[i].K_1, 16) // Base 16 for hexadecimal string
-
-		fmt.Printf("keystring 0: %s\n", keyString0)
-		fmt.Printf("keystring 1: %s\n", keyString1)
 		if !err0 || !err1 {
 			panic("Could not convert string to big.Int")
 		}
-
-		// Convert the strings to a big.Int
-		wire_i_0 := keyString0 // Convert the first random string for Alice's input wire to big.Int
-		wire_i_1 := keyString1 // Convert the second random string for Alice's input wire to big.Int
 
 		encrypted_x[i][0] = elGamal.Encrypt(wire_i_0, bob.OTKeys.Keys[i][0])
 		encrypted_x[i][1] = elGamal.Encrypt(wire_i_1, bob.OTKeys.Keys[i][1])

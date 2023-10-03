@@ -1,7 +1,6 @@
 package handin5
 
 import (
-	"fmt"
 	"math/big"
 )
 
@@ -112,7 +111,12 @@ func (alice *Alice) Decrypt(ciphertexts [3][2]*Ciphertext, elGamal *ElGamal) {
 
 		plaintextBigInt := elGamal.Decrypt(c1, c2, alice.sk[i]) // Plaintext still in big int format
 		plaintext := plaintextBigInt.Text(16)                   // Plaintext in binary string format
-		fmt.Println("Alice decrypted len: ", len(plaintext))
+
+		// Add leading zeros if necessary. If the plaintext is not 32 bits long,
+		// it is because leading zeros have been removed during casting from big int to string representation.
+		for len(plaintext) < 32 {
+			plaintext = "0" + plaintext
+		}
 
 		alice.e_x = append(alice.e_x, plaintext)
 	}
