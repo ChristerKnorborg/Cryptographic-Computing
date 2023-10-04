@@ -2,7 +2,6 @@ package handin5
 
 import (
 	"crypto/rand"
-	"fmt"
 	"math/big"
 )
 
@@ -31,12 +30,11 @@ func (elGamal *ElGamal) Init() {
 		elGamal.p = new(big.Int).Mul((big.NewInt(2)), elGamal.q) // p = kq (we use k = 2 for simplicity as said in the notes)
 		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))      // p = kq + 1
 
-		if elGamal.p.ProbablyPrime(40) { // Test with 400 rounds of Miller-Rabin. Otherwise try new q and p values
+		if elGamal.p.ProbablyPrime(400) { // Test with 400 rounds of Miller-Rabin. Otherwise try new q and p values
 			break
 		}
 
 	}
-
 	// Generate a DDH-safe group g of order q in Z_p^* by using the second suggesting from the notes:
 	// "Pick arbitrary x from Z_p^* where x != 1 and x != -1, and compute g = x2 mod p".
 	pMinusTwo := new(big.Int).Sub(elGamal.p, big.NewInt(1))   // pMinusTwo = p-2
@@ -55,6 +53,7 @@ func (elGamal *ElGamal) MakeSecretKey() *big.Int {
 	return sk
 }
 
+// Generate a "real" public key h = g^sk mod p from a secret key sk
 func (elGamal *ElGamal) Gen(sk *big.Int) *big.Int {
 
 	h := new(big.Int).Exp(elGamal.g, sk, elGamal.p) // h = g^sk mod p
@@ -80,7 +79,7 @@ func (elGamal *ElGamal) OGen() *big.Int {
 	return r.Mod(r, elGamal.p)
 }
 
-// The encrypt method first encodes the message m with the thrid encoding method from the notes:
+// The encrypt method first encodes the message m with the third encoding method from the notes:
 // "check if (m + 1)^q = 1 mod p. If yes, encrypt M = m + 1. If not, encrypt M = −(m + 1)".
 // Afterwards, it use the ElGamal encryption scheme to encrypt the encoded message M.
 func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
@@ -111,15 +110,11 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 // Then the decoding method from the notes is used: "If M ≤ q, then m = M − 1, otherwise m = −M − 1."
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
-	// Calculate M = c2 * (c1^sk)^-1 mod p
-	// s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
-	// modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
-	// M := new(big.Int).Mul(c2, modInv)               // M = c2 * s
-
-	negSk := new(big.Int).Neg(sk)
-	s := new(big.Int).Exp(c1, negSk, elGamal.p)
-	M := new(big.Int).Mul(c2, s)
-	M = M.Mod(M, elGamal.p) // M = c2 * s mod p
+	// Calculate M = c2 * c1^-sk mod p
+	negSk := new(big.Int).Neg(sk)               // -sk
+	s := new(big.Int).Exp(c1, negSk, elGamal.p) // s = c1^-sk mod p
+	M := new(big.Int).Mul(c2, s)                // M = c2 * s
+	M = M.Mod(M, elGamal.p)                     // M = c2 * s mod p
 
 	// Decode M
 	var m *big.Int
@@ -132,52 +127,4 @@ func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int 
 	}
 
 	return m.Mod(m, elGamal.p) // M = m mod p
-}
-
-// Exactly the same method as Init(), except that we use harcoded large primes for q which we found online.
-// There seem to be a problem with the random number generator in GO, since the properties of the ElGamal cryptosystem
-// does not hold for a prime found by rand.Prime(rand.Reader, 256).
-func (elGamal *ElGamal) InitFixedQ() {
-
-	// Hardcoded prime q found online at:
-	// https://lists.exim.org/lurker/message/20200917.170121.9eb5c776.de.html
-	// This is used due to primes found by rand.Prime(rand.Reader, 256) being buggy.
-	qstr := "7FFFFFFFFFFFFFFFD6FC2A2C515DA54D57EE2B10139E9E78EC5CE2C1E7169B4AD4F09B208A3219FDE649CEE7124D9F7CBE97F1B1B1863AEC7B40D901576230BD69EF8F6AEAFEB2B09219FA8FAF83376842B1B2AA9EF68D79DAAB89AF3FABE49ACC278638707345BBF15344ED79F7F4390EF8AC509B56F39A98566527A41D3CBD5E0558C159927DB0E88454A5D96471FDDCB56D5BB06BFA340EA7A151EF1CA6FA572B76F3B1B95D8C8583D3E4770536B84F017E70E6FBF176601A0266941A17B0C8B97F4E74C2C1FFC7278919777940C1E1FF1D8DA637D6B99DDAFE5E17611002E2C778C1BE8B41D96379A51360D977FD4435A11C30942E4BFFFFFFFFFFFFFFFF"
-	pstr := "FFFFFFFFFFFFFFFFADF85458A2BB4A9AAFDC5620273D3CF1D8B9C583CE2D3695A9E13641146433FBCC939DCE249B3EF97D2FE363630C75D8F681B202AEC4617AD3DF1ED5D5FD65612433F51F5F066ED0856365553DED1AF3B557135E7F57C935984F0C70E0E68B77E2A689DAF3EFE8721DF158A136ADE73530ACCA4F483A797ABC0AB182B324FB61D108A94BB2C8E3FBB96ADAB760D7F4681D4F42A3DE394DF4AE56EDE76372BB190B07A7C8EE0A6D709E02FCE1CDF7E2ECC03404CD28342F619172FE9CE98583FF8E4F1232EEF28183C3FE3B1B4C6FAD733BB5FCBC2EC22005C58EF1837D1683B2C6F34A26C1B2EFFA886B423861285C97FFFFFFFFFFFFFFFF"
-	gstr := "2"
-
-	elGamal.q = new(big.Int)
-	elGamal.q.SetString(qstr, 16)
-
-	elGamal.p = new(big.Int)
-	elGamal.p.SetString(pstr, 16)
-
-	elGamal.g = new(big.Int)
-	elGamal.g.SetString(gstr, 16)
-
-}
-
-// Test if the properties of the ElGamal cryptosystem holds for the public parameters p, q, g
-// as explained in the cryptography course book by Ivan Damgård. The method was primarily used
-// for debugging purposes with regards to the random number generator rand.Prime(rand.Reader, 256)
-// as mentioned in the README. The methods prints an error if the properties does not hold.
-func (elGamal *ElGamal) TestProperties() {
-	// Check if q divides p-1
-	pMinusOne := new(big.Int).Sub(elGamal.p, big.NewInt(1))
-	if new(big.Int).Mod(pMinusOne, elGamal.q).Cmp(big.NewInt(0)) != 0 {
-		fmt.Println("Error: q does not divide p-1")
-	}
-
-	// Check if g^q ≡ 1 (mod p)
-	gToQ := new(big.Int).Exp(elGamal.g, elGamal.q, elGamal.p)
-	if gToQ.Cmp(big.NewInt(1)) != 0 {
-		fmt.Println("Error: g^q is not congruent to 1 mod p")
-	}
-
-	// Check if g^(q/2) is not congruent to 1 mod p
-	qDiv2 := new(big.Int).Div(elGamal.q, big.NewInt(2))
-	gToQDiv2 := new(big.Int).Exp(elGamal.g, qDiv2, elGamal.p)
-	if gToQDiv2.Cmp(big.NewInt(1)) == 0 {
-		fmt.Println("Error: g^(q/2) is congruent to 1 mod p ")
-	}
 }
