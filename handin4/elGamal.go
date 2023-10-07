@@ -113,9 +113,9 @@ func (elGamal *ElGamal) Encrypt(m *big.Int, pk *big.Int) *Ciphertext {
 func (elGamal *ElGamal) Decrypt(c1 *big.Int, c2 *big.Int, sk *big.Int) *big.Int {
 
 	// Calculate M = c2 * (c1^sk)^-1 mod p
-	s := new(big.Int).Exp(c1, sk, elGamal.p)        // s = c1^-sk mod p
-	modInv := new(big.Int).ModInverse(s, elGamal.p) // modInv = s^-1 mod p
-	M := new(big.Int).Mul(c2, modInv)               // M = c2 * s
+	s := new(big.Int).Exp(c1, sk, elGamal.p)            // s = c1^-sk mod p
+	modInv := new(big.Int).ModInverse(s, elGamal.p)     // modInv = s^-1 mod p
+	M := new(big.Int).Mul(c2, modInv).Mod(s, elGamal.p) // M = c2 * s
 
 	// Decode M
 	var m *big.Int
