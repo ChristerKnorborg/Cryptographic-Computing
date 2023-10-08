@@ -46,7 +46,7 @@ func (dhe *DHE) GenerateKeys() {
 
 }
 
-func (dhe *DHE) Encrypt(m int64) *big.Int {
+func (dhe *DHE) Encrypt(m int) *big.Int {
 
 	// Check if m is a bit (0 or 1)
 	if m != 0 && m != 1 {
@@ -57,7 +57,8 @@ func (dhe *DHE) Encrypt(m int64) *big.Int {
 	S := randomSubset(dhe.n)
 
 	// Initialize c with the value of m
-	c := big.NewInt(m)
+	mInt64 := int64(m) // Convert m to int64 (This is due to GO BigInt compatibility for NewInt)
+	c := big.NewInt(mInt64)
 
 	// Compute c = m + ∑_(i∈S) y_i
 	for _, i := range S {
