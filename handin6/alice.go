@@ -19,3 +19,12 @@ func (alice *Alice) Init(x int, DHE *DHE) []*big.Int {
 
 	return encryptedXBits
 }
+
+func (alice *Alice) Decide(evaluatedOutput *big.Int, DHE *DHE) int {
+
+	// Decrypt the result
+	decryptedOutput := DHE.Decrypt(evaluatedOutput)
+
+	return decryptedOutput
+
+}

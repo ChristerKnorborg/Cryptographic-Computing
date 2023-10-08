@@ -68,14 +68,16 @@ func (dhe *DHE) Encrypt(m int) *big.Int {
 	return c
 }
 
-func (dhe *DHE) Decrypt(c *big.Int) int64 {
+func (dhe *DHE) Decrypt(c *big.Int) int {
 	// Compute c mod p
 	cModP := new(big.Int).Mod(c, dhe.p)
 
 	// Compute (c mod p) mod 2
-	m := new(big.Int).Mod(cModP, big.NewInt(2))
+	mInt64 := new(big.Int).Mod(cModP, big.NewInt(2))
 
-	return m.Int64()
+	// Convert m to int from int64 (Int64 in the first place is due to GO BigInt compatibility for Int64)
+	m := int(mInt64.Int64())
+	return m
 }
 
 // This function creates a random subset of {1,..., n} by iterating through each number
@@ -90,4 +92,14 @@ func randomSubset(n int) []int {
 		}
 	}
 	return subset
+}
+
+// Homomorphic function applies XOR between two ciphertexts c1 and c2 by addition and returns the result ciphertext
+func HE_xor(c1 *big.Int, c2 *big.Int) *big.Int {
+	return new(big.Int).Add(c1, c2)
+}
+
+// Homomorphic function applies AND between two ciphertexts c1 and c2 by multiplication and returns the result ciphertext
+func HE_and(c1 *big.Int, c2 *big.Int) *big.Int {
+	return new(big.Int).Mul(c1, c2)
 }
