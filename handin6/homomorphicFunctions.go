@@ -46,6 +46,10 @@ func (dhe *DHE) GenerateKeys() {
 
 }
 
+func (dhe *DHE) GetSecretKey() *big.Int {
+	return dhe.p
+}
+
 func (dhe *DHE) Encrypt(m int) *big.Int {
 
 	// Check if m is a bit (0 or 1)
@@ -68,9 +72,9 @@ func (dhe *DHE) Encrypt(m int) *big.Int {
 	return c
 }
 
-func (dhe *DHE) Decrypt(c *big.Int) int {
+func (dhe *DHE) Decrypt(c *big.Int, p *big.Int) int {
 	// Compute c mod p
-	cModP := new(big.Int).Mod(c, dhe.p)
+	cModP := new(big.Int).Mod(c, p)
 
 	// Compute (c mod p) mod 2
 	mInt64 := new(big.Int).Mod(cModP, big.NewInt(2))

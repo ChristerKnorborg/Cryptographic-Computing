@@ -3,20 +3,22 @@ package handin6
 import "math/big"
 
 type Bob struct {
-	y              int        // Bob's input
+	y              [3]int     // Bob's input in bits (y1, y2, y3)
 	encryptedYBits []*big.Int // Bob's encrypted input bits
 	encryptedOnes  []*big.Int // Bob's encrypted 1's
 }
 
-func (bob *Bob) Init(y int, DHE *DHE) {
+func (bob *Bob) Init(y int) {
 
-	bob.y = y
-	inputYInBits := ExtractBits(y)
+	bob.y = ExtractBits(y)
+}
+
+func (bob *Bob) Encrypt(DHE *DHE) {
 
 	// Make list for Bob's encrypted input bits and encrypt the bits one at a time using DHE
 	bob.encryptedYBits = make([]*big.Int, 3) // Stores locally for bob
 	for i := 0; i < 3; i++ {
-		bob.encryptedYBits[i] = DHE.Encrypt(inputYInBits[i])
+		bob.encryptedYBits[i] = DHE.Encrypt(bob.y[i])
 	}
 
 	// Make list of 6 1's for the boolean formula
@@ -24,7 +26,6 @@ func (bob *Bob) Init(y int, DHE *DHE) {
 	for i := 0; i < 6; i++ {
 		one := 1
 		bob.encryptedOnes[i] = DHE.Encrypt(one)
-
 	}
 
 }

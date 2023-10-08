@@ -3,27 +3,34 @@ package handin6
 import "math/big"
 
 type Alice struct {
-	x int // Alice's input
+	x  [3]int   // Alice's input in bits (x1, x2, x3)
+	sk *big.Int // Alice's secret key of p
 }
 
-func (alice *Alice) Init(x int, DHE *DHE) []*big.Int {
+func (alice *Alice) Init(x int) {
 
-	alice.x = x
-	inputXInBits := ExtractBits(x)
+	alice.x = ExtractBits(x)
+}
 
-	// Make list for Alice's encrypted bits and encrypt the bits one at a time using DHE
-	encryptedXBits := make([]*big.Int, 3)
+func (alice *Alice) Encrypt(DHE *DHE) []*big.Int {
+
+	// Make list for Alice's encrypted input bits and encrypt the bits one at a time using DHE
+	encryptedXBits := make([]*big.Int, 3) // Stores locally for alice
 	for i := 0; i < 3; i++ {
-		encryptedXBits[i] = DHE.Encrypt(inputXInBits[i])
+		encryptedXBits[i] = DHE.Encrypt(alice.x[i])
 	}
 
 	return encryptedXBits
 }
 
-func (alice *Alice) Decide(evaluatedOutput *big.Int, DHE *DHE) int {
+func (alice *Alice) RecieveSecretKey(p *big.Int) {
+	alice.sk = p
+}
+
+func (alice *Alice) Decrypt(evaluatedOutput *big.Int, DHE *DHE) int {
 
 	// Decrypt the result
-	decryptedOutput := DHE.Decrypt(evaluatedOutput)
+	decryptedOutput := DHE.Decrypt(evaluatedOutput, alice.sk)
 
 	return decryptedOutput
 
