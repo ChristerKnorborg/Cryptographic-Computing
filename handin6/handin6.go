@@ -11,7 +11,8 @@ func HomomorphicBloodtypeEncryption(recipient Bloodtype, donor Bloodtype) bool {
 	alice.Init(x) // Alice set her input x to be the bits x1, x2, x3
 	bob.Init(y)   // Bob set his input y to be the bits y1, y2, y3
 
-	DHE.GenerateKeys()                         // Generate the parameters p, q = (q_1,..., q_n), r = (r_1,..., r_n), y = (y_1,..., y_n) for the DHE scheme
+	bitlenSecurity := 512                      // bit length of p
+	DHE.GenerateKeys(bitlenSecurity)           // Generate the parameters p, q = (q_1,..., q_n), r = (r_1,..., r_n), y = (y_1,..., y_n) for the DHE scheme
 	alice.RecieveSecretKey(DHE.GetSecretKey()) // Alice recieves the secret key p
 
 	encryptedX := alice.Encrypt(&DHE) // Alice encrypts her input bits x1, x2, x3 using DHE and sends them to Bob

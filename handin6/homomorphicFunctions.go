@@ -10,29 +10,32 @@ type DHE struct {
 	p *big.Int   // secret key
 	q []*big.Int // random integers q_1,..., q_n
 	r []*big.Int // random small integers r_1,..., r_n.
-	y []*big.Int // public key (y1,..., yn) where y_i = p * q_i + 2r_i
-	n int
+	y []*big.Int // public key (y_1,..., y_n) where y_i = p * q_i + 2r_i
+	n int        // number of values in q, r, and y
 }
 
-func (dhe *DHE) Init() {
+func (dhe *DHE) GenerateKeys(bitlenSecurity int) {
 
-}
+	dhe.n = 10 // number of values in q, r, and y
 
-func (dhe *DHE) GenerateKeys() {
+	// Initialize the slices with size n
+	dhe.q = make([]*big.Int, dhe.n)
+	dhe.r = make([]*big.Int, dhe.n)
+	dhe.y = make([]*big.Int, dhe.n)
 
-	// Choose a random big integer of length n. Notice, left shift is equivalent to multiplying by 2 raised to a power
-	p, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), uint(dhe.n)))
+	// Choose a random big integer of the input parameter. Notice, left shift is equivalent to multiplying by 2 raised to a power
+	p, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), uint(bitlenSecurity)))
 
 	p.Or(p, big.NewInt(1)) // Ensure p is odd by setting the least significant bit to 1
 	dhe.p = p
 
 	for i := 0; i < dhe.n; i++ {
-		// Choose random big q value of length n
-		q_i, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), uint(dhe.n)))
+		// Choose random big q value of the same bit length as the input parameter
+		q_i, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), uint(bitlenSecurity)))
 		dhe.q[i] = q_i
 
-		// Choose small random r value of length n/10
-		smallNumber := new(big.Int).Lsh(big.NewInt(1), uint(dhe.n/10)) // 10% of n's bit length
+		// Choose small random r value 1/10 of the bit length as the input parameter
+		smallNumber := new(big.Int).Lsh(big.NewInt(1), uint(bitlenSecurity/10)) // 10% of input's bit length
 		r_i, _ := rand.Int(rand.Reader, smallNumber)
 		dhe.r[i] = r_i
 
@@ -88,7 +91,7 @@ func (dhe *DHE) Decrypt(c *big.Int, p *big.Int) int {
 // from 0 to n−1 and deciding with a 50% chance whether to include that number in the subset or not.
 func randomSubset(n int) []int {
 	subset := make([]int, 0)
-	for i := 1; i <= n; i++ {
+	for i := 0; i < n; i++ {
 		// Decide with 50% probability whether to include i in the subset or not
 		randomBit, _ := rand.Int(rand.Reader, big.NewInt(2)) // randomBit ∈ {0, 1}
 		if randomBit.Int64() == 1 {
