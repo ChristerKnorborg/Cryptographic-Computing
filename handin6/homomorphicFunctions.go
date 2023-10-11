@@ -14,9 +14,9 @@ type DHE struct {
 	n int        // number of values in q, r, and y
 }
 
-func (dhe *DHE) GenerateKeys(bitlenSecurity int) {
+func (dhe *DHE) GenerateKeys(bitlenP int) {
 
-	dhe.n = 10 // number of values in q, r, and y
+	dhe.n = 100 // number of values in q, r, and y
 
 	// Initialize the slices with size n
 	dhe.q = make([]*big.Int, dhe.n)
@@ -24,18 +24,18 @@ func (dhe *DHE) GenerateKeys(bitlenSecurity int) {
 	dhe.y = make([]*big.Int, dhe.n)
 
 	// Choose a random big integer of the input parameter. Notice, left shift is equivalent to multiplying by 2 raised to a power
-	p, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), uint(bitlenSecurity)))
+	p, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), uint(bitlenP)))
 
 	p.Or(p, big.NewInt(1)) // Ensure p is odd by setting the least significant bit to 1
 	dhe.p = p
 
 	for i := 0; i < dhe.n; i++ {
 		// Choose random big q value of the same bit length as the input parameter
-		q_i, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), uint(bitlenSecurity)))
+		q_i, _ := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), uint(bitlenP)))
 		dhe.q[i] = q_i
 
 		// Choose small random r value 1/10 of the bit length as the input parameter
-		smallNumber := new(big.Int).Lsh(big.NewInt(1), uint(bitlenSecurity/10)) // 10% of input's bit length
+		smallNumber := new(big.Int).Lsh(big.NewInt(1), uint(bitlenP/10)) // 10% of input's bit length
 		r_i, _ := rand.Int(rand.Reader, smallNumber)
 		dhe.r[i] = r_i
 
