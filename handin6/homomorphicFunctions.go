@@ -49,10 +49,12 @@ func (dhe *DHE) GenerateKeys(bitlenSecurity int) {
 
 }
 
+// Return the generated secret key p
 func (dhe *DHE) GetSecretKey() *big.Int {
 	return dhe.p
 }
 
+// Encrypts a bit m ∈ {0, 1} using the DHE scheme
 func (dhe *DHE) Encrypt(m int) *big.Int {
 
 	// Check if m is a bit (0 or 1)
