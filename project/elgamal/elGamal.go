@@ -1,4 +1,4 @@
-package project
+package elgamal
 
 import (
 	"crypto/rand"
