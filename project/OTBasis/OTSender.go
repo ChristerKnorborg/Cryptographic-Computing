@@ -10,12 +10,15 @@ type OTSender struct {
 	Messages   []*MessagePair
 }
 
+func (sender *OTSender) Init(Messages []*MessagePair, choices int) {
+	for {i := 0 ; i < choices} {}
+}
+
 func (sender *OTSender) ReceiveKeys(PublicKeys []*PublicKeyPair) {
 	sender.PublicKeys = PublicKeys
 }
 
-func (sender *OTSender) PrepareMessages(msg1, msg2 string, choices int) {
-	// Encrypt msg1 and msg2 using ElGamal
+func (sender *OTSender) PrepareMessages(msg1, msg2 string) {
 	for {
 	}
 }
