@@ -2,18 +2,22 @@
 package project
 
 import (
-	"crypto"
 	"cryptographic-computing/project/elgamal"
 )
 
 type OTSender struct {
-	// Your ElGamal parameters and any other state
+	PublicKeys []*PublicKeyPair
+	Messages   []*MessagePair
 }
 
-func (sender *OTSender) PrepareMessages(msg1, msg2 string) {
+func (sender *OTSender) ReceiveKeys(PublicKeys []*PublicKeyPair) {
+	sender.PublicKeys = PublicKeys
+}
 
-	crypto.SHA256.New()
+func (sender *OTSender) PrepareMessages(msg1, msg2 string, choices int) {
 	// Encrypt msg1 and msg2 using ElGamal
+	for {
+	}
 }
 
 func (sender *OTSender) TransmitData(elGamal *elgamal.ElGamal) {
