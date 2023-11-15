@@ -14,7 +14,7 @@ type OTReceiver struct {
 }
 
 func (receiver *OTReceiver) Init() {
-
+	panic("implement me")
 }
 
 func (receiver *OTReceiver) Choose(elGamal *elgamal.ElGamal, choices int) []*PublicKeyPair {
@@ -35,18 +35,32 @@ func (receiver *OTReceiver) Choose(elGamal *elgamal.ElGamal, choices int) []*Pub
 			publicKeys[i].MessageKey0 = elGamal.OGen() // Generate 7 fake public keys using the oblivious version of Gen
 			publicKeys[i].MessageKey1 = elGamal.Gen(receiver.secretKeys[i])
 		} else {
-			panic("error in receiver")
+			panic("Receiver choice bits are not 0 or 1 in Choose")
 		}
 	}
 
 	return publicKeys
 }
 
-func (receiver *OTReceiver) ReceiveData(elGamal *elgamal.ElGamal) {
+func (receiver *OTReceiver) DecryptMessage(ciphertextPairs []*CiphertextPair, elGamal *elgamal.ElGamal) []*big.Int {
+
+	// Initialize a list of plaintexts to be decrypted
+	plaintexts := make([]*big.Int, len(ciphertextPairs))
+
+	// Decrypt the message based on the receiver's choice bits
+	for i := 0; i < len(ciphertextPairs); i++ {
+		if receiver.choiceBits[i] == 0 {
+			plaintexts[i] = elGamal.Decrypt(ciphertextPairs[i].Ciphertext0.C1, ciphertextPairs[i].Ciphertext0.C2, receiver.secretKeys[i])
+		} else if receiver.choiceBits[i] == 1 {
+			plaintexts[i] = elGamal.Decrypt(ciphertextPairs[i].Ciphertext1.C1, ciphertextPairs[i].Ciphertext1.C2, receiver.secretKeys[i])
+		} else {
+			panic("Receiver choice bits are not 0 or 1 in DecryptMessage")
+		}
+	}
+	return plaintexts
 
 }
 
-func (receiver *OTReceiver) DecryptMessage(choice int) string {
-	// Decrypt the message based on the receiver's choice
-	return ""
+func (receiver *OTReceiver) ReceiveData(elGamal *elgamal.ElGamal) {
+	panic("implement me")
 }
