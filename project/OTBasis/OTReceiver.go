@@ -3,15 +3,14 @@ package project
 
 // Import your ElGamal package
 import (
-	"crypto"
 	"cryptographic-computing/project/elgamal"
 	"math/big"
 )
 
 type OTReceiver struct {
 	// Hold elGamal public parameters and secret key
-	secretKeys []*big.Int
-	choiceBits []int
+	secretKeys []*big.Int // Secret keys for each message to be received.
+	choiceBits []int      // Choice bits for each message to be received depending on if the receiver wants to learn M0 or M1 (Hidden for the OTSender)
 }
 
 func (receiver *OTReceiver) Init() {
@@ -44,11 +43,7 @@ func (receiver *OTReceiver) Choose(elGamal *elgamal.ElGamal, choices int) []*Pub
 }
 
 func (receiver *OTReceiver) ReceiveData(elGamal *elgamal.ElGamal) {
-	// Code to receive encrypted messages and public parameters
-	xD := crypto.SHA256.New()
-	if xD == nil {
-		print("xD is nil")
-	}
+
 }
 
 func (receiver *OTReceiver) DecryptMessage(choice int) string {
