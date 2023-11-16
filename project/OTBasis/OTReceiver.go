@@ -1,5 +1,5 @@
 // OTReceiver.go
-package project
+package OTBasic
 
 // Import your ElGamal package
 import (
@@ -30,9 +30,9 @@ func (receiver *OTReceiver) Choose(elGamal *elgamal.ElGamal, choices int) []*Pub
 	for i := 0; i < choices; i++ {
 		if receiver.choiceBits[i] == 0 {
 			publicKeys[i].MessageKey0 = elGamal.Gen(receiver.secretKeys[i])
-			publicKeys[i].MessageKey1 = elGamal.OGen() // Generate the real public key corresponding to Alice's input x
+			publicKeys[i].MessageKey1 = elGamal.OGen()
 		} else if receiver.choiceBits[i] == 1 {
-			publicKeys[i].MessageKey0 = elGamal.OGen() // Generate 7 fake public keys using the oblivious version of Gen
+			publicKeys[i].MessageKey0 = elGamal.OGen()
 			publicKeys[i].MessageKey1 = elGamal.Gen(receiver.secretKeys[i])
 		} else {
 			panic("Receiver choice bits are not 0 or 1 in Choose")
@@ -58,7 +58,6 @@ func (receiver *OTReceiver) DecryptMessage(ciphertextPairs []*CiphertextPair, el
 		}
 	}
 	return plaintexts
-
 }
 
 func (receiver *OTReceiver) ReceiveData(elGamal *elgamal.ElGamal) {

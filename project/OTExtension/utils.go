@@ -1,8 +1,9 @@
 // OTReceiver.go
-package OTBasic
+package OTExtension
 
 // Import your ElGamal package
 import (
+	"crypto/rand"
 	"cryptographic-computing/project/elgamal"
 	"math/big"
 )
@@ -24,4 +25,20 @@ type PublicKeyPair struct {
 type CiphertextPair struct {
 	Ciphertext0 *elgamal.Ciphertext
 	Ciphertext1 *elgamal.Ciphertext
+}
+
+type seed struct {
+	seed0 *big.Int
+	seed1 *big.Int
+}
+
+func pseudoRandomGenerator(seed *big.Int, length int) ([]byte, error) {
+	// For the sake of example, we're generating a random bit string.
+	// Replace this with an actual PRG function in production.
+	output := make([]byte, length)
+	_, err := rand.Read(output)
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }

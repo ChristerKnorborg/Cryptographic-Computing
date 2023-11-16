@@ -1,5 +1,5 @@
 // OTSender.go
-package project
+package OTBasic
 
 import (
 	"cryptographic-computing/project/elgamal"
