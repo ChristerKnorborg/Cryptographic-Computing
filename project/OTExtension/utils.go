@@ -4,14 +4,16 @@ package OTExtension
 // Import your ElGamal package
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"cryptographic-computing/project/elgamal"
+	"encoding/hex"
 	"math/big"
 )
 
 // Struct to store messages M0 and M1
 type MessagePair struct {
-	Message0 *big.Int
-	Message1 *big.Int
+	Message0 string
+	Message1 string
 }
 
 // Struct to store public keys for Oblivious transfer. Each public key pair consists of 2 public keys -
@@ -41,4 +43,11 @@ func pseudoRandomGenerator(seed *big.Int, length int) ([]byte, error) {
 		return nil, err
 	}
 	return output, nil
+}
+
+// HashFunction is an example of how to hash data using SHA-256.
+func HashFunction(data []byte) string {
+	hasher := sha256.New()
+	hasher.Write(data)
+	return hex.EncodeToString(hasher.Sum(nil))
 }

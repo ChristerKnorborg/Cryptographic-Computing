@@ -9,18 +9,20 @@ import (
 )
 
 type OTSender struct {
+	m             int              // Number of messages to be sent
 	secretKeys    []*big.Int       // Secret keys for each message to be received.
 	PublicKeys    []*PublicKeyPair // Public keys received from the OTReceiver - one oblivious and one real for each message to be sent
 	Messages      []*MessagePair   // Messages to be sent, each message consists of 2 messages M0 and M1.
 	selectionBits []int            // Selection bits to invoke the κ×OTκ-functionality, where the OTSender plays the receiver
 	s             string           // Random string s = (s_1, ... , s_k)
 	seeds         []*big.Int       // Seed values received when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
+	Q             [][]byte         // Bit matrix Q of size m × κ to be calculated in the OTExtension Phase
 }
 
-func (sender *OTSender) Init(Messages []*MessagePair, choices int) {
-	for i := 0; i < choices; i++ {
-		sender.Messages[i] = Messages[i]
-	}
+func (sender *OTSender) Init(Messages []*MessagePair) {
+
+	sender.m = len(Messages)
+	sender.Messages = Messages
 }
 
 // S choose a random string s = (s_1, ... , s_k)
@@ -88,7 +90,40 @@ func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal 
 	return plaintextSeeds
 }
 
-func (sender *OTSender) TransmitData(elGamal *elgamal.ElGamal) {
-	// Code to transmit encrypted data and public parameters
+func (sender *OTSender) GenerateQMatrix(U [][]byte) {
+
+	k := len(sender.s)
+	m := len(U)
+
+	// Initialize the matrix Q of size m × κ.
+	Q := make([][]byte, m) // m rows.
+	for i := range Q {
+		Q[i] = make([]byte, k) // k columns per row.
+	}
+
+	// The OTSender defines q^i = (s_i · u^i) ⊕ G(k^(s_i)_i. Note that q^i = (s_i · r) ⊕ t^i)
+	for i := 0; i < k; i++ {
+		G, err := pseudoRandomGenerator(sender.seeds[sender.selectionBits[i]], m)
+		for j := 0; j < m; j++ {
+			if err != nil {
+				panic("Error from pseudoRandomGenerator in GenerateQMatrix: " + err.Error())
+			}
+			Q[j][i] = sender.s[i] ^ U[j][i] ^ G[i]
+		}
+	}
+	sender.Q = Q
+}
+
+// The OTSender sends (y0_j , y1_j ) for every 1 ≤ j ≤ m, where y0_j = x0_j ⊕ H(j, q_j) and y1_j = x1_j ⊕ H(j, q_j ⊕ s)
+func (sender *OTSender) SendYValues() {
+
+	k := len(sender.s)
+	m := sender.m
+
+	for j := 0; j < m; j++ {
+		Q_row_j := sender.Q[j]
+		y0_j := sender.Messages[j].Message0 ^ HashFunction(j, Q_row_j)
+		y1_j := sender.Messages[j].Message1 ^ HashFunction(j, Q_row_j^sender.s)
+	}
 
 }
