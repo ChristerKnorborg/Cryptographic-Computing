@@ -12,8 +12,8 @@ import (
 
 // Struct to store messages M0 and M1
 type MessagePair struct {
-	Message0 string
-	Message1 string
+	Message0 []byte
+	Message1 []byte
 }
 
 // Struct to store public keys for Oblivious transfer. Each public key pair consists of 2 public keys -

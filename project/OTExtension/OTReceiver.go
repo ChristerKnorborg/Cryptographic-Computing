@@ -10,6 +10,7 @@ import (
 
 type OTReceiver struct {
 	m             int              // Number of messages to be received
+	k             int              // Security parameter
 	selectionBits []int            // Receiver R holds m selection bits r = (r_1, ..., r_m).
 	seeds         []*seed          // Messages (seeds) to be sent, when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 	secretKeys    []*big.Int       // Secret keys for each message to be received.
@@ -17,15 +18,18 @@ type OTReceiver struct {
 	T             [][]byte         // Bit matrix T of size m × κ, after the κ×OTκ OT-functionality
 }
 
-func (receiver *OTReceiver) Init(selectionBits []int) {
+func (receiver *OTReceiver) Init(selectionBits []int, securityParameter int) {
 
 	receiver.m = len(receiver.selectionBits)
 	receiver.selectionBits = selectionBits
+	receiver.k = securityParameter
 
 }
 
 // The receiver chooses k pairs of k-bit seeds {(k0_i , k1_i )} from i = 1 to k
-func (receiver *OTReceiver) ChooseSeeds(k int) []*seed {
+func (receiver *OTReceiver) ChooseSeeds() {
+
+	k := receiver.k
 
 	seeds := make([]*seed, k)
 
@@ -45,30 +49,38 @@ func (receiver *OTReceiver) ChooseSeeds(k int) []*seed {
 			seed1: seed1,
 		}
 	}
-	return seeds
+	receiver.seeds = seeds
 }
 
 // Method for to receive Public keys, when the parties invoke the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 func (receiver *OTReceiver) ReceiveKeys(PublicKeys []*PublicKeyPair) {
+
+	receiver.PublicKeys = make([]*PublicKeyPair, receiver.k)
 	receiver.PublicKeys = PublicKeys
+
+	print("receiver seeds len: ", len(receiver.seeds), "\n")
+	print("receiver seeds: ", receiver.seeds, "\n")
+	for i := 0; i < len(receiver.seeds); i++ {
+		print("receiver seeds0 ", i, " as string: ", receiver.seeds[i].seed0.String(), "\n")
+		print("receiver seeds1 ", i, " as string: ", receiver.seeds[i].seed1.String(), "\n")
+	}
+
 }
 
 // Method to encrypt messages (seeds) when the parties invoke the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 func (receiver *OTReceiver) EncryptSeeds(elGamal *elgamal.ElGamal) []*CiphertextPair {
 
-	k := len(receiver.seeds)
+	k := receiver.k
 
 	ciphertexts := make([]*CiphertextPair, k)
 
 	for i := 0; i < k; i++ {
 
-		// Encrypt the messages using the public keys received from the OTReceiver
-		msg0 := elGamal.Encrypt(receiver.PublicKeys[i].MessageKey0, receiver.seeds[i].seed0)
-		msg1 := elGamal.Encrypt(receiver.PublicKeys[i].MessageKey1, receiver.seeds[i].seed1)
+		ciphertexts[i] = &CiphertextPair{} // Initialize the ciphertext pair
 
-		// Store the encrypted messages in the ciphertext pair
-		ciphertexts[i].Ciphertext0 = msg0
-		ciphertexts[i].Ciphertext1 = msg1
+		// Encrypt the messages using the public keys received from the OTReceiver
+		ciphertexts[i].Ciphertext0 = elGamal.Encrypt(receiver.PublicKeys[i].MessageKey0, receiver.seeds[i].seed0)
+		ciphertexts[i].Ciphertext1 = elGamal.Encrypt(receiver.PublicKeys[i].MessageKey1, receiver.seeds[i].seed1)
 	}
 
 	return ciphertexts

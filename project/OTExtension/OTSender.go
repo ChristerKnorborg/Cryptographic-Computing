@@ -84,7 +84,7 @@ func (sender *OTSender) Choose(elGamal *elgamal.ElGamal) []*PublicKeyPair {
 }
 
 // Method to decrypt the seeds (messages) sent by the OTReceiver, when invoking the κ×OTκ-functionality, where the OTSender plays the receiver, and OTReceiver plays the sender.
-func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal *elgamal.ElGamal) []*big.Int {
+func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal *elgamal.ElGamal) {
 
 	// Initialize a list of seeds to be decrypted
 	plaintextSeeds := make([]*big.Int, len(ciphertextPairs))
@@ -99,9 +99,14 @@ func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal 
 			panic("Receiver choice bits are not 0 or 1 in DecryptMessage")
 		}
 	}
+	sender.seeds = make([]*big.Int, len(plaintextSeeds))
+	sender.seeds = plaintextSeeds
 
-	return plaintextSeeds
-
+	print("Sender seeds len: ", len(sender.seeds), "\n")
+	print("Sender seeds: ", sender.seeds, "\n")
+	for i := 0; i < len(sender.seeds); i++ {
+		print("Sender seeds ", i, " as string: ", sender.seeds[i].String(), "\n")
+	}
 }
 
 func (sender *OTSender) GenerateQMatrix(U [][]byte) {
