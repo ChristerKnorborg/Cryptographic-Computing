@@ -51,3 +51,14 @@ func HashFunction(data []byte) string {
 	hasher.Write(data)
 	return hex.EncodeToString(hasher.Sum(nil))
 }
+
+func PrintMatrix(matrix [][]byte) {
+	for i := 0; i < len(matrix); i++ {
+		for j := 0; j < len(matrix[0]); j++ {
+
+			print(matrix[i][j], " ")
+		}
+		println()
+	}
+	println()
+}

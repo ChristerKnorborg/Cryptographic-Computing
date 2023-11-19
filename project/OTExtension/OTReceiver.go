@@ -9,12 +9,19 @@ import (
 )
 
 type OTReceiver struct {
-	// Hold elGamal public parameters and secret key
-	secretKeys    []*big.Int       // Secret keys for each message to be received.
-	selectionBits []int            // Selection bits for each message to be received depending on if the receiver wants to learn M0 or M1 (Hidden for the OTSender).
-	PublicKeys    []*PublicKeyPair // Public keys received from the OTSender when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
+	m             int              // Number of messages to be received
+	selectionBits []int            // Receiver R holds m selection bits r = (r_1, ..., r_m).
 	seeds         []*seed          // Messages (seeds) to be sent, when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
+	secretKeys    []*big.Int       // Secret keys for each message to be received.
+	PublicKeys    []*PublicKeyPair // Public keys received from the OTSender when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 	T             [][]byte         // Bit matrix T of size m × κ, after the κ×OTκ OT-functionality
+}
+
+func (receiver *OTReceiver) Init(selectionBits []int) {
+
+	receiver.m = len(receiver.selectionBits)
+	receiver.selectionBits = selectionBits
+
 }
 
 // The receiver chooses k pairs of k-bit seeds {(k0_i , k1_i )} from i = 1 to k
@@ -97,6 +104,9 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 	}
 
 	receiver.T = T
+
+	print("T: ")
+	PrintMatrix(T)
 }
 
 func (receiver *OTReceiver) GenerateAndSendUMatrix() [][]byte {
@@ -130,10 +140,6 @@ func (receiver *OTReceiver) GenerateAndSendUMatrix() [][]byte {
 
 	return U
 
-}
-
-func (receiver *OTReceiver) Init() {
-	panic("implement me")
 }
 
 func (receiver *OTReceiver) DecryptMessage(ciphertextPairs []*CiphertextPair, elGamal *elgamal.ElGamal) []*big.Int {
