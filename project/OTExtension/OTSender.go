@@ -101,17 +101,11 @@ func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal 
 	}
 	sender.seeds = make([]*big.Int, len(plaintextSeeds))
 	sender.seeds = plaintextSeeds
-
-	print("Sender seeds len: ", len(sender.seeds), "\n")
-	print("Sender seeds: ", sender.seeds, "\n")
-	for i := 0; i < len(sender.seeds); i++ {
-		print("Sender seeds ", i, " as string: ", sender.seeds[i].String(), "\n")
-	}
 }
 
 func (sender *OTSender) GenerateQMatrix(U [][]byte) {
 
-	print("U: ")
+	print("U: " + "\n")
 	PrintMatrix(U)
 
 	k := sender.k

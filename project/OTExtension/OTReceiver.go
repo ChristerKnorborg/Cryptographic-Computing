@@ -57,14 +57,6 @@ func (receiver *OTReceiver) ReceiveKeys(PublicKeys []*PublicKeyPair) {
 
 	receiver.PublicKeys = make([]*PublicKeyPair, receiver.k)
 	receiver.PublicKeys = PublicKeys
-
-	print("receiver seeds len: ", len(receiver.seeds), "\n")
-	print("receiver seeds: ", receiver.seeds, "\n")
-	for i := 0; i < len(receiver.seeds); i++ {
-		print("receiver seeds0 ", i, " as string: ", receiver.seeds[i].seed0.String(), "\n")
-		print("receiver seeds1 ", i, " as string: ", receiver.seeds[i].seed1.String(), "\n")
-	}
-
 }
 
 // Method to encrypt messages (seeds) when the parties invoke the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
@@ -79,8 +71,8 @@ func (receiver *OTReceiver) EncryptSeeds(elGamal *elgamal.ElGamal) []*Ciphertext
 		ciphertexts[i] = &CiphertextPair{} // Initialize the ciphertext pair
 
 		// Encrypt the messages using the public keys received from the OTReceiver
-		ciphertexts[i].Ciphertext0 = elGamal.Encrypt(receiver.PublicKeys[i].MessageKey0, receiver.seeds[i].seed0)
-		ciphertexts[i].Ciphertext1 = elGamal.Encrypt(receiver.PublicKeys[i].MessageKey1, receiver.seeds[i].seed1)
+		ciphertexts[i].Ciphertext0 = elGamal.Encrypt(receiver.seeds[i].seed0, receiver.PublicKeys[i].MessageKey0)
+		ciphertexts[i].Ciphertext1 = elGamal.Encrypt(receiver.seeds[i].seed1, receiver.PublicKeys[i].MessageKey1)
 	}
 
 	return ciphertexts
@@ -117,7 +109,7 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 
 	receiver.T = T
 
-	print("T: ")
+	print("T: " + "\n")
 	PrintMatrix(T)
 }
 

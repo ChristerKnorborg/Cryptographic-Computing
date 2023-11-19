@@ -46,8 +46,8 @@ func main() {
 	// The sender generates the Matrix Q from the received U Matrix.
 	// Note, that every column q^i in Q is equal to (s_i * r) ⊕ t^i.
 
-	// receiver.GenerateMatrixT()
-	// U := receiver.GenerateAndSendUMatrix()
-	// sender.GenerateQMatrix(U)
+	receiver.GenerateMatrixT()
+	U := receiver.GenerateAndSendUMatrix()
+	sender.GenerateQMatrix(U)
 
 }
