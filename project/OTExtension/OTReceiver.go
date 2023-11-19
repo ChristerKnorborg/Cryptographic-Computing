@@ -83,8 +83,8 @@ func (receiver *OTReceiver) EncryptSeeds(elGamal *elgamal.ElGamal) []*Ciphertext
 // GenerateMatrixT generates the bit matrix T after the k×OTk functionality.
 func (receiver *OTReceiver) GenerateMatrixT() {
 
-	k := len(receiver.seeds)
-	m := len(receiver.selectionBits)
+	k := receiver.k
+	m := receiver.m
 
 	// Initialize the matrix T of size m × κ.
 	T := make([][]byte, m) // m rows.
@@ -95,7 +95,8 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 	// Generate each column of T using the seeds.
 	for i, seedPair := range receiver.seeds {
 		// Generate a pseudo-random bit string of m bits.
-		t_i, err := pseudoRandomGenerator(seedPair.seed0, m)
+		t_i, err := pseudoRandomGenerator(seedPair.seed0, k)
+		print("t_i: ", t_i, "\n")
 		if err != nil {
 			panic("Error from pseudoRandomGenerator in GenerateMatrixT: " + err.Error())
 		}
@@ -115,8 +116,8 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 
 func (receiver *OTReceiver) GenerateAndSendUMatrix() [][]byte {
 
-	k := len(receiver.seeds)
-	m := len(receiver.selectionBits)
+	k := receiver.k
+	m := receiver.m
 
 	// Initialize the matrix U of size m × κ.
 	U := make([][]byte, m) // m rows.
@@ -125,10 +126,10 @@ func (receiver *OTReceiver) GenerateAndSendUMatrix() [][]byte {
 	}
 
 	// Generate each column of U: u^i = t^i ⊕ G(k1_i ) ⊕ r.
-	for i := 0; i < k; i++ {
+	for i, seedPair := range receiver.seeds {
 
 		// Generate a pseudo-random bit string of m bits.
-		K1_PRG, err := pseudoRandomGenerator(receiver.seeds[i].seed1, m)
+		K1_PRG, err := pseudoRandomGenerator(seedPair.seed1, m)
 
 		if err != nil {
 			panic("Error from pseudoRandomGenerator in GenerateAndSendUMatrix: " + err.Error())
