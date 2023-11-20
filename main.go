@@ -3,6 +3,7 @@ package main
 import (
 	"cryptographic-computing/project/OTExtension"
 	"cryptographic-computing/project/elgamal"
+	"fmt"
 )
 
 func main() {
@@ -24,6 +25,12 @@ func main() {
 	msg6 := OTExtension.MessagePair{Message0: []byte{0}, Message1: []byte{1}}
 	messages := []*OTExtension.MessagePair{&msg1, &msg2, &msg3, &msg4, &msg5, &msg6}
 	selectionBits_κxOTκ_functionality := []int{0, 1}
+
+	for _, m := range messages {
+		fmt.Printf("%d ", m.Message0)
+		fmt.Printf("%d ", m.Message1)
+		fmt.Println()
+	}
 
 	sender.Init(messages, k, selectionBits_κxOTκ_functionality, l)
 
@@ -55,5 +62,7 @@ func main() {
 	ByteCiphertexts := sender.MakeAndSendCiphertexts()
 	result := receiver.DecryptCiphertexts(ByteCiphertexts)
 
-	print(result)
+	for _, b := range result {
+		fmt.Printf("%d ", b) // Decimal print of []byte result
+	}
 }

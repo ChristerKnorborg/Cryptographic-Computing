@@ -4,8 +4,8 @@ package OTExtension
 import (
 	"crypto/rand"
 	"cryptographic-computing/project/elgamal"
-	"encoding/base64"
 	"math/big"
+	"strings"
 
 	"github.com/hashicorp/vault/sdk/helper/xor"
 )
@@ -39,19 +39,25 @@ func (sender *OTSender) Init(messages []*MessagePair, securityParameter int, sel
 
 // S choose a random string s = (s_1, ... , s_k)
 func (sender *OTSender) ChooseRandomString() {
+	var stringBuilder strings.Builder
+	stringBuilder.Grow(sender.k) // Pre-allocate space for efficiency
 
-	bytes := make([]byte, sender.k) // Create a byte slice of the desired length
-
-	// Read random bytes; note that rand.Read is from crypto/rand (cryptographically secure)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		panic("Error in ChooseRandomString: " + err.Error())
+	// Generate each bit individually and append to the string builder
+	for i := 0; i < sender.k; i++ {
+		randomBit, err := rand.Int(rand.Reader, big.NewInt(2))
+		if err != nil {
+			panic("Error in ChooseRandomString: " + err.Error())
+		}
+		// Append '0' or '1' to the string
+		if randomBit.Int64() == 0 {
+			stringBuilder.WriteByte('0')
+		} else {
+			stringBuilder.WriteByte('1')
+		}
 	}
 
-	// Encode the bytes to a base64 string and return.
-	// The length of the base64 string will be longer than len,
-	// so we take a substring of the desired length
-	sender.s = base64.RawURLEncoding.EncodeToString(bytes)[:sender.k]
+	// Set the generated string
+	sender.s = stringBuilder.String()
 }
 
 // Method for invoking the κ×OTκ-functionality, where the OTSender plays the receiver with random string s = (s_1, ... , s_k) as input,
@@ -165,6 +171,7 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*ByteCiphertextPair {
 		for i := 0; i < k; i++ {
 			string_idx := sender.s[i : i+1]
 			q_idx := sender.Q[j][i]
+
 			xor_char, err := XOR(string_idx, q_idx)
 
 			if err != nil {
@@ -175,6 +182,8 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*ByteCiphertextPair {
 
 		hash1 := Hash(x0_j, l)
 		hash2 := Hash([]byte(string_xor), l)
+		print("hash1 sender " + string(hash1) + "\n")
+		print("hash2 sender " + string(hash2) + "\n")
 
 		y0_j, err1 := xor.XORBytes(x0_j, hash1)
 		y1_j, err2 := xor.XORBytes(x1_j, hash2)

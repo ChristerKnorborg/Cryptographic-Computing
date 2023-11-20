@@ -134,8 +134,6 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]string {
 			panic("Error from pseudoRandomGenerator in GenerateAndSendUMatrix: " + err.Error())
 		}
 
-		print("Bitstring in U " + bitstring + "\n")
-
 		for j := 0; j < m; j++ {
 
 			T_idx := receiver.T[j][i]
@@ -181,13 +179,13 @@ func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*ByteCipher
 			t_row += t_idx
 		}
 		hash := Hash([]byte(t_row), l)
+		print("hash receiver " + string(hash) + "\n")
 
 		xor, err := xor.XORBytes(y_j, hash)
 		if err != nil {
 			panic("Error from XOR in DecryptCiphertexts: " + err.Error())
 		}
 		plaintexts[j] = xor
-
 	}
 	return plaintexts
 }
