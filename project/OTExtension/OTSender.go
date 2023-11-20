@@ -105,9 +105,6 @@ func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal 
 
 func (sender *OTSender) GenerateQMatrix(U [][]byte) {
 
-	print("U: " + "\n")
-	PrintMatrix(U)
-
 	k := sender.k
 	m := sender.m
 

@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"cryptographic-computing/project/elgamal"
 	"math/big"
+	"strconv"
 )
 
 type OTReceiver struct {
@@ -15,12 +16,12 @@ type OTReceiver struct {
 	seeds         []*seed          // Messages (seeds) to be sent, when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 	secretKeys    []*big.Int       // Secret keys for each message to be received.
 	PublicKeys    []*PublicKeyPair // Public keys received from the OTSender when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
-	T             [][]byte         // Bit matrix T of size m × κ, after the κ×OTκ OT-functionality
+	T             [][]string       // Bit matrix T of size m × κ, after the κ×OTκ OT-functionality
 }
 
 func (receiver *OTReceiver) Init(selectionBits []int, securityParameter int) {
 
-	receiver.m = len(receiver.selectionBits)
+	receiver.m = len(selectionBits)
 	receiver.selectionBits = selectionBits
 	receiver.k = securityParameter
 
@@ -81,42 +82,40 @@ func (receiver *OTReceiver) EncryptSeeds(elGamal *elgamal.ElGamal) []*Ciphertext
 
 // Method for generating the bit matrix T of size m × κ, after the κ×OTκ OT-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 // GenerateMatrixT generates the bit matrix T after the k×OTk functionality.
-func (receiver *OTReceiver) GenerateMatrixT() {
-
+func (receiver *OTReceiver) GenerateMatrixT() error {
 	k := receiver.k
 	m := receiver.m
 
 	// Initialize the matrix T of size m × κ.
-	T := make([][]byte, m) // m rows.
+	T := make([][]string, m) // m rows.
 	for i := range T {
-		T[i] = make([]byte, k) // k columns per row.
+		T[i] = make([]string, k) // k columns per row.
 	}
 
-	// Generate each column of T using the seeds.
-	for i, seedPair := range receiver.seeds {
-		// Generate a pseudo-random bit string of m bits.
-		t_i, err := pseudoRandomGenerator(seedPair.seed0, k)
-		print("t_i: ", t_i, "\n")
-		print("t_i length: ", len(t_i), "\n")
+	// Generate each column of T.
+	for i := 0; i < k; i++ {
+		// Generate a pseudo-random bitstring of m bits using the seed.
+		bitstring, err := pseudoRandomGenerator(receiver.seeds[i].seed0, m)
 		if err != nil {
-			panic("Error from pseudoRandomGenerator in GenerateMatrixT: " + err.Error())
+			return err
 		}
+		print("Bitstring T: " + bitstring + "\n")
 
-		// Assign each bit of t_i to the corresponding row.
 		for j := 0; j < m; j++ {
-			// Assuming t_i is a byte slice where each byte is either 0 or 1.
-			T[j][i] = t_i[j]
+			T[j][i] = bitstring[j : j+1] // Assign the bit to the matrix T at position (j,i).
 		}
 	}
 
-	receiver.T = T
-
-	print("T Dimensions: ", len(T), "x", len(T[0]), "\n")
 	print("T: " + "\n")
 	PrintMatrix(T)
+
+	// Assign the generated matrix to the receiver.
+	receiver.T = T
+
+	return nil
 }
 
-func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]byte {
+func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]string {
 
 	k := receiver.k
 	m := receiver.m
@@ -128,21 +127,23 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]byte {
 	}
 
 	// Generate each column of U: u^i = t^i ⊕ G(k1_i ) ⊕ r.
-	for i, seedPair := range receiver.seeds {
+	for i := 0; i < k; i++ {
 
 		// Generate a pseudo-random bit string of m bits.
-		K1_PRG, err := pseudoRandomGenerator(seedPair.seed1, m)
+		bitstring, err := pseudoRandomGenerator(receiver.seeds[i].seed1, m)
 
 		if err != nil {
 			panic("Error from pseudoRandomGenerator in GenerateAndSendUMatrix: " + err.Error())
 		}
 
-		col_i := make([]byte, m)
 		for j := 0; j < m; j++ {
 
-			col_i[j] = receiver.T[j][i] ^ K1_PRG[j] ^ byte(receiver.selectionBits[j])
+			row_val, _ := strconv.Atoi(receiver.T[j][i])
+			string_val, _ := strconv.Atoi(bitstring[j : j+1])
+			U[j][i] = byte(row_val ^ string_val ^ receiver.selectionBits[i]) // u^i = t^i ⊕ G(k1_i ) ⊕ r = t^i ⊕ s_i ⊕ r
+
 		}
-		U[i] = col_i
+
 	}
 
 	return U

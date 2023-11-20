@@ -6,7 +6,9 @@ import (
 	"crypto/sha256"
 	"cryptographic-computing/project/elgamal"
 	"encoding/hex"
+	"fmt"
 	"math/big"
+	"strings"
 )
 
 // Struct to store messages M0 and M1
@@ -33,7 +35,7 @@ type seed struct {
 	seed1 *big.Int
 }
 
-func pseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
+func pseudoRandomGenerator(seed *big.Int, bitLength int) (string, error) {
 	// Convert the length in bits to length in bytes, rounding up
 	byteLength := (bitLength + 7) / 8
 	output := make([]byte, 0, byteLength)
@@ -46,7 +48,7 @@ func pseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
 		hash := sha256.Sum256(seedBytes)
 		output = append(output, hash[:]...)
 
-		// Increment the seed to simulate feeding the output of the PRG back into it
+		// Increment the seed
 		seed = new(big.Int).Add(seed, big.NewInt(1))
 		seedBytes = seed.Bytes()
 	}
@@ -54,19 +56,19 @@ func pseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
 	// Trim the output to the exact number of bytes we need
 	output = output[:byteLength]
 
-	// If the bitLength is less than 8, we need to extract the exact number of bits.
-	if bitLength < 8 {
-		// Take the first 8 bits from output[0] and shift right to get only the bits we need.
-		return []byte{output[0] >> (8 - bitLength)}, nil
+	// Convert the bytes to a binary string
+	var stringBuilder strings.Builder
+	for _, b := range output {
+		stringBuilder.WriteString(fmt.Sprintf("%08b", b))
 	}
 
-	// If the bitLength is not a multiple of 8, we need to clear the excess bits in the last byte
+	// If the bitLength is not a multiple of 8, trim the excess bits from the end of the string
+	bitString := stringBuilder.String()
 	if excessBits := 8*byteLength - bitLength; excessBits > 0 {
-		// Clear the excess bits
-		output[byteLength-1] &= 0xFF << excessBits
+		bitString = bitString[:len(bitString)-excessBits]
 	}
 
-	return output, nil
+	return bitString, nil
 }
 
 // HashFunction is an example of how to hash data using SHA-256.
@@ -76,7 +78,7 @@ func HashFunction(data []byte) string {
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-func PrintMatrix(matrix [][]byte) {
+func PrintMatrix(matrix [][]string) {
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[0]); j++ {
 
@@ -85,4 +87,13 @@ func PrintMatrix(matrix [][]byte) {
 		println()
 	}
 	println()
+}
+
+// PrintBinaryString prints the binary representation of a []byte slice.
+func PrintBinaryString(bytes []byte) {
+	binaryString := ""
+	for _, b := range bytes {
+		binaryString += fmt.Sprintf("%08b", b) // Convert each byte to an 8-bit binary string
+	}
+	fmt.Println("As binary string:", binaryString)
 }
