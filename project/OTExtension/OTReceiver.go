@@ -5,6 +5,7 @@ package OTExtension
 import (
 	"crypto/rand"
 	"cryptographic-computing/project/elgamal"
+	"fmt"
 	"math/big"
 
 	"github.com/hashicorp/vault/sdk/helper/xor"
@@ -186,6 +187,12 @@ func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*ByteCipher
 			panic("Error from XOR in DecryptCiphertexts: " + err.Error())
 		}
 		plaintexts[j] = xor
+
+	}
+	// Print the result
+	print("printing the result in DecryptCiphertexts\n")
+	for _, b := range plaintexts {
+		fmt.Printf("%08b ", b) // Binary
 	}
 	return plaintexts
 }
