@@ -5,9 +5,9 @@ package OTExtension
 import (
 	"crypto/sha256"
 	"cryptographic-computing/project/elgamal"
-	"encoding/hex"
 	"fmt"
 	"math/big"
+	"strconv"
 	"strings"
 )
 
@@ -30,9 +30,14 @@ type CiphertextPair struct {
 	Ciphertext1 *elgamal.Ciphertext
 }
 
-type seed struct {
+type Seed struct {
 	seed0 *big.Int
 	seed1 *big.Int
+}
+
+type ByteCiphertextPair struct {
+	y0 []byte
+	y1 []byte
 }
 
 func pseudoRandomGenerator(seed *big.Int, bitLength int) (string, error) {
@@ -71,11 +76,10 @@ func pseudoRandomGenerator(seed *big.Int, bitLength int) (string, error) {
 	return bitString, nil
 }
 
-// HashFunction is an example of how to hash data using SHA-256.
-func HashFunction(data []byte) string {
-	hasher := sha256.New()
-	hasher.Write(data)
-	return hex.EncodeToString(hasher.Sum(nil))
+// Hash the input to the given length
+func Hash(data []byte, length int) []byte {
+	hash := sha256.Sum256(data)
+	return hash[:length]
 }
 
 func PrintMatrix(matrix [][]string) {
@@ -96,4 +100,27 @@ func PrintBinaryString(bytes []byte) {
 		binaryString += fmt.Sprintf("%08b", b) // Convert each byte to an 8-bit binary string
 	}
 	fmt.Println("As binary string:", binaryString)
+}
+
+// XOR takes a variable number of arguments (strings and ints),
+// performs a bitwise XOR operation on all of them, and returns the result as a string.
+func XOR(args ...interface{}) (string, error) {
+	var xorResult int
+
+	for _, arg := range args {
+		switch v := arg.(type) {
+		case string:
+			val, err := strconv.Atoi(v)
+			if err != nil {
+				return "", err
+			}
+			xorResult ^= val
+		case int:
+			xorResult ^= v
+		default:
+			return "", fmt.Errorf("unsupported type")
+		}
+	}
+
+	return strconv.Itoa(xorResult), nil
 }
