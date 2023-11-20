@@ -97,6 +97,7 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 		// Generate a pseudo-random bit string of m bits.
 		t_i, err := pseudoRandomGenerator(seedPair.seed0, k)
 		print("t_i: ", t_i, "\n")
+		print("t_i length: ", len(t_i), "\n")
 		if err != nil {
 			panic("Error from pseudoRandomGenerator in GenerateMatrixT: " + err.Error())
 		}
@@ -110,11 +111,12 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 
 	receiver.T = T
 
+	print("T Dimensions: ", len(T), "x", len(T[0]), "\n")
 	print("T: " + "\n")
 	PrintMatrix(T)
 }
 
-func (receiver *OTReceiver) GenerateAndSendUMatrix() [][]byte {
+func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]byte {
 
 	k := receiver.k
 	m := receiver.m

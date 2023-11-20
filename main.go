@@ -47,7 +47,7 @@ func main() {
 	// Note, that every column q^i in Q is equal to (s_i * r) ⊕ t^i.
 
 	receiver.GenerateMatrixT()
-	U := receiver.GenerateAndSendUMatrix()
+	U := receiver.GenerateAndSendMatrixU()
 	sender.GenerateQMatrix(U)
 
 }

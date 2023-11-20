@@ -54,10 +54,16 @@ func pseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
 	// Trim the output to the exact number of bytes we need
 	output = output[:byteLength]
 
+	// If the bitLength is less than 8, we need to extract the exact number of bits.
+	if bitLength < 8 {
+		// Take the first 8 bits from output[0] and shift right to get only the bits we need.
+		return []byte{output[0] >> (8 - bitLength)}, nil
+	}
+
 	// If the bitLength is not a multiple of 8, we need to clear the excess bits in the last byte
 	if excessBits := 8*byteLength - bitLength; excessBits > 0 {
 		// Clear the excess bits
-		output[byteLength-1] &= (0xFF << excessBits)
+		output[byteLength-1] &= 0xFF << excessBits
 	}
 
 	return output, nil
