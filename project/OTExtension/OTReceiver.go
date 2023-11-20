@@ -121,9 +121,9 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]string {
 	m := receiver.m
 
 	// Initialize the matrix U of size m × κ.
-	U := make([][]byte, m) // m rows.
+	U := make([][]string, m) // m rows.
 	for i := range U {
-		U[i] = make([]byte, k) // k columns per row.
+		U[i] = make([]string, k) // k columns per row.
 	}
 
 	// Generate each column of U: u^i = t^i ⊕ G(k1_i ) ⊕ r.
@@ -140,7 +140,9 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]string {
 
 			row_val, _ := strconv.Atoi(receiver.T[j][i])
 			string_val, _ := strconv.Atoi(bitstring[j : j+1])
-			U[j][i] = byte(row_val ^ string_val ^ receiver.selectionBits[i]) // u^i = t^i ⊕ G(k1_i ) ⊕ r = t^i ⊕ s_i ⊕ r
+			new_val := row_val ^ string_val ^ receiver.selectionBits[i] // u^i = t^i ⊕ G(k1_i ) ⊕ r = t^i ⊕ s_i ⊕ r
+
+			U[j][i] = strconv.Itoa(new_val)
 
 		}
 

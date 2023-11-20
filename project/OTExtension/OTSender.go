@@ -6,6 +6,7 @@ import (
 	"cryptographic-computing/project/elgamal"
 	"encoding/base64"
 	"math/big"
+	"strconv"
 )
 
 type OTSender struct {
@@ -103,15 +104,15 @@ func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal 
 	sender.seeds = plaintextSeeds
 }
 
-func (sender *OTSender) GenerateQMatrix(U [][]byte) {
+func (sender *OTSender) GenerateQMatrix(U [][]string) {
 
 	k := sender.k
 	m := sender.m
 
 	// Initialize the matrix Q of size m × κ.
-	Q := make([][]byte, m) // m rows.
+	Q := make([][]string, m) // m rows.
 	for i := range Q {
-		Q[i] = make([]byte, k) // k columns per row.
+		Q[i] = make([]string, k) // k columns per row.
 	}
 
 	// The OTSender defines q^i = (s_i · u^i) ⊕ G(k^(s_i)_i. Note that q^i = (s_i · r) ⊕ t^i)
@@ -121,7 +122,8 @@ func (sender *OTSender) GenerateQMatrix(U [][]byte) {
 			if err != nil {
 				panic("Error from pseudoRandomGenerator in GenerateQMatrix: " + err.Error())
 			}
-			Q[j][i] = sender.s[i] ^ U[j][i] ^ G[i]
+			matrix_val, _ := strconv.Atoi(U[j][i])
+			Q[j][i] = sender.s[i] ^ matrix_val ^ G[i]
 		}
 	}
 	sender.Q = Q
