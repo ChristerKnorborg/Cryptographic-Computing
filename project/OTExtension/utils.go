@@ -31,8 +31,8 @@ type CiphertextPair struct {
 }
 
 type Seed struct {
-	seed0 *big.Int
-	seed1 *big.Int
+	Seed0 *big.Int // CHANGE AFTER DEBUG
+	Seed1 *big.Int // CHANGE AFTER DEBUG S -> s
 }
 
 type ByteCiphertextPair struct {
@@ -76,10 +76,24 @@ func pseudoRandomGenerator(seed *big.Int, bitLength int) (string, error) {
 	return bitString, nil
 }
 
-// Hash the input to the given length
-func Hash(data []byte, length int) []byte {
-	hash := sha256.Sum256(data)
-	return hash[:length]
+// Hash creates a hash of the input data with a specified byte length.
+func Hash(data []byte, byteLength int) []byte {
+
+	fullHash := make([]byte, 0, byteLength)
+
+	// SHA-256 produces a hash of 32 bytes (256 bits)
+	// We keep hashing and concatenating until we reach the desired byte length
+	for len(fullHash) < byteLength {
+		hash := sha256.Sum256(data)
+		fullHash = append(fullHash, hash[:]...)
+
+		// Modify data slightly for the next iteration to produce a different hash
+		// For example, append a byte that represents the current length of fullHash
+		data = append(data, byte(len(fullHash)))
+	}
+
+	// Truncate the hash to the exact byte length required
+	return fullHash[:byteLength]
 }
 
 func PrintMatrix(matrix [][]string) {
