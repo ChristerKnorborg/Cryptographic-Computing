@@ -196,6 +196,7 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*ByteCiphertextPair {
 		x1_j := sender.messages[j].Message1
 
 		string_xor := ""
+		q_row := ""
 		for i := 0; i < k; i++ {
 			string_idx := sender.S[i : i+1]
 			q_idx := sender.Q[j][i]
@@ -206,18 +207,19 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*ByteCiphertextPair {
 				panic("Error from XOR in MakeAndSendCiphertexts: " + err.Error())
 			}
 			string_xor += xor_char
+			q_row += q_idx
 		}
 		print("string_xor sender: " + string_xor + "\n")
 
-		hash1 := Hash(x0_j, l)
-		hash2 := Hash([]byte(string_xor), l)
-		print("hash1 sender: \n")
+		hash0 := Hash([]byte(q_row), l)
+		hash1 := Hash([]byte(string_xor), l)
+		print("hash0 sender: ")
+		PrintBinaryString(hash0)
+		print("hash1 sender: ")
 		PrintBinaryString(hash1)
-		print("hash2 sender: \n")
-		PrintBinaryString(hash2)
 
-		y0_j, err1 := xor.XORBytes(x0_j, hash1)
-		y1_j, err2 := xor.XORBytes(x1_j, hash2)
+		y0_j, err1 := xor.XORBytes(x0_j, hash0)
+		y1_j, err2 := xor.XORBytes(x1_j, hash1)
 
 		if err1 != nil || err2 != nil {
 			panic("Error from XORBytes in MakeAndSendCiphertexts: " + err1.Error() + " " + err2.Error())

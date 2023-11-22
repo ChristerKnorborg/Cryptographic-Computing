@@ -118,12 +118,12 @@ func main() {
 		print(receiver.Seeds[i].Seed1.String() + "\n")
 	}
 
-	// // The sender sends (y0_j, y1_j) for every 1 ≤ j ≤ m to the receiver, where y0_j = x0_j ⊕ H(j, q_j) and y1_j = x1_j ⊕ H(j, q_j ⊕ s).
-	// // The receiver then computes x^(r_j)_j = y^(rj)_j ⊕ H(j, t_j) for every 1 ≤ j ≤ m. Then outputs (x^(r_1)_1, ..., x^(r_m)_m).
-	// ByteCiphertexts := sender.MakeAndSendCiphertexts()
-	// result := receiver.DecryptCiphertexts(ByteCiphertexts)
+	// The sender sends (y0_j, y1_j) for every 1 ≤ j ≤ m to the receiver, where y0_j = x0_j ⊕ H(j, q_j) and y1_j = x1_j ⊕ H(j, q_j ⊕ s).
+	// The receiver then computes x^(r_j)_j = y^(rj)_j ⊕ H(j, t_j) for every 1 ≤ j ≤ m. Then outputs (x^(r_1)_1, ..., x^(r_m)_m).
+	ByteCiphertexts := sender.MakeAndSendCiphertexts()
+	result := receiver.DecryptCiphertexts(ByteCiphertexts)
 
-	// for _, b := range result {
-	// 	fmt.Printf("%d ", b) // Decimal print of []byte result
-	// }
+	for _, b := range result {
+		fmt.Printf("%d ", b) // Decimal print of []byte result
+	}
 }

@@ -196,7 +196,7 @@ func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*ByteCipher
 			t_row += t_idx
 		}
 		hash := Hash([]byte(t_row), l)
-		print("hash receiver : \n")
+		print("hash receiver : ")
 		PrintBinaryString(hash)
 
 		xor, err := xor.XORBytes(y_j, hash)
@@ -205,11 +205,6 @@ func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*ByteCipher
 		}
 		plaintexts[j] = xor
 
-	}
-	// Print the result
-	print("printing the result in DecryptCiphertexts\n")
-	for _, b := range plaintexts {
-		PrintBinaryString(b)
 	}
 	return plaintexts
 }
