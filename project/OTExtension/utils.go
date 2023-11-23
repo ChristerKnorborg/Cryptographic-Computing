@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math/big"
 	"strconv"
-	"strings"
 )
 
 // Struct to store messages M0 and M1
@@ -40,40 +39,30 @@ type ByteCiphertextPair struct {
 	y1 []byte
 }
 
-func pseudoRandomGenerator(seed *big.Int, bitLength int) (string, error) {
-	// Convert the length in bits to length in bytes, rounding up
-	byteLength := (bitLength + 7) / 8
-	output := make([]byte, 0, byteLength)
+func pseudoRandomGenerator(seed *big.Int, bitLength int) ([]uint8, error) {
+	if bitLength <= 0 {
+		return nil, fmt.Errorf("bitLength must be positive")
+	}
+	output := make([]uint8, 0, bitLength) // Allocate space for the array
 
 	// Convert seed to a byte slice
 	seedBytes := seed.Bytes()
 
-	// Hash the seed and append to output until we have enough bytes
-	for len(output) < byteLength {
+	for len(output) < bitLength {
 		hash := sha256.Sum256(seedBytes)
-		output = append(output, hash[:]...)
+		for _, b := range hash[:] {
+			for i := 0; i < 8 && len(output) < bitLength; i++ {
+				bit := (b >> (7 - i)) & 1 // Extract each bit
+				output = append(output, uint8(bit))
+			}
+		}
 
 		// Increment the seed
 		seed = new(big.Int).Add(seed, big.NewInt(1))
 		seedBytes = seed.Bytes()
 	}
 
-	// Trim the output to the exact number of bytes we need
-	output = output[:byteLength]
-
-	// Convert the bytes to a binary string
-	var stringBuilder strings.Builder
-	for _, b := range output {
-		stringBuilder.WriteString(fmt.Sprintf("%08b", b))
-	}
-
-	// If the bitLength is not a multiple of 8, trim the excess bits from the end of the string
-	bitString := stringBuilder.String()
-	if excessBits := 8*byteLength - bitLength; excessBits > 0 {
-		bitString = bitString[:len(bitString)-excessBits]
-	}
-
-	return bitString, nil
+	return output, nil
 }
 
 // Hash creates a hash of the input data with a specified byte length.
@@ -131,6 +120,8 @@ func XOR(args ...interface{}) (string, error) {
 			xorResult ^= val
 		case int:
 			xorResult ^= v
+		case uint8:
+			xorResult ^= int(v)
 		default:
 			return "", fmt.Errorf("unsupported type")
 		}

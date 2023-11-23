@@ -5,8 +5,6 @@ import (
 	"crypto/rand"
 	"cryptographic-computing/project/elgamal"
 	"math/big"
-	"strconv"
-	"strings"
 
 	"github.com/hashicorp/vault/sdk/helper/xor"
 )
@@ -16,11 +14,11 @@ type OTSender struct {
 	l          int              // Bit length of each message
 	m          int              // Number of messages to be sent
 	k          int              // Security parameter
-	s          string           // Random string s = (s_1, ... , s_k).
+	s          []uint8          // Random list of 0's and 1's: s = (s_1, ... , s_k). Notice, we use uint8 instead of string due to XOR operations in GO.
 	secretKeys []*big.Int       // Secret keys for each message to be received.
 	PublicKeys []*PublicKeyPair // Public keys received from the OTReceiver - one oblivious and one real for each message to be sent
 	seeds      []*big.Int       // Seed values received when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
-	Q          [][]string       // Bit matrix Q of size m × κ to be calculated in the OTExtension Phase
+	q          [][]uint8        // Bit matrix Q of size m × κ to be calculated in the OTExtension Phase
 }
 
 func (sender *OTSender) Init(messages []*MessagePair, securityParameter int, l int) {
@@ -32,27 +30,18 @@ func (sender *OTSender) Init(messages []*MessagePair, securityParameter int, l i
 
 }
 
-// S choose a random string s = (s_1, ... , s_k)
-func (sender *OTSender) ChooseRandomString() {
-	var stringBuilder strings.Builder
-	stringBuilder.Grow(sender.k) // Pre-allocate space for efficiency
+// S choose a random list of 0's and 1's of length k: s = (s_1, ... , s_k)
+func (sender *OTSender) ChooseRandomK() {
+	sender.s = make([]uint8, sender.k) // Allocate space for the array
 
-	// Generate each bit individually and append to the string builder
-	for i := 0; i < sender.k; i++ {
+	for i := uint(0); i < uint(sender.k); i++ {
 		randomBit, err := rand.Int(rand.Reader, big.NewInt(2))
 		if err != nil {
-			panic("Error in ChooseRandomString: " + err.Error())
+			panic("Error in ChooseRandomUint8Array: " + err.Error())
 		}
-		// Append '0' or '1' to the string
-		if randomBit.Int64() == 0 {
-			stringBuilder.WriteByte('0')
-		} else {
-			stringBuilder.WriteByte('1')
-		}
+		// Set 0 or 1 in the array
+		sender.s[i] = uint8(randomBit.Int64())
 	}
-
-	// Set the generated string
-	sender.s = stringBuilder.String()
 }
 
 // Method for invoking the κ×OTκ-functionality, where the OTSender plays the receiver with random string s = (s_1, ... , s_k) as input,
@@ -73,16 +62,11 @@ func (sender *OTSender) Choose(elGamal *elgamal.ElGamal) []*PublicKeyPair {
 	for i := 0; i < k; i++ {
 
 		publicKeys[i] = &PublicKeyPair{} // Initialize a new public key pair to store the keys for the current message
-		s_idx, err := strconv.Atoi(sender.s[i : i+1])
 
-		if err != nil {
-			panic("Error from Atoi in Choose: " + err.Error())
-		}
-
-		if s_idx == 0 {
+		if sender.s[i] == 0 {
 			publicKeys[i].MessageKey0 = elGamal.Gen(sender.secretKeys[i])
 			publicKeys[i].MessageKey1 = elGamal.OGen()
-		} else if s_idx == 1 {
+		} else if sender.s[i] == 1 {
 			publicKeys[i].MessageKey0 = elGamal.OGen()
 			publicKeys[i].MessageKey1 = elGamal.Gen(sender.secretKeys[i])
 		} else {
@@ -101,14 +85,10 @@ func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal 
 
 	// Decrypt the message based on the receiver's choice bits
 	for i := 0; i < sender.k; i++ {
-		s_idx, err := strconv.Atoi(sender.s[i : i+1])
-		if err != nil {
-			panic("Error from Atoi in DecryptMessage: " + err.Error())
-		}
 
-		if s_idx == 0 {
+		if sender.s[i] == 0 {
 			plaintextSeeds[i] = elGamal.Decrypt(ciphertextPairs[i].Ciphertext0.C1, ciphertextPairs[i].Ciphertext0.C2, sender.secretKeys[i])
-		} else if s_idx == 1 {
+		} else if sender.s[i] == 1 {
 			plaintextSeeds[i] = elGamal.Decrypt(ciphertextPairs[i].Ciphertext1.C1, ciphertextPairs[i].Ciphertext1.C2, sender.secretKeys[i])
 		} else {
 			panic("Receiver choice bits are not 0 or 1 in DecryptMessage")
@@ -118,23 +98,20 @@ func (sender *OTSender) DecryptSeeds(ciphertextPairs []*CiphertextPair, elGamal 
 	sender.seeds = plaintextSeeds
 }
 
-func (sender *OTSender) GenerateMatrixQ(U [][]string) {
+func (sender *OTSender) GenerateMatrixQ(U [][]uint8) {
 
 	k := sender.k
 	m := sender.m
 
 	// Initialize the matrix Q of size m × κ.
-	Q := make([][]string, m) // m rows.
+	Q := make([][]uint8, m) // m rows.
 	for i := range Q {
-		Q[i] = make([]string, k) // k columns per row.
+		Q[i] = make([]uint8, k) // k columns per row.
 	}
 
 	// The OTSender defines q^i = (s_i · u^i) ⊕ G(k^(s_i)_i. Note that q^i = (s_i · r) ⊕ t^i)
 	for i := 0; i < k; i++ {
-		s_idx, err := strconv.Atoi(sender.s[i : i+1])
-		if err != nil {
-			panic("Error from Atoi in GenerateQMatrix on string s: " + err.Error())
-		}
+
 		bitstring, err := pseudoRandomGenerator(sender.seeds[i], m)
 		for j := 0; j < m; j++ {
 			if err != nil {
@@ -142,29 +119,20 @@ func (sender *OTSender) GenerateMatrixQ(U [][]string) {
 			}
 
 			// The reduction where G(k0_i) = G(k1_i) if the bit from string s is 0, can be seen on page 15 in the ALSZ paper.
-			if s_idx == 0 { // If s[i] = 1
-				Q[j][i] = bitstring[j : j+1]
+			if sender.s[i] == 0 {
 
-			} else if s_idx == 1 { // If s[i] = 1
-				bitstring_idx := bitstring[j : j+1]
-				UEntry, err := strconv.Atoi(U[j][i])
+				Q[j][i] = bitstring[j]
 
-				if err != nil {
-					panic("Error from Atoi in GenerateQMatrix: " + err.Error())
-				}
+			} else if sender.s[i] == 1 {
 
-				xor, err := XOR(UEntry, bitstring_idx)
-				if err != nil {
-					panic("Error from XOR in GenerateQMatrix: " + err.Error())
-				}
-				Q[j][i] = xor
+				Q[j][i] = U[j][i] ^ bitstring[j]
 
 			} else {
 				panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
 			}
 		}
 	}
-	sender.Q = Q
+	sender.q = Q
 }
 
 func (sender *OTSender) MakeAndSendCiphertexts() []*ByteCiphertextPair {
@@ -180,23 +148,13 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*ByteCiphertextPair {
 		x0_j := sender.messages[j].Message0
 		x1_j := sender.messages[j].Message1
 
-		string_xor := ""
-		q_row := ""
+		xor_res := make([]uint8, k)
 		for i := 0; i < k; i++ {
-			string_idx := sender.s[i : i+1]
-			q_idx := sender.Q[j][i]
-
-			xor_char, err := XOR(string_idx, q_idx)
-
-			if err != nil {
-				panic("Error from XOR in MakeAndSendCiphertexts: " + err.Error())
-			}
-			string_xor += xor_char
-			q_row += q_idx
+			xor_res[i] = sender.q[j][i] ^ sender.s[i]
 		}
 
-		hash0 := Hash([]byte(q_row), l)
-		hash1 := Hash([]byte(string_xor), l)
+		hash0 := Hash(sender.q[j], l)
+		hash1 := Hash(xor_res, l)
 
 		y0_j, err1 := xor.XORBytes(x0_j, hash0)
 		y1_j, err2 := xor.XORBytes(x1_j, hash1)

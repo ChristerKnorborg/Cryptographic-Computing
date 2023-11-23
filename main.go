@@ -17,25 +17,18 @@ func main() {
 	receiver.Init(selectionBits, k, l)
 
 	// Initialize the sender with m pairs of messages
-	msg1 := OTExtension.MessagePair{Message0: []byte{1}, Message1: []byte{0}}
-	msg2 := OTExtension.MessagePair{Message0: []byte{1}, Message1: []byte{0}}
-	msg3 := OTExtension.MessagePair{Message0: []byte{1}, Message1: []byte{0}}
-	msg4 := OTExtension.MessagePair{Message0: []byte{1}, Message1: []byte{0}}
-	msg5 := OTExtension.MessagePair{Message0: []byte{1}, Message1: []byte{0}}
-	msg6 := OTExtension.MessagePair{Message0: []byte{1}, Message1: []byte{0}}
+	msg1 := OTExtension.MessagePair{Message0: []byte{1}, Message1: []byte{2}}
+	msg2 := OTExtension.MessagePair{Message0: []byte{3}, Message1: []byte{4}}
+	msg3 := OTExtension.MessagePair{Message0: []byte{5}, Message1: []byte{6}}
+	msg4 := OTExtension.MessagePair{Message0: []byte{7}, Message1: []byte{8}}
+	msg5 := OTExtension.MessagePair{Message0: []byte{9}, Message1: []byte{10}}
+	msg6 := OTExtension.MessagePair{Message0: []byte{11}, Message1: []byte{12}}
 	messages := []*OTExtension.MessagePair{&msg1, &msg2, &msg3, &msg4, &msg5, &msg6}
-
-	// DEBUG
-	// for _, m := range messages {
-	// 	fmt.Printf("%d ", m.Message0)
-	// 	fmt.Printf("%d ", m.Message1)
-	// 	fmt.Println()
-	// }
 
 	sender.Init(messages, k, l)
 
 	// Sender choose random string S. Receiver chooses seeds
-	sender.ChooseRandomString()
+	sender.ChooseRandomK()
 	receiver.ChooseSeeds()
 
 	// The parties invoke the κxOTκ_functionality (Sender plays receiver and receiver plays sender).

@@ -16,9 +16,8 @@ type OTReceiver struct {
 	l             int              // Bit length of each message
 	selectionBits []int            // Receiver R holds m selection bits r = (r_1, ..., r_m).
 	seeds         []*Seed          // Messages (seeds) to be sent, when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
-	secretKeys    []*big.Int       // Secret keys for each message to be received.
 	PublicKeys    []*PublicKeyPair // Public keys received from the OTSender when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
-	T             [][]string       // Bit matrix T of size m × κ, after the κ×OTκ OT-functionality
+	T             [][]uint8        // Bit matrix T of size m × κ, after the κ×OTκ OT-functionality
 }
 
 func (receiver *OTReceiver) Init(selectionBits []int, securityParameter int, l int) {
@@ -91,9 +90,9 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 	m := receiver.m
 
 	// Initialize the matrix T of size m × κ.
-	T := make([][]string, m) // m rows.
+	T := make([][]uint8, m) // m rows.
 	for i := range T {
-		T[i] = make([]string, k) // k columns per row.
+		T[i] = make([]uint8, k) // k columns per row.
 	}
 
 	// Generate each column of T.
@@ -106,7 +105,7 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 		}
 
 		for j := 0; j < m; j++ {
-			T[j][i] = bitstring[j : j+1] // Assign the bit to the matrix T at position (j,i).
+			T[j][i] = bitstring[j] // Assign the bit to the matrix T at position (j,i).
 		}
 	}
 	// Assign the generated matrix to the receiver.
@@ -114,15 +113,15 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 
 }
 
-func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]string {
+func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]uint8 {
 
 	k := receiver.k
 	m := receiver.m
 
 	// Initialize the matrix U of size m × κ.
-	U := make([][]string, m) // m rows.
+	U := make([][]uint8, m) // m rows.
 	for i := range U {
-		U[i] = make([]string, k) // k columns per row.
+		U[i] = make([]uint8, k) // k columns per row.
 	}
 
 	// Generate each column of U: u^i = t^i ⊕ G(k1_i ) ⊕ r.
@@ -138,14 +137,10 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]string {
 		for j := 0; j < m; j++ {
 
 			T_idx := receiver.T[j][i]
-			G_idx := bitstring[j : j+1]
+			G_idx := bitstring[j]
 			selection_bit := receiver.selectionBits[j]
 
-			xor, err := XOR(T_idx, G_idx, selection_bit)
-			if err != nil {
-				panic("Error from XOR in GenerateAndSendUMatrix: " + err.Error())
-			}
-			U[j][i] = xor
+			U[j][i] = T_idx ^ G_idx ^ uint8(selection_bit)
 		}
 	}
 	return U
@@ -172,12 +167,11 @@ func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*ByteCipher
 			panic("Receiver choice bits are not 0 or 1 in DecryptCiphertexts")
 		}
 
-		t_row := ""
+		t_row := make([]uint8, k)
 		for i := 0; i < k; i++ {
-			t_idx := receiver.T[j][i]
-			t_row += t_idx
+			t_row[i] = receiver.T[j][i]
 		}
-		hash := Hash([]byte(t_row), l)
+		hash := Hash(t_row, l)
 
 		xor, err := xor.XORBytes(y_j, hash)
 		if err != nil {
