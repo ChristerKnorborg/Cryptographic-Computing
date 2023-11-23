@@ -31,8 +31,8 @@ type CiphertextPair struct {
 }
 
 type Seed struct {
-	Seed0 *big.Int // CHANGE AFTER DEBUG
-	Seed1 *big.Int // CHANGE AFTER DEBUG S -> s
+	seed0 *big.Int
+	seed1 *big.Int
 }
 
 type ByteCiphertextPair struct {
