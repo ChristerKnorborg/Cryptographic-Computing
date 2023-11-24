@@ -15,7 +15,7 @@ type OTSender struct {
 	m          int              // Number of messages to be sent
 	k          int              // Security parameter
 	s          []uint8          // Random list of 0's and 1's: s = (s_1, ... , s_k). Notice, we use uint8 instead of string due to XOR operations in GO.
-	secretKeys []*big.Int       // Secret keys for each message to be received.
+	secretKeys []*big.Int       // Secret keys for each seeds to be received.
 	PublicKeys []*PublicKeyPair // Public keys received from the OTReceiver - one oblivious and one real for each message to be sent
 	seeds      []*big.Int       // Seed values received when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 	q          [][]uint8        // Bit matrix Q of size m × κ to be calculated in the OTExtension Phase
