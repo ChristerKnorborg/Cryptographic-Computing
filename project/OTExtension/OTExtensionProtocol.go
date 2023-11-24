@@ -2,11 +2,12 @@ package OTExtension
 
 import (
 	"cryptographic-computing/project/elgamal"
+	"cryptographic-computing/project/utils"
 	"fmt"
 )
 
 // k: Security parameter, l: Byte length of each message, m: Number of messages to be sent
-func OTExtensionProtocol(k int, l int, m int, selectionBits []int, messages []*MessagePair, elGamal elgamal.ElGamal) {
+func OTExtensionProtocol(k int, l int, m int, selectionBits []int, messages []*utils.MessagePair, elGamal elgamal.ElGamal) {
 	receiver := OTReceiver{}
 	sender := OTSender{}
 
@@ -22,7 +23,6 @@ func OTExtensionProtocol(k int, l int, m int, selectionBits []int, messages []*M
 	// The parties invoke the κxOTκ_functionality (Sender plays receiver and receiver plays sender).
 	// Original sender chooses a secret keys and public keys for each message, and sends public keys to original receiver, .
 	// Original receiver chooses seeds and sends to original sender.
-	elGamal.Init()
 
 	publicKeys := sender.Choose(&elGamal)
 	receiver.ReceiveKeys(publicKeys)
@@ -41,7 +41,7 @@ func OTExtensionProtocol(k int, l int, m int, selectionBits []int, messages []*M
 	ByteCiphertexts := sender.MakeAndSendCiphertexts()
 	result := receiver.DecryptCiphertexts(ByteCiphertexts)
 
-	for _, b := range result {
-		fmt.Printf("%d ", b) // Decimal print of []byte result
+	if len(result) != len(messages) {
+		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
 	}
 }

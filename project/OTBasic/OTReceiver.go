@@ -4,6 +4,7 @@ package OTBasic
 // Import your ElGamal package
 import (
 	"cryptographic-computing/project/elgamal"
+	"cryptographic-computing/project/utils"
 	"math/big"
 )
 
@@ -17,7 +18,7 @@ func (receiver *OTReceiver) Init(selectionBits []int) {
 	receiver.selectionBits = selectionBits
 }
 
-func (receiver *OTReceiver) Choose(num_selections int, elGamal *elgamal.ElGamal) []*PublicKeyPair {
+func (receiver *OTReceiver) Choose(num_selections int, elGamal *elgamal.ElGamal) []*utils.PublicKeyPair {
 
 	receiver.secretKeys = make([]*big.Int, num_selections)
 
@@ -27,11 +28,11 @@ func (receiver *OTReceiver) Choose(num_selections int, elGamal *elgamal.ElGamal)
 	}
 
 	// Initialize a list of num_selections public keys to be sent to the OTSender
-	publicKeys := make([]*PublicKeyPair, num_selections)
+	publicKeys := make([]*utils.PublicKeyPair, num_selections)
 
 	for i := 0; i < num_selections; i++ {
 
-		publicKeys[i] = &PublicKeyPair{} // Initialize a public key pair for each message
+		publicKeys[i] = &utils.PublicKeyPair{} // Initialize a public key pair for each message
 
 		if receiver.selectionBits[i] == 0 {
 			publicKeys[i].MessageKey0 = elGamal.Gen(receiver.secretKeys[i])
@@ -47,7 +48,7 @@ func (receiver *OTReceiver) Choose(num_selections int, elGamal *elgamal.ElGamal)
 	return publicKeys
 }
 
-func (receiver *OTReceiver) DecryptMessage(ciphertextPairs []*CiphertextPair, l int, elGamal *elgamal.ElGamal) [][]byte {
+func (receiver *OTReceiver) DecryptMessage(ciphertextPairs []*utils.CiphertextPair, l int, elGamal *elgamal.ElGamal) [][]byte {
 
 	// Initialize a list of plaintexts to be decrypted
 	plaintexts := make([][]byte, len(ciphertextPairs))

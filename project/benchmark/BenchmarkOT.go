@@ -2,8 +2,12 @@
 package OTExtension
 
 import (
+	OTBasic "cryptographic-computing/project/OTBasic"
+	OTExt "cryptographic-computing/project/OTExtension"
 	"cryptographic-computing/project/elgamal"
+	"cryptographic-computing/project/utils"
 	"encoding/csv"
+	"fmt"
 	"log"
 	"math"
 	"os"
@@ -17,34 +21,39 @@ func TestMakeDataFixL(iterations int) {
 		log.Fatalf("failed creating file: %s", err)
 	}
 	csvwriter := csv.NewWriter(csvFile)
-	_ = csvwriter.Write([]string{"m_size", "time_OT_extension"})
+	_ = csvwriter.Write([]string{"m_size", "time_OT_Basic", "time_OT_Extension"})
 
-	time_OT_extension := 0
 	k := 256
 	l := 1
 
-	for i := 1; i < iterations; i++ {
+	for i := 5; i < iterations; i++ {
 
 		m := int(math.Pow(2, float64(i)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
 		elGamal := elgamal.ElGamal{}
-		selectionBits := RandomSelectionBits(m)
-		var messages []*MessagePair
+		elGamal.Init()
+		selectionBits := utils.RandomSelectionBits(m)
+		var messages []*utils.MessagePair
 		for i := 0; i < m; i++ {
-			msg := MessagePair{
-				Message0: RandomBytes(l),
-				Message1: RandomBytes(l),
+			msg := utils.MessagePair{
+				Message0: utils.RandomBytes(l),
+				Message1: utils.RandomBytes(l),
 			}
 			messages = append(messages, &msg)
 		}
 
 		time_start := time.Now()
-		OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
-		time_end := int(time.Since(time_start))
-		time_OT_extension = time_end
+		OTBasic.OTBasicProtocol(l, m, selectionBits, messages, elGamal)
+		time_end := time.Since(time_start).Seconds()
+		time_OT_Basic := fmt.Sprintf("%.2f", time_end)
 
-		_ = csvwriter.Write([]string{strconv.Itoa(m), strconv.Itoa(time_OT_extension)})
+		time_start = time.Now()
+		OTExt.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
+		time_end = time.Since(time_start).Seconds()
+		time_OT_Extension := fmt.Sprintf("%.2f", time_end)
+
+		_ = csvwriter.Write([]string{strconv.Itoa(m), time_OT_Basic, time_OT_Extension})
 		csvwriter.Flush()
 
 	}

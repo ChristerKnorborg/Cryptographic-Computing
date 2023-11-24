@@ -1,5 +1,9 @@
 package main
 
+import (
+	Bench "cryptographic-computing/project/benchmark"
+)
+
 func main() {
-	TestMakeDataFixL(6)
+	Bench.TestMakeDataFixL(20)
 }

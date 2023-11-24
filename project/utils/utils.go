@@ -1,5 +1,4 @@
-// OTReceiver.go
-package OTExtension
+package utils
 
 // Import your ElGamal package
 import (
@@ -34,16 +33,16 @@ type CiphertextPair struct {
 }
 
 type Seed struct {
-	seed0 *big.Int
-	seed1 *big.Int
+	Seed0 *big.Int
+	Seed1 *big.Int
 }
 
 type ByteCiphertextPair struct {
-	y0 []byte
-	y1 []byte
+	Y0 []byte
+	Y1 []byte
 }
 
-func pseudoRandomGenerator(seed *big.Int, bitLength int) ([]uint8, error) {
+func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]uint8, error) {
 	if bitLength <= 0 {
 		return nil, fmt.Errorf("bitLength must be positive")
 	}
