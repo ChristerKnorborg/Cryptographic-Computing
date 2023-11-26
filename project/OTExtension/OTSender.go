@@ -192,6 +192,7 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {
 		x1_j := sender.messages[j].Message1
 
 		xor_res := make([]uint8, k)
+
 		for i := 0; i < k; i++ {
 			xor_res[i] = sender.q[j][i] ^ sender.S[i]
 		}
