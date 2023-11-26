@@ -10,7 +10,6 @@ import (
 	"math/big"
 	mathRand "math/rand"
 	"strconv"
-	"sync"
 	"time"
 )
 
@@ -164,19 +163,20 @@ func AllTwosBytes(length int) []byte {
 }
 
 // RandomSelectionBits generates a slice of m random selection bits (0 or 1)
-func RandomSelectionBits(m int) []int {
+func RandomSelectionBits(m int) []uint8 {
+	// Create a new random source and random generator
+	src := mathRand.NewSource(time.Now().UnixNano())
+	rnd := mathRand.New(src)
 
-	mathRand.NewSource(time.Now().UnixNano())
-
-	bits := make([]int, m)
+	bits := make([]uint8, m)
 	for i := range bits {
-		bits[i] = mathRand.Intn(2) // Generates a random integer 0 or 1
+		bits[i] = uint8(rnd.Intn(2)) // Generates a random integer 0 or 1
 	}
 	return bits
 }
 
 // TransposeMatrix transposes a matrix using Eklundh's algorithm
-func TransposeMatrix(matrix [][]byte) [][]byte {
+func EklundhTransposeMatrix(matrix [][]byte) [][]byte {
 
 	rows := len(matrix)
 	cols := len(matrix[0])
@@ -196,7 +196,7 @@ func TransposeMatrix(matrix [][]byte) [][]byte {
 	rowMid := maxSize / 2
 	colMid := maxSize / 2
 
-	var wg sync.WaitGroup
+	//var wg sync.WaitGroup
 
 	A := makeSubMatrix(matrix, 0, rowMid, 0, colMid)             // Top left
 	B := makeSubMatrix(matrix, 0, rowMid, colMid, maxSize)       // Top right
@@ -204,30 +204,30 @@ func TransposeMatrix(matrix [][]byte) [][]byte {
 	D := makeSubMatrix(matrix, rowMid, maxSize, colMid, maxSize) // Bottom right
 
 	// Recursively transpose sub-matrices
-	// A = TransposeMatrix(A)
-	// B = TransposeMatrix(B)
-	// C = TransposeMatrix(C)
-	// D = TransposeMatrix(D)
+	A = EklundhTransposeMatrix(A)
+	B = EklundhTransposeMatrix(B)
+	C = EklundhTransposeMatrix(C)
+	D = EklundhTransposeMatrix(D)
 
 	// Recursively transpose sub-matrices concurrently
-	wg.Add(4)
-	go func() {
-		defer wg.Done()
-		A = TransposeMatrix(A)
-	}()
-	go func() {
-		defer wg.Done()
-		B = TransposeMatrix(B)
-	}()
-	go func() {
-		defer wg.Done()
-		C = TransposeMatrix(C)
-	}()
-	go func() {
-		defer wg.Done()
-		D = TransposeMatrix(D)
-	}()
-	wg.Wait()
+	// wg.Add(4)
+	// go func() {
+	// 	defer wg.Done()
+	// 	A = EklundhTransposeMatrix(A)
+	// }()
+	// go func() {
+	// 	defer wg.Done()
+	// 	B = EklundhTransposeMatrix(B)
+	// }()
+	// go func() {
+	// 	defer wg.Done()
+	// 	C = EklundhTransposeMatrix(C)
+	// }()
+	// go func() {
+	// 	defer wg.Done()
+	// 	D = EklundhTransposeMatrix(D)
+	// }()
+	// wg.Wait()
 
 	// Merging the transposed sub-matrices
 	transposed := mergeSubMatrices(A, B, C, D)
@@ -326,7 +326,7 @@ func TestEklundhTranspose() {
 		{13, 14, 15, 16},
 	}
 
-	transposedMatrix := TransposeMatrix(matrix)
+	transposedMatrix := EklundhTransposeMatrix(matrix)
 
 	fmt.Println("Original Matrix:")
 	for _, row := range matrix {
@@ -337,5 +337,19 @@ func TestEklundhTranspose() {
 	for _, row := range transposedMatrix {
 		fmt.Println(row)
 	}
+
+}
+
+// regular matric transpose. Copilot
+func TransposeMatrix(matrix [][]byte) [][]byte {
+	newMatrix := make([][]byte, len(matrix[0]))
+
+	for i := 0; i < len(matrix[0]); i++ {
+		newMatrix[i] = make([]byte, len(matrix))
+		for j := 0; j < len(matrix); j++ {
+			newMatrix[i][j] = matrix[j][i]
+		}
+	}
+	return newMatrix
 
 }

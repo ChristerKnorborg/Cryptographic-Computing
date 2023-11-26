@@ -15,13 +15,13 @@ type OTReceiver struct {
 	m             int                    // Number of messages to be received
 	k             int                    // Security parameter
 	l             int                    // Bit length of each message
-	selectionBits []int                  // Receiver R holds m selection bits r = (r_1, ..., r_m).
+	selectionBits []uint8                // Receiver R holds m selection bits r = (r_1, ..., r_m).
 	seeds         []*utils.Seed          // Messages (seeds) to be sent, when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 	PublicKeys    []*utils.PublicKeyPair // Public keys received from the OTSender when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 	T             [][]uint8              // Bit matrix T of size m × κ, after the κ×OTκ OT-functionality
 }
 
-func (receiver *OTReceiver) Init(selectionBits []int, securityParameter int, l int) {
+func (receiver *OTReceiver) Init(selectionBits []uint8, securityParameter int, l int) {
 
 	receiver.l = l
 	receiver.m = len(selectionBits)
@@ -143,10 +143,52 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]uint8 {
 			G_idx := bitstring[j]
 			selection_bit := receiver.selectionBits[j]
 
-			U[j][i] = T_idx ^ G_idx ^ uint8(selection_bit)
+			U[j][i] = T_idx ^ G_idx ^ selection_bit
 		}
 	}
 	return U
+}
+
+// Method for generating the bit matrix T of size m × κ, after the κ×OTκ OT-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
+// GenerateMatrixT generates the bit matrix T after the k×OTk functionality.
+func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
+	k := receiver.k
+	m := receiver.m
+
+	// Initialize the matrix T and U of size k × m.
+	T := make([][]uint8, k) // m rows.
+	U := make([][]uint8, k) // m rows.
+	for i := range T {
+		T[i] = make([]uint8, m) // k columns per row.
+		U[i] = make([]uint8, m) // k columns per row.
+	}
+
+	for i := 0; i < k; i++ {
+		// Generate a pseudo-random bitstring of m bits using the seed.
+		bitstringT, err := utils.PseudoRandomGenerator(receiver.seeds[i].Seed0, m)
+		bitstringU, err := utils.PseudoRandomGenerator(receiver.seeds[i].Seed1, m)
+		if err != nil {
+			panic("Error from pseudoRandomGenerator in GenerateMatrixTEklundh: " + err.Error())
+		}
+		T[i] = bitstringT
+
+		xor1, err1 := xor.XORBytes(T[i], bitstringU)
+		xor2, err2 := xor.XORBytes(xor1, receiver.selectionBits)
+		xor3, err3 := xor.XORBytes(xor1, xor2)
+		if err1 != nil || err2 != nil || err3 != nil {
+			panic("Error from XOR in GenerateMatrixTAndUEklundh: " + err1.Error() + err2.Error() + err3.Error())
+		}
+		U[i] = xor3
+	}
+
+	// Transpose the matrix T using Eklundh's algorithm
+	T = utils.TransposeMatrix(T)
+
+	// Assign the generated matrix to the receiver.
+	receiver.T = T
+
+	return U
+
 }
 
 // The receiver then computes x^(r_j)_j = y^(rj)_j ⊕ H(j, t_j) for every 1 ≤ j ≤ m.

@@ -11,10 +11,10 @@ import (
 type OTReceiver struct {
 	// Hold elGamal public parameters and secret key
 	secretKeys    []*big.Int // Secret keys for each message to be received.
-	selectionBits []int      // Choice bits for each message to be received depending on if the receiver wants to learn M0 or M1 (Hidden for the OTSender)
+	selectionBits []uint8    // Choice bits for each message to be received depending on if the receiver wants to learn M0 or M1 (Hidden for the OTSender)
 }
 
-func (receiver *OTReceiver) Init(selectionBits []int) {
+func (receiver *OTReceiver) Init(selectionBits []uint8) {
 	receiver.selectionBits = selectionBits
 }
 

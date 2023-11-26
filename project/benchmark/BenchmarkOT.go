@@ -21,12 +21,12 @@ func TestMakeDataFixL(iterations int) {
 		log.Fatalf("failed creating file: %s", err)
 	}
 	csvwriter := csv.NewWriter(csvFile)
-	_ = csvwriter.Write([]string{"m_size", "time_OT_Basic", "time_OT_Extension"})
+	_ = csvwriter.Write([]string{"m_size", "time_OT_Basic", "time_OT_Extension", "time_OT_Extension_Eklundh"})
 
 	k := 256
 	l := 1
 
-	for i := 5; i < iterations; i++ {
+	for i := 2; i < iterations; i++ {
 
 		m := int(math.Pow(2, float64(i)))
 
@@ -53,9 +53,13 @@ func TestMakeDataFixL(iterations int) {
 		time_end = time.Since(time_start).Seconds()
 		time_OT_Extension := fmt.Sprintf("%.2f", time_end)
 
-		_ = csvwriter.Write([]string{strconv.Itoa(m), time_OT_Basic, time_OT_Extension})
-		csvwriter.Flush()
+		time_start = time.Now()
+		OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal)
+		time_end = time.Since(time_start).Seconds()
+		time_OT_Extension_Eklundh := fmt.Sprintf("%.2f", time_end)
 
+		_ = csvwriter.Write([]string{strconv.Itoa(m), time_OT_Basic, time_OT_Extension, time_OT_Extension_Eklundh})
+		csvwriter.Flush()
 	}
 
 }
