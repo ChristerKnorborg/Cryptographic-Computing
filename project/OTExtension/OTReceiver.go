@@ -152,7 +152,7 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]uint8 {
 
 // Method for generating the bit matrix T of size m × κ, after the κ×OTκ OT-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 // GenerateMatrixT generates the bit matrix T after the k×OTk functionality.
-func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
+func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() ([][]uint8, [][]uint8) {
 	k := receiver.k
 	m := receiver.m
 
@@ -166,20 +166,19 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
 
 	for i := 0; i < k; i++ {
 		// Generate a pseudo-random bitstring of m bits using the seed.
-		bitstringT, err := utils.PseudoRandomGenerator(receiver.seeds[i].Seed0, m)
-		bitstringU, err := utils.PseudoRandomGenerator(receiver.seeds[i].Seed1, m)
-		if err != nil {
-			panic("Error from pseudoRandomGenerator in GenerateMatrixTEklundh: " + err.Error())
+		bitstringT, err1 := utils.PseudoRandomGenerator(receiver.seeds[i].Seed0, m)
+		bitstringU, err2 := utils.PseudoRandomGenerator(receiver.seeds[i].Seed1, m)
+		if err1 != nil || err2 != nil {
+			panic("Error from pseudoRandomGenerator in GenerateMatrixTEklundh: " + err1.Error())
 		}
 		T[i] = bitstringT
 
 		xor1, err1 := xor.XORBytes(T[i], bitstringU)
 		xor2, err2 := xor.XORBytes(xor1, receiver.SelectionBits)
-		xor3, err3 := xor.XORBytes(xor1, xor2)
-		if err1 != nil || err2 != nil || err3 != nil {
-			panic("Error from XOR in GenerateMatrixTAndUEklundh: " + err1.Error() + err2.Error() + err3.Error())
+		if err1 != nil || err2 != nil {
+			panic("Error from XOR in GenerateMatrixTAndUEklundh: " + err1.Error() + err2.Error())
 		}
-		U[i] = xor3
+		U[i] = xor2
 	}
 
 	// Transpose the matrix T using Eklundh's algorithm
@@ -188,7 +187,7 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
 	// Assign the generated matrix to the receiver.
 	receiver.T = T
 
-	return U
+	return U, T
 
 }
 

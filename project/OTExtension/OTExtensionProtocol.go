@@ -147,8 +147,44 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 	// Receiver generates the Matrix T, and the Matrix U and send U to the sender.
 	// The sender generates the Matrix Q from the received U Matrix.
 	// Note, that every column q^i in Q is equal to (s_i * r) ⊕ t^i.
-	U := receiver.GenerateMatrixTAndUEklundh()
-	sender.GenerateMatrixQEklundh(U)
+	U, T := receiver.GenerateMatrixTAndUEklundh()
+	Q := sender.GenerateMatrixQEklundh(U)
+
+	U = utils.EklundhTransposeMatrix(U) // Debug (We never transpose U in the protocol as it is not needed)
+	print("CHECKING Q MATRIX COLS: \n")
+	for i := 0; i < k; i++ {
+		s_i := sender.S[i]
+		for j := 0; j < m; j++ {
+			q_idx := Q[j][i]
+			r_j := receiver.SelectionBits[j]
+			t_i := T[j][i]
+			if q_idx != (s_i*r_j)^t_i {
+				G := q_idx ^ (s_i * r_j)
+				print("s_i, u[j][i], G(): " + strconv.Itoa(int(s_i)) + " " + strconv.Itoa(int(U[j][i])) + " " + strconv.Itoa(int(G)) + "\n")
+				print("s_i, r_j, t_i: " + strconv.Itoa(int(s_i)) + " " + strconv.Itoa(int(r_j)) + " " + strconv.Itoa(int(t_i)) + "\n")
+				print("q_idx: " + strconv.Itoa(int(q_idx)) + "\n")
+				fmt.Println("ERROR: q_idx != (s_i * r_j) ^ t_i")
+
+			}
+		}
+	}
+
+	// DEBUG: CHECK THAT EVERY ROW IN Q IS EQUAL TO (r_j*s) ⊕ t_j
+	print("CHECKING Q MATRIX ROWS: \n")
+	for j := 0; j < m; j++ {
+		for i := 0; i < k; i++ {
+			q_idx := Q[j][i]
+			r_j := receiver.SelectionBits[j]
+			s_i := sender.S[i]
+			t_j := T[j][i]
+
+			if q_idx != (r_j*s_i)^t_j {
+				print("r_j, s_i, t[j][i]: " + strconv.Itoa(int(r_j)) + " " + strconv.Itoa(int(s_i)) + " " + strconv.Itoa(int(t_j)) + "\n")
+				print("q_idx: " + strconv.Itoa(int(q_idx)) + "\n")
+				fmt.Println("ERROR: q_idx != (r_j * s_i) ^ t_j")
+			}
+		}
+	}
 
 	// The sender sends (y0_j, y1_j) for every 1 ≤ j ≤ m to the receiver, where y0_j = x0_j ⊕ H(j, q_j) and y1_j = x1_j ⊕ H(j, q_j ⊕ s).
 	// The receiver then computes x^(r_j)_j = y^(rj)_j ⊕ H(j, t_j) for every 1 ≤ j ≤ m. Then outputs (x^(r_1)_1, ..., x^(r_m)_m).

@@ -137,7 +137,7 @@ func (sender *OTSender) GenerateMatrixQ(U [][]uint8) [][]uint8 {
 	return Q
 }
 
-func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8) {
+func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8) [][]uint8 {
 
 	k := sender.k
 	m := sender.m
@@ -173,8 +173,9 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8) {
 			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
 		}
 	}
-
+	Q = utils.EklundhTransposeMatrix(Q)
 	sender.q = Q
+	return Q
 }
 
 func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {

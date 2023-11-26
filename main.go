@@ -14,7 +14,7 @@ import (
 
 func main() {
 
-	k := 255
+	k := 2
 	l := 1
 	m := int(math.Pow(2, float64(4)))
 
@@ -31,5 +31,6 @@ func main() {
 		messages = append(messages, &msg)
 	}
 
-	OTExt.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
+	// OTExt.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
+	OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal)
 }
