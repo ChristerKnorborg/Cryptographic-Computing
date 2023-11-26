@@ -10,6 +10,7 @@ import (
 	"math/big"
 	mathRand "math/rand"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -195,16 +196,38 @@ func TransposeMatrix(matrix [][]byte) [][]byte {
 	rowMid := maxSize / 2
 	colMid := maxSize / 2
 
+	var wg sync.WaitGroup
+
 	A := makeSubMatrix(matrix, 0, rowMid, 0, colMid)             // Top left
 	B := makeSubMatrix(matrix, 0, rowMid, colMid, maxSize)       // Top right
 	C := makeSubMatrix(matrix, rowMid, maxSize, 0, colMid)       // Bottom left
 	D := makeSubMatrix(matrix, rowMid, maxSize, colMid, maxSize) // Bottom right
 
 	// Recursively transpose sub-matrices
-	A = TransposeMatrix(A)
-	B = TransposeMatrix(B)
-	C = TransposeMatrix(C)
-	D = TransposeMatrix(D)
+	// A = TransposeMatrix(A)
+	// B = TransposeMatrix(B)
+	// C = TransposeMatrix(C)
+	// D = TransposeMatrix(D)
+
+	// Recursively transpose sub-matrices concurrently
+	wg.Add(4)
+	go func() {
+		defer wg.Done()
+		A = TransposeMatrix(A)
+	}()
+	go func() {
+		defer wg.Done()
+		B = TransposeMatrix(B)
+	}()
+	go func() {
+		defer wg.Done()
+		C = TransposeMatrix(C)
+	}()
+	go func() {
+		defer wg.Done()
+		D = TransposeMatrix(D)
+	}()
+	wg.Wait()
 
 	// Merging the transposed sub-matrices
 	transposed := mergeSubMatrices(A, B, C, D)
