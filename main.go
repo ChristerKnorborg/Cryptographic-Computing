@@ -14,9 +14,9 @@ import (
 
 func main() {
 
-	k := 256
+	k := 255
 	l := 1
-	m := int(math.Pow(2, float64(1)))
+	m := int(math.Pow(2, float64(4)))
 
 	// create cryptoalgorithm, messages and selection bits for algorithms.
 	elGamal := elgamal.ElGamal{}

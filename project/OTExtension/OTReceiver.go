@@ -15,7 +15,7 @@ type OTReceiver struct {
 	m             int                    // Number of messages to be received
 	k             int                    // Security parameter
 	l             int                    // Bit length of each message
-	selectionBits []uint8                // Receiver R holds m selection bits r = (r_1, ..., r_m).
+	SelectionBits []uint8                // Receiver R holds m selection bits r = (r_1, ..., r_m).
 	seeds         []*utils.Seed          // Messages (seeds) to be sent, when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 	PublicKeys    []*utils.PublicKeyPair // Public keys received from the OTSender when invoking the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 	T             [][]uint8              // Bit matrix T of size m × κ, after the κ×OTκ OT-functionality
@@ -25,7 +25,7 @@ func (receiver *OTReceiver) Init(selectionBits []uint8, securityParameter int, l
 
 	receiver.l = l
 	receiver.m = len(selectionBits)
-	receiver.selectionBits = selectionBits
+	receiver.SelectionBits = selectionBits
 	receiver.k = securityParameter
 
 }
@@ -88,7 +88,7 @@ func (receiver *OTReceiver) EncryptSeeds(elGamal *elgamal.ElGamal) []*utils.Ciph
 
 // Method for generating the bit matrix T of size m × κ, after the κ×OTκ OT-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 // GenerateMatrixT generates the bit matrix T after the k×OTk functionality.
-func (receiver *OTReceiver) GenerateMatrixT() {
+func (receiver *OTReceiver) GenerateMatrixT() [][]uint8 {
 	k := receiver.k
 	m := receiver.m
 
@@ -113,6 +113,7 @@ func (receiver *OTReceiver) GenerateMatrixT() {
 	}
 	// Assign the generated matrix to the receiver.
 	receiver.T = T
+	return T
 
 }
 
@@ -141,7 +142,7 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]uint8 {
 
 			T_idx := receiver.T[j][i]
 			G_idx := bitstring[j]
-			selection_bit := receiver.selectionBits[j]
+			selection_bit := receiver.SelectionBits[j]
 
 			U[j][i] = T_idx ^ G_idx ^ selection_bit
 		}
@@ -173,7 +174,7 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
 		T[i] = bitstringT
 
 		xor1, err1 := xor.XORBytes(T[i], bitstringU)
-		xor2, err2 := xor.XORBytes(xor1, receiver.selectionBits)
+		xor2, err2 := xor.XORBytes(xor1, receiver.SelectionBits)
 		xor3, err3 := xor.XORBytes(xor1, xor2)
 		if err1 != nil || err2 != nil || err3 != nil {
 			panic("Error from XOR in GenerateMatrixTAndUEklundh: " + err1.Error() + err2.Error() + err3.Error())
@@ -204,9 +205,9 @@ func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*utils.Byte
 	for j := 0; j < m; j++ {
 
 		var y_j []byte
-		if receiver.selectionBits[j] == 0 {
+		if receiver.SelectionBits[j] == 0 {
 			y_j = ByteCiphertextPairs[j].Y0
-		} else if receiver.selectionBits[j] == 1 {
+		} else if receiver.SelectionBits[j] == 1 {
 			y_j = ByteCiphertextPairs[j].Y1
 		} else {
 			panic("Receiver choice bits are not 0 or 1 in DecryptCiphertexts")

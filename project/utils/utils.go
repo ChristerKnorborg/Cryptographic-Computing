@@ -79,8 +79,7 @@ func Hash(data []byte, byteLength int) []byte {
 		hash := sha256.Sum256(data)
 		fullHash = append(fullHash, hash[:]...)
 
-		// Modify data slightly for the next iteration to produce a different hash
-		// For example, append a byte that represents the current length of fullHash
+		// Modify data slightly for the next iteration to produce a different hash by appending a byte that represents the current length of fullHash
 		data = append(data, byte(len(fullHash)))
 	}
 
