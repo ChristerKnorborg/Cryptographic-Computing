@@ -172,6 +172,46 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8) {
 			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
 		}
 	}
+	Q = utils.EklundhTransposeMatrix(Q)
+	sender.q = Q
+}
+
+func (sender *OTSender) GenerateMatrixQTranspose(U [][]uint8) {
+
+	k := sender.k
+	m := sender.m
+
+	// Initialize the matrix Q of size m × κ.
+	Q := make([][]uint8, k) // m rows.
+	for i := range Q {
+		Q[i] = make([]uint8, m) // k columns per row.
+	}
+
+	// The OTSender defines q^i = (s_i · u^i) ⊕ G(k^(s_i)_i. Note that q^i = (s_i · r) ⊕ t^i)
+	for i := 0; i < k; i++ {
+
+		bitstring, err := utils.PseudoRandomGenerator(sender.seeds[i], m)
+		if err != nil {
+			panic("Error from pseudoRandomGenerator in GenerateQMatrix: " + err.Error())
+		}
+
+		// The reduction where G(k0_i) = G(k1_i) if the bit from string s is 0, can be seen on page 15 in the ALSZ paper.
+		if sender.s[i] == 0 {
+
+			Q[i] = bitstring
+
+		} else if sender.s[i] == 1 {
+
+			xorRes, err := xor.XORBytes(U[i], bitstring)
+			if err != nil {
+				panic("Error from XORBytes in GenerateQMatrixEklundh: " + err.Error())
+			}
+			Q[i] = xorRes
+
+		} else {
+			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
+		}
+	}
 	Q = utils.TransposeMatrix(Q)
 	sender.q = Q
 }

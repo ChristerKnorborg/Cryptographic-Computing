@@ -175,17 +175,84 @@ func RandomSelectionBits(m int) []uint8 {
 	return bits
 }
 
-// TransposeMatrix transposes a matrix using Eklundh's algorithm
+func divideMatrix(matrix [][]byte, k int, m int) [][][]byte {
+	var result [][][]byte
+
+	numMatrices := (m + k - 1) / k // Calculate the number of kxk matrices
+
+	for i := 0; i < numMatrices; i++ {
+		var smallMatrix [][]byte
+
+		for _, row := range matrix {
+			start := i * k
+			end := start + k
+
+			if end > m {
+				// Pad the last matrix if it doesn't add up to kxk
+				padding := make([]byte, end-m)
+				smallMatrix = append(smallMatrix, append(row[start:m], padding...))
+			} else {
+				smallMatrix = append(smallMatrix, row[start:end])
+			}
+		}
+		result = append(result, smallMatrix)
+	}
+	return result
+}
+
 func EklundhTransposeMatrix(matrix [][]byte) [][]byte {
+
+	k := len(matrix)
+	m := len(matrix[0])
+
+	matrices := divideMatrix(matrix, k, m)
+
+	for i, mat := range matrices {
+		transposedMat := eklundhTransposeMatrix(mat)
+		matrices[i] = transposedMat
+	}
+
+	// remove padding from the last matrix if necessary
+	padding_rows := m % k
+	if padding_rows != 0 {
+		// remove padding_rows from the last matrix
+		lastMatrix := matrices[len(matrices)-1]
+		matrices[len(matrices)-1] = lastMatrix[:len(lastMatrix)-padding_rows]
+	}
+
+	// Calculate dimensions of the final transposed matrix
+	numRows := 0
+	for _, mat := range matrices {
+		numRows += len(mat)
+	}
+	numCols := len(matrix[0])
+
+	// Initialize the final transposed matrix
+	transposed := make([][]byte, numRows)
+	for i := range transposed {
+		transposed[i] = make([]byte, numCols)
+	}
+
+	// Stack the transposed matrices vertically
+	currentRow := 0
+	for _, mat := range matrices {
+		for _, row := range mat {
+			transposed[currentRow] = row
+			currentRow++
+		}
+	}
+
+	return transposed
+}
+
+// TransposeMatrix transposes a matrix using Eklundh's algorithm
+func eklundhTransposeMatrix(matrix [][]byte) [][]byte {
 
 	rows := len(matrix)
 	cols := len(matrix[0])
 
 	// Padding if necessary to make the matrix square
 	maxSize := max(rows, cols)
-	if rows != cols {
-		matrix = padMatrix(matrix, maxSize)
-	}
 
 	// Base case for recursion
 	if maxSize == 1 {
@@ -204,52 +271,38 @@ func EklundhTransposeMatrix(matrix [][]byte) [][]byte {
 	D := makeSubMatrix(matrix, rowMid, maxSize, colMid, maxSize) // Bottom right
 
 	// Recursively transpose sub-matrices
-	A = EklundhTransposeMatrix(A)
-	B = EklundhTransposeMatrix(B)
-	C = EklundhTransposeMatrix(C)
-	D = EklundhTransposeMatrix(D)
+	A = eklundhTransposeMatrix(A)
+	B = eklundhTransposeMatrix(B)
+	C = eklundhTransposeMatrix(C)
+	D = eklundhTransposeMatrix(D)
 
 	// Recursively transpose sub-matrices concurrently
 	// wg.Add(4)
 	// go func() {
 	// 	defer wg.Done()
-	// 	A = EklundhTransposeMatrix(A)
+	// 	A = eklundhTransposeMatrix(A)
 	// }()
 	// go func() {
 	// 	defer wg.Done()
-	// 	B = EklundhTransposeMatrix(B)
+	// 	B = eklundhTransposeMatrix(B)
 	// }()
 	// go func() {
 	// 	defer wg.Done()
-	// 	C = EklundhTransposeMatrix(C)
+	// 	C = eklundhTransposeMatrix(C)
 	// }()
 	// go func() {
 	// 	defer wg.Done()
-	// 	D = EklundhTransposeMatrix(D)
+	// 	D = eklundhTransposeMatrix(D)
 	// }()
 	// wg.Wait()
 
-	// Merging the transposed sub-matrices
-	transposed := mergeSubMatrices(A, B, C, D)
+	return mergeSubMatrices(A, B, C, D)
 
-	// If padding was added, remove it from the transposed matrix
-	if rows != cols {
-		transposed = unpadMatrix(transposed, cols, rows) // Note the dimensions are swapped
-	}
-
-	return transposed
-}
-
-func unpadMatrix(matrix [][]byte, rows, cols int) [][]byte {
-	unpaddedMatrix := make([][]byte, rows)
-	for i := range unpaddedMatrix {
-		unpaddedMatrix[i] = matrix[i][:cols]
-	}
-	return unpaddedMatrix
 }
 
 // makeSubMatrix creates a sub-matrix from the given indexes of a matrix
 func makeSubMatrix(matrix [][]byte, rowStart, rowEnd, colStart, colEnd int) [][]byte {
+
 	subMatrix := make([][]byte, rowEnd-rowStart)
 	for i := range subMatrix {
 		subMatrix[i] = matrix[rowStart+i][colStart:colEnd]
@@ -295,21 +348,6 @@ func mergeSubMatrices(A, B, C, D [][]byte) [][]byte {
 	return matrix
 }
 
-// padMatrix pads the given matrix with zeros to make it square
-func padMatrix(matrix [][]byte, size int) [][]byte {
-	paddedMatrix := make([][]byte, size)
-	for i := range paddedMatrix {
-		paddedMatrix[i] = make([]byte, size)
-		if i < len(matrix) {
-			//for j, val := range matrix[i] {
-			//paddedMatrix[i][j] = val
-			copy(paddedMatrix[i], matrix[i])
-			//}
-		}
-	}
-	return paddedMatrix
-}
-
 // max returns the larger of two integers
 func max(a, b int) int {
 	if a > b {
@@ -318,20 +356,45 @@ func max(a, b int) int {
 	return b
 }
 
-func TestEklundhTranspose() {
+func TestDivideMatrix() {
 	matrix := [][]byte{
-		{1, 2, 3, 4},
-		{5, 6, 7, 8},
-		{9, 10, 11, 12},
-		{13, 14, 15, 16},
+		{1, 1, 2, 3, 4, 5, 6, 7, 8},
+		{9, 9, 10, 11, 12, 13, 14, 15, 16},
 	}
 
-	transposedMatrix := EklundhTransposeMatrix(matrix)
+	k := len(matrix)
+	m := len(matrix[0])
+
+	for _, row := range matrix {
+		fmt.Println(row)
+	}
+	fmt.Println()
+
+	dividedMatrices := divideMatrix(matrix, k, m)
+
+	for _, mat := range dividedMatrices {
+		for _, row := range mat {
+			fmt.Println(row)
+		}
+		fmt.Println()
+	}
+
+}
+
+func TestEklundhTranspose() {
+	matrix := [][]byte{
+		{10, 11, 12, 13},
+		{20, 21, 22, 23},
+		{30, 31, 32, 33},
+		{40, 41, 42, 43},
+	}
 
 	fmt.Println("Original Matrix:")
 	for _, row := range matrix {
 		fmt.Println(row)
 	}
+
+	transposedMatrix := EklundhTransposeMatrix(matrix)
 
 	fmt.Println("\nTransposed Matrix:")
 	for _, row := range transposedMatrix {
@@ -352,4 +415,27 @@ func TransposeMatrix(matrix [][]byte) [][]byte {
 	}
 	return newMatrix
 
+}
+
+// padMatrix pads the given matrix with zeros to make it square
+func padMatrix(matrix [][]byte, size int) [][]byte {
+	paddedMatrix := make([][]byte, size)
+	for i := range paddedMatrix {
+		paddedMatrix[i] = make([]byte, size)
+		if i < len(matrix) {
+			//for j, val := range matrix[i] {
+			//paddedMatrix[i][j] = val
+			copy(paddedMatrix[i], matrix[i])
+			//}
+		}
+	}
+	return paddedMatrix
+}
+
+func unpadMatrix(matrix [][]byte, rows, cols int) [][]byte {
+	unpaddedMatrix := make([][]byte, rows)
+	for i := range unpaddedMatrix {
+		unpaddedMatrix[i] = matrix[i][:cols]
+	}
+	return unpaddedMatrix
 }
