@@ -180,7 +180,6 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8) [][]uint8 {
 
 func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {
 
-	k := sender.k
 	m := sender.m
 	l := sender.l
 
@@ -191,10 +190,9 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {
 		x0_j := sender.messages[j].Message0
 		x1_j := sender.messages[j].Message1
 
-		xor_res := make([]uint8, k)
-
-		for i := 0; i < k; i++ {
-			xor_res[i] = sender.q[j][i] ^ sender.S[i]
+		xor_res, err := xor.XORBytes(sender.q[j], sender.S)
+		if err != nil {
+			panic("Error from XORBytes in MakeAndSendCiphertextsEklundh: " + err.Error())
 		}
 
 		hash0 := utils.Hash(sender.q[j], l)

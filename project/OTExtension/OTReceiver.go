@@ -195,7 +195,6 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() ([][]uint8, [][]uint8) 
 func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*utils.ByteCiphertextPair) [][]byte {
 
 	m := receiver.m
-	k := receiver.k
 	l := receiver.l
 
 	// Initialize the result
@@ -212,11 +211,7 @@ func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*utils.Byte
 			panic("Receiver choice bits are not 0 or 1 in DecryptCiphertexts")
 		}
 
-		t_row := make([]uint8, k)
-		for i := 0; i < k; i++ {
-			t_row[i] = receiver.T[j][i]
-		}
-		hash := utils.Hash(t_row, l)
+		hash := utils.Hash(receiver.T[j], l)
 
 		xor, err := xor.XORBytes(y_j, hash)
 		if err != nil {
