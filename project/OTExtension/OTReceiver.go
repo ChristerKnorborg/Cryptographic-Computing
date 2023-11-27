@@ -174,11 +174,10 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
 
 		xor1, err1 := xor.XORBytes(T[i], bitstringU)
 		xor2, err2 := xor.XORBytes(xor1, receiver.selectionBits)
-		xor3, err3 := xor.XORBytes(xor1, xor2)
-		if err1 != nil || err2 != nil || err3 != nil {
+		if err1 != nil || err2 != nil {
 			panic("Error from XOR in GenerateMatrixTAndUEklundh: " + err1.Error() + err2.Error() + err3.Error())
 		}
-		U[i] = xor3
+		U[i] = xor2
 	}
 
 	// Transpose the matrix T using Eklundh's algorithm
