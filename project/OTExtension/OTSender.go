@@ -172,7 +172,7 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8) {
 			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
 		}
 	}
-
+	Q = utils.TransposeMatrix(Q)
 	sender.q = Q
 }
 
@@ -191,7 +191,7 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {
 
 		xor_res := make([]uint8, k)
 		for i := 0; i < k; i++ {
-			xor_res[i] = sender.q[j][i] ^ sender.s[i]
+			xor_res[i] = sender.q[j][i] * sender.s[i]
 		}
 
 		hash0 := utils.Hash(sender.q[j], l)

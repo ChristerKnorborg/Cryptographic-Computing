@@ -25,7 +25,7 @@ func (elGamal *ElGamal) Init() {
 	for {
 		// Generate a large prime q of 256 bits length. Usually this should be around 2000 bits,
 		// but for computation reasons we only use 256 bits.
-		elGamal.q, _ = rand.Prime(rand.Reader, 2048)
+		elGamal.q, _ = rand.Prime(rand.Reader, 256)
 
 		elGamal.p = new(big.Int).Mul((big.NewInt(2)), elGamal.q) // p = kq (we use k = 2 for simplicity as said in the notes)
 		elGamal.p = elGamal.p.Add(elGamal.p, big.NewInt(1))      // p = kq + 1

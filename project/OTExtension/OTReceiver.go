@@ -165,17 +165,17 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
 
 	for i := 0; i < k; i++ {
 		// Generate a pseudo-random bitstring of m bits using the seed.
-		bitstringT, err := utils.PseudoRandomGenerator(receiver.seeds[i].Seed0, m)
-		bitstringU, err := utils.PseudoRandomGenerator(receiver.seeds[i].Seed1, m)
-		if err != nil {
-			panic("Error from pseudoRandomGenerator in GenerateMatrixTEklundh: " + err.Error())
+		bitstringT, err1 := utils.PseudoRandomGenerator(receiver.seeds[i].Seed0, m)
+		bitstringU, err2 := utils.PseudoRandomGenerator(receiver.seeds[i].Seed1, m)
+		if err1 != nil || err2 != nil {
+			panic("Error from pseudoRandomGenerator in GenerateMatrixTEklundh: " + err1.Error() + err2.Error())
 		}
 		T[i] = bitstringT
 
 		xor1, err1 := xor.XORBytes(T[i], bitstringU)
 		xor2, err2 := xor.XORBytes(xor1, receiver.selectionBits)
 		if err1 != nil || err2 != nil {
-			panic("Error from XOR in GenerateMatrixTAndUEklundh: " + err1.Error() + err2.Error() + err3.Error())
+			panic("Error from XOR in GenerateMatrixTAndUEklundh: " + err1.Error() + err2.Error())
 		}
 		U[i] = xor2
 	}
