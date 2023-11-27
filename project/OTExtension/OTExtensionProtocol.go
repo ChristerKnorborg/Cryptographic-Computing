@@ -7,7 +7,7 @@ import (
 )
 
 // k: Security parameter, l: Byte length of each message, m: Number of messages to be sent
-func OTExtensionProtocol(k int, l int, m int, selectionBits []uint8, messages []*utils.MessagePair, elGamal elgamal.ElGamal) {
+func OTExtensionProtocol(k int, l int, m int, selectionBits []uint8, messages []*utils.MessagePair, elGamal elgamal.ElGamal) [][]byte {
 	receiver := OTReceiver{}
 	sender := OTSender{}
 
@@ -15,25 +15,6 @@ func OTExtensionProtocol(k int, l int, m int, selectionBits []uint8, messages []
 	receiver.Init(selectionBits, k, l)
 
 	sender.Init(messages, k, l)
-
-	fmt.Println("SelectionBits Extension: ")
-	for _, b := range selectionBits {
-		fmt.Printf("%d ", b)
-	}
-	fmt.Println()
-
-	fmt.Println("Messages: ")
-	for _, message := range messages {
-		for _, b := range message.Message0 {
-			fmt.Printf("%d ", b)
-		}
-		fmt.Print(" ")
-
-		for _, b := range message.Message1 {
-			fmt.Printf("%d ", b)
-		}
-		fmt.Println()
-	}
 
 	// Sender choose random string S. Receiver chooses seeds
 	sender.ChooseRandomK()
@@ -64,15 +45,11 @@ func OTExtensionProtocol(k int, l int, m int, selectionBits []uint8, messages []
 		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
 	}
 
-	print("Result: ")
-	for _, b := range result {
-		fmt.Printf("%d ", b)
-	}
-	fmt.Println()
+	return result
 }
 
 // k: Security parameter, l: Byte length of each message, m: Number of messages to be sent
-func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, messages []*utils.MessagePair, elGamal elgamal.ElGamal) {
+func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, messages []*utils.MessagePair, elGamal elgamal.ElGamal) [][]byte {
 	receiver := OTReceiver{}
 	sender := OTSender{}
 
@@ -80,20 +57,6 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 	receiver.Init(selectionBits, k, l)
 
 	sender.Init(messages, k, l)
-
-	// Print messages as decimal numbers
-	fmt.Println("Messages: ")
-	for _, message := range messages {
-		for _, b := range message.Message0 {
-			fmt.Printf("%d ", b)
-		}
-		fmt.Print(" ")
-
-		for _, b := range message.Message1 {
-			fmt.Printf("%d ", b)
-		}
-		fmt.Println()
-	}
 
 	// Sender choose random string S. Receiver chooses seeds
 	sender.ChooseRandomK()
@@ -123,15 +86,11 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
 	}
 
-	print("Result: ")
-	for _, b := range result {
-		fmt.Printf("%d ", b)
-	}
-	fmt.Println()
+	return result
 }
 
 // k: Security parameter, l: Byte length of each message, m: Number of messages to be sent
-func OTExtensionProtocolTranspose(k int, l int, m int, selectionBits []uint8, messages []*utils.MessagePair, elGamal elgamal.ElGamal) {
+func OTExtensionProtocolTranspose(k int, l int, m int, selectionBits []uint8, messages []*utils.MessagePair, elGamal elgamal.ElGamal) [][]byte {
 	receiver := OTReceiver{}
 	sender := OTSender{}
 
@@ -139,20 +98,6 @@ func OTExtensionProtocolTranspose(k int, l int, m int, selectionBits []uint8, me
 	receiver.Init(selectionBits, k, l)
 
 	sender.Init(messages, k, l)
-
-	// Print messages as decimal numbers
-	fmt.Println("Messages: ")
-	for _, message := range messages {
-		for _, b := range message.Message0 {
-			fmt.Printf("%d ", b)
-		}
-		fmt.Print(" ")
-
-		for _, b := range message.Message1 {
-			fmt.Printf("%d ", b)
-		}
-		fmt.Println()
-	}
 
 	// Sender choose random string S. Receiver chooses seeds
 	sender.ChooseRandomK()
@@ -182,9 +127,6 @@ func OTExtensionProtocolTranspose(k int, l int, m int, selectionBits []uint8, me
 		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
 	}
 
-	print("Result: ")
-	for _, b := range result {
-		fmt.Printf("%d ", b)
-	}
-	fmt.Println()
+	return result
+
 }
