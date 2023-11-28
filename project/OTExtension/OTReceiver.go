@@ -151,7 +151,7 @@ func (receiver *OTReceiver) GenerateAndSendMatrixU() [][]uint8 {
 
 // Method for generating the bit matrix T of size m × κ, after the κ×OTκ OT-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
 // GenerateMatrixT generates the bit matrix T after the k×OTk functionality.
-func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
+func (receiver *OTReceiver) GenerateMatrixTAndUEklundh(multithreaded bool) [][]uint8 {
 	k := receiver.k
 	m := receiver.m
 
@@ -181,7 +181,7 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
 	}
 
 	// Transpose the matrix T using Eklundh's algorithm
-	T = utils.EklundhTranspose(T)
+	T = utils.EklundhTranspose(T, multithreaded)
 
 	// Assign the generated matrix to the receiver.
 	receiver.T = T

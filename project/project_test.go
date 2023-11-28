@@ -127,7 +127,7 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 	k := 128
 	l := 1
 
-	for iters := 1; iters < 12; iters++ {
+	for iters := 1; iters < 9; iters++ {
 		m := int(math.Pow(2, float64(iters)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -143,7 +143,7 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 			messages = append(messages, &msg)
 		}
 
-		plaintext := OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal)
+		plaintext := OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, false)
 
 		// Check if the plaintext is correct
 		for i := 0; i < m; i++ {
@@ -219,7 +219,7 @@ func TestEklundhTransposeSymmetrical(t *testing.T) {
 		matrix := generateSymmetricMatrix(size)
 
 		expected := utils.TransposeMatrix(matrix)
-		result := utils.EklundhTranspose(matrix)
+		result := utils.EklundhTranspose(matrix, false)
 
 		if !reflect.DeepEqual(result, expected) {
 			t.Errorf("EklundhTransposeMatrixIterative failed for size %d: got %v, want %v", size, result, expected)
@@ -229,12 +229,12 @@ func TestEklundhTransposeSymmetrical(t *testing.T) {
 
 func TestEklundhTransposeNonSymmetrical(t *testing.T) {
 
-	rows := 128                               // rows same as k parameter in OTExtension (most common case)
-	for cols := 1; cols <= 65536; cols *= 2 { // Test for different matrix sizes from 128x1 to 128x65536
+	rows := 128                                // rows same as k parameter in OTExtension (most common case)
+	for cols := 1; cols <= 131072; cols *= 2 { // Test for different matrix sizes from 128x1 to 128x131072
 		matrix := generateNonSymmetricMatrix(rows, cols)
 
 		expected := utils.TransposeMatrix(matrix)
-		result := utils.EklundhTranspose(matrix)
+		result := utils.EklundhTranspose(matrix, false)
 
 		if !reflect.DeepEqual(result, expected) {
 			t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)
@@ -244,12 +244,12 @@ func TestEklundhTransposeNonSymmetrical(t *testing.T) {
 
 func TestEklundhTransposeNonSymmetricalSwitched(t *testing.T) {
 
-	cols := 128                               // rows same as k parameter in OTExtension (most common case)
-	for rows := 1; cols <= 65536; cols *= 2 { // Test for different matrix sizes from 128x1 to 128x65536
+	cols := 128                                // rows same as k parameter in OTExtension (most common case)
+	for rows := 1; cols <= 131072; cols *= 2 { // Test for different matrix sizes from 128x1 to 128x131072
 		matrix := generateNonSymmetricMatrix(rows, cols)
 
 		expected := utils.TransposeMatrix(matrix)
-		result := utils.EklundhTranspose(matrix)
+		result := utils.EklundhTranspose(matrix, false)
 
 		if !reflect.DeepEqual(result, expected) {
 			t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)

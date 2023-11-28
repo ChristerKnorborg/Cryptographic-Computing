@@ -2,7 +2,6 @@
 package OTExtension
 
 import (
-	OTBasic "cryptographic-computing/project/OTBasic"
 	OTExt "cryptographic-computing/project/OTExtension"
 	"cryptographic-computing/project/elgamal"
 	"cryptographic-computing/project/utils"
@@ -21,7 +20,7 @@ func TestMakeDataFixL(iterations int) {
 		log.Fatalf("failed creating file: %s", err)
 	}
 	csvwriter := csv.NewWriter(csvFile)
-	_ = csvwriter.Write([]string{"m_size", "time_OT_Basic", "time_OT_Extension", "time_OT_Extension_Transpose", "time_OT_Extension_Eklundh"})
+	_ = csvwriter.Write([]string{"m_size", "time_OT_Basic", "time_OT_Extension", "time_OT_Extension_Transpose", "time_OT_Extension_Eklundh", "time_OT_Extension_Eklundh_Multithreaded"})
 
 	k := 128
 	l := 1
@@ -43,14 +42,15 @@ func TestMakeDataFixL(iterations int) {
 			messages = append(messages, &msg)
 		}
 
-		time_start := time.Now()
-		OTBasic.OTBasicProtocol(l, m, selectionBits, messages, elGamal)
-		time_end := time.Since(time_start).Seconds()
-		time_OT_Basic := fmt.Sprintf("%.2f", time_end)
+		// time_start := time.Now()
+		// OTBasic.OTBasicProtocol(l, m, selectionBits, messages, elGamal)
+		// time_end := time.Since(time_start).Seconds()
+		// time_OT_Basic := fmt.Sprintf("%.2f", time_end)
+		time_OT_Basic := "0"
 
-		time_start = time.Now()
+		time_start := time.Now()
 		OTExt.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
-		time_end = time.Since(time_start).Seconds()
+		time_end := time.Since(time_start).Seconds()
 		time_OT_Extension := fmt.Sprintf("%.2f", time_end)
 
 		time_start = time.Now()
@@ -59,11 +59,16 @@ func TestMakeDataFixL(iterations int) {
 		time_OT_Extension_Transpose := fmt.Sprintf("%.2f", time_end)
 
 		time_start = time.Now()
-		OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal)
+		OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, false)
 		time_end = time.Since(time_start).Seconds()
 		time_OT_Extension_Eklundh := fmt.Sprintf("%.2f", time_end)
 
-		_ = csvwriter.Write([]string{strconv.Itoa(m), time_OT_Basic, time_OT_Extension, time_OT_Extension_Transpose, time_OT_Extension_Eklundh})
+		time_start = time.Now()
+		OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, true)
+		time_end = time.Since(time_start).Seconds()
+		time_OT_Extension_Eklundh_Multithreaded := fmt.Sprintf("%.2f", time_end)
+
+		_ = csvwriter.Write([]string{strconv.Itoa(m), time_OT_Basic, time_OT_Extension, time_OT_Extension_Transpose, time_OT_Extension_Eklundh, time_OT_Extension_Eklundh_Multithreaded})
 		csvwriter.Flush()
 	}
 

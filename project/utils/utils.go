@@ -10,6 +10,7 @@ import (
 	"math/big"
 	mathRand "math/rand"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -232,16 +233,29 @@ func eklundhTransposeInner(matrix [][]byte) [][]byte {
 }
 
 // Function is responsible for dividing the matrix of m x k into smaller matrices of k x k. Also pads the last matrix if necessary.
-func EklundhTranspose(matrix [][]byte) [][]byte {
+func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 
 	rows := len(matrix)    // number of rows
 	cols := len(matrix[0]) // number of columns
 
 	matrices := divideMatrix(matrix, rows, cols)
 
-	for i, mat := range matrices {
-		transposedMat := eklundhTransposeInner(mat)
-		matrices[i] = transposedMat
+	if multithreaded {
+		var wg sync.WaitGroup
+		wg.Add(len(matrices)) // goroutines to wait for in waitgroup
+
+		for i, mat := range matrices {
+			go func(i int, mat [][]byte) {
+				defer wg.Done()
+				matrices[i] = eklundhTransposeInner(mat)
+			}(i, mat) // Pass i and mat as arguments to the anonymous function to avoid race conditions on i
+		}
+
+		wg.Wait() // Wait for all goroutines to complete
+	} else {
+		for i, mat := range matrices {
+			matrices[i] = eklundhTransposeInner(mat)
+		}
 	}
 
 	// remove padding from the last matrix if necessary
@@ -421,7 +435,7 @@ func TestEklundhTranspose() {
 		fmt.Println(row)
 	}
 
-	transposedMatrix := EklundhTranspose(matrix)
+	transposedMatrix := EklundhTranspose(matrix, false)
 
 	fmt.Println("\nTransposed Matrix:")
 	for _, row := range transposedMatrix {
