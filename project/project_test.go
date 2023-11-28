@@ -7,6 +7,9 @@ import (
 	"cryptographic-computing/project/elgamal"
 	utils "cryptographic-computing/project/utils"
 	"math"
+	"math/big"
+	"math/rand"
+	"reflect"
 	"testing"
 )
 
@@ -156,4 +159,70 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 		}
 	}
 
+}
+
+// TestPseudoRandomGeneratorVariety tests the PseudoRandomGenerator function with a variety of seed sizes and output lengths.
+func TestPseudoRandomGeneratorVariety(t *testing.T) {
+	// Define a range of different seed values and output lengths
+	seedValues := []int64{0, 1, 123, 4567, 89012, 345678}
+	outputLengths := []int{10, 50, 100, 200, 500}
+
+	for _, seedVal := range seedValues {
+		for _, length := range outputLengths {
+
+			seed := big.NewInt(seedVal)
+			output, err := utils.PseudoRandomGenerator(seed, length)
+			if err != nil {
+				t.Errorf("Error returned for seed %d and length %d: %v", seedVal, length, err)
+			}
+			if len(output) != length {
+				t.Errorf("Output length is incorrect for seed %d and length %d. Expected %d, got %d", seedVal, length, length, len(output))
+			}
+
+			// Additional consistency check: Generate again with the same seed and compare outputs
+			output2, _ := utils.PseudoRandomGenerator(seed, length)
+			if !equal(output, output2) {
+				t.Errorf("Inconsistent outputs for seed %d and length %d", seedVal, length)
+			}
+		}
+	}
+}
+
+// equal checks if two slices of uint8 are equal
+func equal(a, b []uint8) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// generateSymmetricMatrix generates a symmetric matrix of size n x n.
+func generateSymmetricMatrix(n int) [][]byte {
+	matrix := make([][]byte, n)
+	for i := range matrix {
+		matrix[i] = make([]byte, n)
+		for j := range matrix[i] {
+			matrix[i][j] = byte(rand.Intn(256)) // Random byte value
+		}
+	}
+	return matrix
+}
+
+// TestEklundhTranspose tests the EklundhTransposeMatrixIterative function.
+func TestEklundhTranspose(t *testing.T) {
+	for size := 1; size <= 16; size *= 2 {
+		matrix := generateSymmetricMatrix(size)
+
+		expected := utils.TransposeMatrix(matrix)
+		result := utils.EklundhTransposeMatrix(matrix)
+
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("EklundhTransposeMatrixIterative failed for size %d: got %v, want %v", size, result, expected)
+		}
+	}
 }

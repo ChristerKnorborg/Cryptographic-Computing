@@ -5,17 +5,16 @@ import (
 	"cryptographic-computing/project/elgamal"
 	utils "cryptographic-computing/project/utils"
 	"math"
-	//Util "cryptographic-computing/project/utils"
 )
 
 // func main() {
-// 	Bench.TestMakeDataFixL(16)
-// 	//Util.TestEklundhTranspose()
+// 	//Bench.TestMakeDataFixL(16)
+// 	//utils.TestEklundhTranspose()
 // }
 
 func main() {
 
-	k := 128
+	k := 256
 	l := 1
 	m := int(math.Pow(2, float64(8)))
 
@@ -32,5 +31,5 @@ func main() {
 		messages = append(messages, &msg)
 	}
 
-	OTExt.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
+	OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal)
 }

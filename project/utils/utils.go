@@ -203,12 +203,43 @@ func divideMatrix(matrix [][]byte, k int, m int) [][][]byte {
 func EklundhTransposeMatrix(matrix [][]byte) [][]byte {
 
 	k := len(matrix)
+
+	if k == 1 {
+		return matrix
+	}
+
+	// swapDimension is the dimension of the sub-matrix that is being swapped.
+	// It starts at 1 and doubles each iteration until it reaches k. E.g. 1, 2, 4, 8, 16, ...
+	swapDimension := 1
+
+	for swapDimension < k {
+
+		for i := 0; i < k; i += 2 * swapDimension { // number of sub-matrices to swap in each iteration is k/(2*swapDimension)
+
+			for j := 0; j < swapDimension; j++ {
+				for l := 0; l < swapDimension; l++ {
+
+					matrix[i+j][i+swapDimension+l], matrix[i+swapDimension+l][i+j] = matrix[i+swapDimension+l][i+j], matrix[i+j][i+swapDimension+l]
+
+				}
+			}
+		}
+		swapDimension *= 2
+	}
+
+	return matrix
+
+}
+
+func EklundhTransposeMatrixRecursiveOuter(matrix [][]byte) [][]byte {
+
+	k := len(matrix)
 	m := len(matrix[0])
 
 	matrices := divideMatrix(matrix, k, m)
 
 	for i, mat := range matrices {
-		transposedMat := eklundhTransposeMatrix(mat)
+		transposedMat := eklundhTransposeMatrixRecursiveInner(mat)
 		matrices[i] = transposedMat
 	}
 
@@ -246,7 +277,7 @@ func EklundhTransposeMatrix(matrix [][]byte) [][]byte {
 }
 
 // TransposeMatrix transposes a matrix using Eklundh's algorithm
-func eklundhTransposeMatrix(matrix [][]byte) [][]byte {
+func eklundhTransposeMatrixRecursiveInner(matrix [][]byte) [][]byte {
 
 	rows := len(matrix)
 	cols := len(matrix[0])
@@ -271,10 +302,10 @@ func eklundhTransposeMatrix(matrix [][]byte) [][]byte {
 	D := makeSubMatrix(matrix, rowMid, maxSize, colMid, maxSize) // Bottom right
 
 	// Recursively transpose sub-matrices
-	A = eklundhTransposeMatrix(A)
-	B = eklundhTransposeMatrix(B)
-	C = eklundhTransposeMatrix(C)
-	D = eklundhTransposeMatrix(D)
+	A = eklundhTransposeMatrixRecursiveInner(A)
+	B = eklundhTransposeMatrixRecursiveInner(B)
+	C = eklundhTransposeMatrixRecursiveInner(C)
+	D = eklundhTransposeMatrixRecursiveInner(D)
 
 	// Recursively transpose sub-matrices concurrently
 	// wg.Add(4)
