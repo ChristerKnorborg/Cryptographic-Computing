@@ -172,7 +172,7 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8) {
 			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
 		}
 	}
-	Q = utils.EklundhTransposeMatrix(Q)
+	Q = utils.EklundhTranspose(Q)
 	sender.q = Q
 }
 

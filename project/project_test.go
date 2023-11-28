@@ -149,11 +149,11 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 		for i := 0; i < m; i++ {
 			if selectionBits[i] == 0 {
 				if !bytes.Equal(plaintext[i], messages[i].Message0) {
-					t.Errorf("Plaintext is not correct")
+					t.Errorf("Plaintext is not for selection bit case 0 with plaintext %d and message pair %d, %d for 2^ %d", plaintext[i], messages[i].Message0, messages[i].Message1, iters)
 				}
 			} else {
 				if !bytes.Equal(plaintext[i], messages[i].Message1) {
-					t.Errorf("Plaintext is not correct")
+					t.Errorf("Plaintext is not for selection bit case 1 with plaintext %d and message pair %d, %d for 2^ %d", plaintext[i], messages[i].Message0, messages[i].Message1, iters)
 				}
 			}
 		}
@@ -214,15 +214,57 @@ func generateSymmetricMatrix(n int) [][]byte {
 }
 
 // TestEklundhTranspose tests the EklundhTransposeMatrixIterative function.
-func TestEklundhTranspose(t *testing.T) {
-	for size := 1; size <= 16; size *= 2 {
+func TestEklundhTransposeSymmetrical(t *testing.T) {
+	for size := 1; size <= 16384; size *= 2 { // Test for different matrix sizes from 1x1 to 16384x16384
 		matrix := generateSymmetricMatrix(size)
 
 		expected := utils.TransposeMatrix(matrix)
-		result := utils.EklundhTransposeMatrix(matrix)
+		result := utils.EklundhTranspose(matrix)
 
 		if !reflect.DeepEqual(result, expected) {
 			t.Errorf("EklundhTransposeMatrixIterative failed for size %d: got %v, want %v", size, result, expected)
 		}
 	}
+}
+
+func TestEklundhTransposeNonSymmetrical(t *testing.T) {
+
+	rows := 128                               // rows same as k parameter in OTExtension (most common case)
+	for cols := 1; cols <= 65536; cols *= 2 { // Test for different matrix sizes from 128x1 to 128x65536
+		matrix := generateNonSymmetricMatrix(rows, cols)
+
+		expected := utils.TransposeMatrix(matrix)
+		result := utils.EklundhTranspose(matrix)
+
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)
+		}
+	}
+}
+
+func TestEklundhTransposeNonSymmetricalSwitched(t *testing.T) {
+
+	cols := 128                               // rows same as k parameter in OTExtension (most common case)
+	for rows := 1; cols <= 65536; cols *= 2 { // Test for different matrix sizes from 128x1 to 128x65536
+		matrix := generateNonSymmetricMatrix(rows, cols)
+
+		expected := utils.TransposeMatrix(matrix)
+		result := utils.EklundhTranspose(matrix)
+
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)
+		}
+	}
+}
+
+// generateNonSymmetricMatrix generates a non-symmetric matrix of size rows x cols.
+func generateNonSymmetricMatrix(rows, cols int) [][]byte {
+	matrix := make([][]byte, rows)
+	for i := range matrix {
+		matrix[i] = make([]byte, cols)
+		for j := range matrix[i] {
+			matrix[i][j] = byte(rand.Intn(256)) // Random byte value
+		}
+	}
+	return matrix
 }

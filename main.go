@@ -1,22 +1,24 @@
 package main
 
 import (
-	OTExt "cryptographic-computing/project/OTExtension"
+	"cryptographic-computing/project/OTExtension"
 	"cryptographic-computing/project/elgamal"
-	utils "cryptographic-computing/project/utils"
+	"cryptographic-computing/project/utils"
 	"math"
 )
 
+//Bench "cryptographic-computing/project/benchmark"
+
 // func main() {
 // 	//Bench.TestMakeDataFixL(16)
-// 	//utils.TestEklundhTranspose()
+// 	utils.TestEklundhTranspose()
 // }
 
 func main() {
 
-	k := 256
+	k := 128 // must be a power of 2
 	l := 1
-	m := int(math.Pow(2, float64(8)))
+	m := int(math.Pow(2, float64(1)))
 
 	// create cryptoalgorithm, messages and selection bits for algorithms.
 	elGamal := elgamal.ElGamal{}
@@ -31,5 +33,6 @@ func main() {
 		messages = append(messages, &msg)
 	}
 
-	OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal)
+	OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal)
+
 }

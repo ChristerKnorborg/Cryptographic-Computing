@@ -58,6 +58,14 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 
 	sender.Init(messages, k, l)
 
+	print("Messages: ")
+	for _, msg := range messages {
+		fmt.Printf("\n")
+		fmt.Printf("%d", msg.Message0)
+		fmt.Printf("%d", msg.Message1)
+	}
+	fmt.Printf("\n")
+
 	// Sender choose random string S. Receiver chooses seeds
 	sender.ChooseRandomK()
 	receiver.ChooseSeeds()
@@ -84,6 +92,12 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 
 	if len(result) != len(messages) {
 		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
+	}
+
+	print("Result: ")
+	for _, b := range result {
+		fmt.Printf("\n")
+		fmt.Printf("%d", b)
 	}
 
 	return result

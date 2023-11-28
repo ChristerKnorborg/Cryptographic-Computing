@@ -175,22 +175,22 @@ func RandomSelectionBits(m int) []uint8 {
 	return bits
 }
 
-func divideMatrix(matrix [][]byte, k int, m int) [][][]byte {
+func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 	var result [][][]byte
 
-	numMatrices := (m + k - 1) / k // Calculate the number of kxk matrices
+	numMatrices := (cols + rows - 1) / rows // Calculate the number of kxk matrices
 
 	for i := 0; i < numMatrices; i++ {
 		var smallMatrix [][]byte
 
 		for _, row := range matrix {
-			start := i * k
-			end := start + k
+			start := i * rows
+			end := start + rows
 
-			if end > m {
+			if end > cols {
 				// Pad the last matrix if it doesn't add up to kxk
-				padding := make([]byte, end-m)
-				smallMatrix = append(smallMatrix, append(row[start:m], padding...))
+				padding := make([]byte, end-cols)
+				smallMatrix = append(smallMatrix, append(row[start:cols], padding...))
 			} else {
 				smallMatrix = append(smallMatrix, row[start:end])
 			}
@@ -200,11 +200,11 @@ func divideMatrix(matrix [][]byte, k int, m int) [][][]byte {
 	return result
 }
 
-func EklundhTransposeMatrix(matrix [][]byte) [][]byte {
+func eklundhTransposeInner(matrix [][]byte) [][]byte {
 
-	k := len(matrix)
+	dimension := len(matrix)
 
-	if k == 1 {
+	if dimension == 1 {
 		return matrix
 	}
 
@@ -212,9 +212,9 @@ func EklundhTransposeMatrix(matrix [][]byte) [][]byte {
 	// It starts at 1 and doubles each iteration until it reaches k. E.g. 1, 2, 4, 8, 16, ...
 	swapDimension := 1
 
-	for swapDimension < k {
+	for swapDimension < dimension {
 
-		for i := 0; i < k; i += 2 * swapDimension { // number of sub-matrices to swap in each iteration is k/(2*swapDimension)
+		for i := 0; i < dimension; i += 2 * swapDimension { // number of sub-matrices to swap in each iteration is k/(2*swapDimension)
 
 			for j := 0; j < swapDimension; j++ {
 				for l := 0; l < swapDimension; l++ {
@@ -231,37 +231,31 @@ func EklundhTransposeMatrix(matrix [][]byte) [][]byte {
 
 }
 
-func EklundhTransposeMatrixRecursiveOuter(matrix [][]byte) [][]byte {
+// Function is responsible for dividing the matrix of m x k into smaller matrices of k x k. Also pads the last matrix if necessary.
+func EklundhTranspose(matrix [][]byte) [][]byte {
 
-	k := len(matrix)
-	m := len(matrix[0])
+	rows := len(matrix)    // number of rows
+	cols := len(matrix[0]) // number of columns
 
-	matrices := divideMatrix(matrix, k, m)
+	matrices := divideMatrix(matrix, rows, cols)
 
 	for i, mat := range matrices {
-		transposedMat := eklundhTransposeMatrixRecursiveInner(mat)
+		transposedMat := eklundhTransposeInner(mat)
 		matrices[i] = transposedMat
 	}
 
 	// remove padding from the last matrix if necessary
-	padding_rows := m % k
+	padding_rows := cols % rows
 	if padding_rows != 0 {
 		// remove padding_rows from the last matrix
 		lastMatrix := matrices[len(matrices)-1]
-		matrices[len(matrices)-1] = lastMatrix[:len(lastMatrix)-padding_rows]
+		matrices[len(matrices)-1] = lastMatrix[:padding_rows]
 	}
-
-	// Calculate dimensions of the final transposed matrix
-	numRows := 0
-	for _, mat := range matrices {
-		numRows += len(mat)
-	}
-	numCols := len(matrix[0])
 
 	// Initialize the final transposed matrix
-	transposed := make([][]byte, numRows)
+	transposed := make([][]byte, cols) // cols rows
 	for i := range transposed {
-		transposed[i] = make([]byte, numCols)
+		transposed[i] = make([]byte, rows) // rows columns
 	}
 
 	// Stack the transposed matrices vertically
@@ -331,7 +325,8 @@ func eklundhTransposeMatrixRecursiveInner(matrix [][]byte) [][]byte {
 
 }
 
-// makeSubMatrix creates a sub-matrix from the given indexes of a matrix
+// makeSubMatrix creates a sub-matrix from the given indexes of a matrix.
+// Was used for the recursive version of Eklundh's algorithm.
 func makeSubMatrix(matrix [][]byte, rowStart, rowEnd, colStart, colEnd int) [][]byte {
 
 	subMatrix := make([][]byte, rowEnd-rowStart)
@@ -342,6 +337,7 @@ func makeSubMatrix(matrix [][]byte, rowStart, rowEnd, colStart, colEnd int) [][]
 }
 
 // mergeSubMatrices merges four sub-matrices into a single matrix
+// Was used for the recursive version of Eklundh's algorithm.
 func mergeSubMatrices(A, B, C, D [][]byte) [][]byte {
 
 	topSideRows := len(A)      // Same as rowsA, rowsB
@@ -414,10 +410,10 @@ func TestDivideMatrix() {
 
 func TestEklundhTranspose() {
 	matrix := [][]byte{
-		{10, 11, 12, 13},
-		{20, 21, 22, 23},
-		{30, 31, 32, 33},
-		{40, 41, 42, 43},
+		{10, 11, 12, 13, 1},
+		{20, 21, 22, 23, 2},
+		{30, 31, 32, 33, 3},
+		{40, 41, 42, 43, 4},
 	}
 
 	fmt.Println("Original Matrix:")
@@ -425,7 +421,7 @@ func TestEklundhTranspose() {
 		fmt.Println(row)
 	}
 
-	transposedMatrix := EklundhTransposeMatrix(matrix)
+	transposedMatrix := EklundhTranspose(matrix)
 
 	fmt.Println("\nTransposed Matrix:")
 	for _, row := range transposedMatrix {
@@ -434,7 +430,7 @@ func TestEklundhTranspose() {
 
 }
 
-// regular matric transpose. Copilot
+// regular matric transpose.
 func TransposeMatrix(matrix [][]byte) [][]byte {
 	newMatrix := make([][]byte, len(matrix[0]))
 
@@ -449,6 +445,7 @@ func TransposeMatrix(matrix [][]byte) [][]byte {
 }
 
 // padMatrix pads the given matrix with zeros to make it square
+// Method was used for the recursive version of Eklundh's algorithm.
 func padMatrix(matrix [][]byte, size int) [][]byte {
 	paddedMatrix := make([][]byte, size)
 	for i := range paddedMatrix {
@@ -463,10 +460,25 @@ func padMatrix(matrix [][]byte, size int) [][]byte {
 	return paddedMatrix
 }
 
+// Method was used for the recursive version of Eklundh's algorithm.
 func unpadMatrix(matrix [][]byte, rows, cols int) [][]byte {
 	unpaddedMatrix := make([][]byte, rows)
 	for i := range unpaddedMatrix {
 		unpaddedMatrix[i] = matrix[i][:cols]
 	}
 	return unpaddedMatrix
+}
+
+// printMatrices prints a slice of matrices of type [][][]byte.
+func printMatrices(matrices [][][]byte) {
+	for i, matrix := range matrices {
+		fmt.Printf("Matrix %d:\n", i)
+		for _, row := range matrix {
+			for _, val := range row {
+				fmt.Printf("%d ", val)
+			}
+			fmt.Println()
+		}
+		fmt.Println()
+	}
 }

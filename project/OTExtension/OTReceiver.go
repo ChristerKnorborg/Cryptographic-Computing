@@ -181,7 +181,7 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh() [][]uint8 {
 	}
 
 	// Transpose the matrix T using Eklundh's algorithm
-	T = utils.EklundhTransposeMatrix(T)
+	T = utils.EklundhTranspose(T)
 
 	// Assign the generated matrix to the receiver.
 	receiver.T = T
