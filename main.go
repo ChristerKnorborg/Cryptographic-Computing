@@ -11,8 +11,8 @@ import (
 
 // func main() {
 // 	//Bench.TestMakeDataFixL(24)
+// 	//utils.TestEklundhTranspose()
 // 	utils.TestEklundhTranspose()
-// 	//utils.TestDivideMatrix()
 // }
 
 func main() {

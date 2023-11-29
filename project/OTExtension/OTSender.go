@@ -6,6 +6,7 @@ import (
 	"cryptographic-computing/project/elgamal"
 	"cryptographic-computing/project/utils"
 	"math/big"
+	"reflect"
 
 	"github.com/hashicorp/vault/sdk/helper/xor"
 )
@@ -32,7 +33,7 @@ func (sender *OTSender) Init(messages []*utils.MessagePair, securityParameter in
 }
 
 // S choose a random list of 0's and 1's of length k: s = (s_1, ... , s_k)
-func (sender *OTSender) ChooseRandomK() {
+func (sender *OTSender) ChooseRandomS() {
 	sender.s = make([]uint8, sender.k) // Allocate space for the array
 
 	for i := uint(0); i < uint(sender.k); i++ {
@@ -173,6 +174,10 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8, multithreaded bool) 
 		}
 	}
 	sender.q = utils.EklundhTranspose(Q, multithreaded)
+	test := utils.TransposeMatrix(Q)
+	if !reflect.DeepEqual(test, sender.q) {
+		panic("Transpose is not equal in GenerateMatrixQEklundh")
+	}
 }
 
 func (sender *OTSender) GenerateMatrixQTranspose(U [][]uint8) {

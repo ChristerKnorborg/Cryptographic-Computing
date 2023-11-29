@@ -7,6 +7,7 @@ import (
 	"cryptographic-computing/project/elgamal"
 	"cryptographic-computing/project/utils"
 	"math/big"
+	"reflect"
 
 	"github.com/hashicorp/vault/sdk/helper/xor"
 )
@@ -184,6 +185,18 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh(multithreaded bool) [][]u
 	// Assign the generated matrix to the receiver.
 
 	receiver.T = utils.EklundhTranspose(T, multithreaded)
+	test := utils.TransposeMatrix(T)
+	if !reflect.DeepEqual(test, receiver.T) {
+		print("T (pre-transpose): \n")
+		utils.PrintMatrix(T)
+		print("Eklundh T (post-transpose): \n")
+		utils.PrintMatrix(receiver.T)
+		print("Transpose T (post-transpose): \n")
+		utils.PrintMatrix(test)
+
+		panic("Transpose is not equal in GenerateMatrixTAndUEklundh")
+	}
+
 	return U
 }
 

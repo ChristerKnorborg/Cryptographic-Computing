@@ -17,7 +17,7 @@ func OTExtensionProtocol(k int, l int, m int, selectionBits []uint8, messages []
 	sender.Init(messages, k, l)
 
 	// Sender choose random string S. Receiver chooses seeds
-	sender.ChooseRandomK()
+	sender.ChooseRandomS()
 	receiver.ChooseSeeds()
 
 	// The parties invoke the κxOTκ_functionality (Sender plays receiver and receiver plays sender).
@@ -59,7 +59,7 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 	sender.Init(messages, k, l)
 
 	// Sender choose random string S. Receiver chooses seeds
-	sender.ChooseRandomK()
+	sender.ChooseRandomS()
 	receiver.ChooseSeeds()
 
 	// The parties invoke the κxOTκ_functionality (Sender plays receiver and receiver plays sender).
@@ -86,19 +86,26 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
 	}
 
-	// print("Messages: ")
-	// for _, msg := range messages {
-	// 	fmt.Printf("\n")
-	// 	fmt.Printf("%d", msg.Message0)
-	// 	fmt.Printf("%d", msg.Message1)
-	// }
-	// fmt.Printf("\n")
+	print("Selection bits: ")
+	for _, b := range selectionBits {
+		fmt.Printf("%d", b)
+		print(" ")
+	}
+	fmt.Printf("\n")
 
-	// print("Result: ")
-	// for _, b := range result {
-	// 	fmt.Printf("\n")
-	// 	fmt.Printf("%d", b)
-	// }
+	print("Messages: ")
+	for _, msg := range messages {
+		fmt.Printf("\n")
+		fmt.Printf("%d", msg.Message0)
+		fmt.Printf("%d", msg.Message1)
+	}
+	fmt.Printf("\n")
+
+	print("Result: ")
+	for _, b := range result {
+		fmt.Printf("\n")
+		fmt.Printf("%d", b)
+	}
 
 	return result
 
@@ -115,7 +122,7 @@ func OTExtensionProtocolTranspose(k int, l int, m int, selectionBits []uint8, me
 	sender.Init(messages, k, l)
 
 	// Sender choose random string S. Receiver chooses seeds
-	sender.ChooseRandomK()
+	sender.ChooseRandomS()
 	receiver.ChooseSeeds()
 
 	// The parties invoke the κxOTκ_functionality (Sender plays receiver and receiver plays sender).

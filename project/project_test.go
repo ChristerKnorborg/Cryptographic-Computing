@@ -127,7 +127,7 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 	k := 128
 	l := 1
 
-	for iters := 1; iters < 9; iters++ {
+	for iters := 1; iters < 10; iters++ {
 		m := int(math.Pow(2, float64(iters)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -229,8 +229,8 @@ func TestEklundhTransposeSymmetrical(t *testing.T) {
 
 func TestEklundhTransposeNonSymmetricalMoreColsThanRows(t *testing.T) {
 
-	rows := 128                                // rows same as k parameter in OTExtension (most common case)
-	for cols := 1; cols <= 262144; cols *= 2 { // Test for different matrix sizes from 128x1 to 128x262144 (2^18)
+	rows := 128                                  // rows same as k parameter in OTExtension (most common case)
+	for cols := 128; cols <= 262144; cols *= 2 { // Test for different matrix sizes from 128x128 to 128x262144 (2^18)
 		matrix := generateNonSymmetricMatrix(rows, cols)
 
 		expected := utils.TransposeMatrix(matrix)
@@ -239,6 +239,19 @@ func TestEklundhTransposeNonSymmetricalMoreColsThanRows(t *testing.T) {
 		if !reflect.DeepEqual(result, expected) {
 			t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)
 		}
+
+		if len(result) != cols || len(result[0]) != rows {
+			t.Errorf("EklundhTranspose failed in legnth for size %dx%d: got %v, want %v", rows, cols, result, expected)
+		}
+
+		for i := 0; i < cols; i++ {
+			for j := 0; j < rows; j++ {
+				if result[i][j] != expected[i][j] {
+					t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)
+				}
+			}
+		}
+
 	}
 }
 
@@ -251,13 +264,8 @@ func TestEklundhTransposeNonSymmetricalMoreRowsThanCols(t *testing.T) {
 		expected := utils.TransposeMatrix(matrix)
 		result := utils.EklundhTranspose(matrix, false)
 
-		// Check each element
-		for i := 0; i < rows; i++ {
-			for j := 0; j < cols; j++ {
-				if result[i][j] != expected[i][j] {
-					t.Errorf("Mismatch at [%d][%d] for size %dx%d: got %v, want %v", i, j, rows, cols, result[i][j], expected[i][j])
-				}
-			}
+		if !reflect.DeepEqual(result, expected) {
+			t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)
 		}
 	}
 }

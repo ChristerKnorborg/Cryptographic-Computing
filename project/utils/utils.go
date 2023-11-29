@@ -89,17 +89,6 @@ func Hash(data []byte, byteLength int) []byte {
 	return fullHash[:byteLength]
 }
 
-func PrintMatrix(matrix [][]string) {
-	for i := 0; i < len(matrix); i++ {
-		for j := 0; j < len(matrix[0]); j++ {
-
-			print(matrix[i][j], " ")
-		}
-		println()
-	}
-	println()
-}
-
 // PrintBinaryString prints the binary representation of a []byte slice.
 func PrintBinaryString(bytes []byte) {
 	binaryString := ""
@@ -177,27 +166,37 @@ func RandomSelectionBits(m int) []uint8 {
 }
 
 func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
-	var result [][][]uint8
+	// Calculate the number of rows x rows matrices in one dimension
+	numMatrices := int(cols/rows + 1)
 
-	numMatrices := int((cols + rows - 1) / rows) // Calculate the number of kxk matrices in one dimension
+	// Initialize the result slice with size numMatrices
+	result := make([][][]uint8, 0, numMatrices)
 
 	for i := 0; i < numMatrices; i++ {
-		var smallMatrix [][]uint8
+		// Initialize smallMatrix for each sub-matrix
+		smallMatrix := make([][]uint8, 0, len(matrix))
 
 		for _, row := range matrix {
 			start := i * rows
 			end := start + rows
 
 			if end > cols {
-				// Pad the last matrix if it doesn't add up to kxk
-				padding := make([]uint8, end-cols)
+				// Calculate the required padding size
+				paddingSize := end - cols
+				// Initialize padding with size paddingSize
+				padding := make([]uint8, paddingSize)
+
+				// Append the padded row to the smallMatrix
 				smallMatrix = append(smallMatrix, append(row[start:cols], padding...))
 			} else {
+				// Append the row slice directly to the smallMatrix
 				smallMatrix = append(smallMatrix, row[start:end])
 			}
 		}
+		// Append the smallMatrix to the result
 		result = append(result, smallMatrix)
 	}
+
 	return result
 }
 
@@ -240,6 +239,9 @@ func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 
 	matrices := divideMatrix(matrix, rows, cols)
 
+	print("Divided matrices: " + "\n")
+	printMatrices(matrices)
+
 	// print("Matrix and Divided matrices: " + "\n")
 	// for _, row := range matrix {
 	// 	fmt.Println(row)
@@ -264,6 +266,9 @@ func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 			matrices[i] = eklundhTransposeInner(mat)
 		}
 	}
+
+	print("Transposed matrices: " + "\n")
+	printMatrices(matrices)
 
 	// remove padding from the last matrix if necessary
 	padding_rows := cols % rows
@@ -416,6 +421,8 @@ func TestDivideMatrix() {
 	matrix := [][]byte{
 		{1, 1, 2, 3, 4, 5, 6, 7, 8},
 		{9, 9, 10, 11, 12, 13, 14, 15, 16},
+		{1, 1, 2, 3, 4, 5, 6, 7, 8},
+		{9, 9, 10, 11, 12, 13, 14, 15, 16},
 	}
 
 	rows := len(matrix)
@@ -468,8 +475,8 @@ func TestDivideMatrix() {
 
 func TestEklundhTranspose() {
 	matrix := [][]byte{
-		{1, 1, 2, 3, 4, 5, 6, 7, 8},
-		{9, 9, 10, 11, 12, 13, 14, 15, 16},
+		{1, 0, 1, 0},
+		{1, 1, 0, 0},
 	}
 
 	fmt.Println("Original Matrix:")
@@ -481,13 +488,6 @@ func TestEklundhTranspose() {
 
 	fmt.Println("\nTransposed Matrix:")
 	for _, row := range transposedMatrix {
-		fmt.Println(row)
-	}
-
-	RevTransposedMatrix := EklundhTranspose(transposedMatrix, false)
-
-	fmt.Println("\n Reversed Transposed Matrix:")
-	for _, row := range RevTransposedMatrix {
 		fmt.Println(row)
 	}
 
@@ -534,8 +534,7 @@ func unpadMatrix(matrix [][]byte, rows, cols int) [][]byte {
 
 // printMatrices prints a slice of matrices of type [][][]byte.
 func printMatrices(matrices [][][]byte) {
-	for i, matrix := range matrices {
-		fmt.Printf("Matrix %d:\n", i)
+	for _, matrix := range matrices {
 		for _, row := range matrix {
 			for _, val := range row {
 				fmt.Printf("%d ", val)
@@ -544,4 +543,11 @@ func printMatrices(matrices [][][]byte) {
 		}
 		fmt.Println()
 	}
+}
+
+func PrintMatrix(matrix [][]uint8) {
+	for _, row := range matrix {
+		fmt.Println(row)
+	}
+	fmt.Println()
 }
