@@ -403,17 +403,46 @@ func TestDivideMatrix() {
 		{9, 9, 10, 11, 12, 13, 14, 15, 16},
 	}
 
-	k := len(matrix)
-	m := len(matrix[0])
+	rows := len(matrix)
+	cols := len(matrix[0])
 
 	for _, row := range matrix {
 		fmt.Println(row)
 	}
 	fmt.Println()
 
-	dividedMatrices := divideMatrix(matrix, k, m)
+	dividedMatrices := divideMatrix(matrix, rows, cols)
 
 	for _, mat := range dividedMatrices {
+		for _, row := range mat {
+			fmt.Println(row)
+		}
+		fmt.Println()
+	}
+
+	matrix2 := [][]byte{
+		{1, 9},
+		{1, 9},
+		{2, 10},
+		{3, 11},
+		{4, 12},
+		{5, 13},
+		{6, 14},
+		{7, 15},
+		{8, 16},
+	}
+
+	rows2 := len(matrix2)
+	cols2 := len(matrix2[0])
+
+	for _, row := range matrix2 {
+		fmt.Println(row)
+	}
+	fmt.Println()
+
+	dividedMatrices2 := divideMatrix(matrix2, rows2, cols2)
+
+	for _, mat := range dividedMatrices2 {
 		for _, row := range mat {
 			fmt.Println(row)
 		}
@@ -439,6 +468,13 @@ func TestEklundhTranspose() {
 
 	fmt.Println("\nTransposed Matrix:")
 	for _, row := range transposedMatrix {
+		fmt.Println(row)
+	}
+
+	RevTransposedMatrix := EklundhTranspose(transposedMatrix, false)
+
+	fmt.Println("\n Reversed Transposed Matrix:")
+	for _, row := range RevTransposedMatrix {
 		fmt.Println(row)
 	}
 

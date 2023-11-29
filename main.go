@@ -1,12 +1,13 @@
 package main
 
-import Bench "cryptographic-computing/project/benchmark"
+import utils "cryptographic-computing/project/utils"
 
 //Bench "cryptographic-computing/project/benchmark"
 
 func main() {
-	Bench.TestMakeDataFixL(24)
+	//Bench.TestMakeDataFixL(24)
 	//utils.TestEklundhTranspose()
+	utils.TestEklundhTranspose()
 }
 
 // func main() {
