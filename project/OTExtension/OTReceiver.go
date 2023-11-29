@@ -181,13 +181,10 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh(multithreaded bool) [][]u
 	}
 
 	// Transpose the matrix T using Eklundh's algorithm
-	T = utils.EklundhTranspose(T, multithreaded)
-
 	// Assign the generated matrix to the receiver.
-	receiver.T = T
 
+	receiver.T = utils.EklundhTranspose(T, multithreaded)
 	return U
-
 }
 
 // Method for generating the bit matrix T of size m × κ, after the κ×OTκ OT-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
@@ -221,11 +218,8 @@ func (receiver *OTReceiver) GenerateMatrixTAndUTranspose() [][]uint8 {
 		U[i] = xor2
 	}
 
-	// Transpose the matrix T using Eklundh's algorithm
-	T = utils.TransposeMatrix(T)
-
 	// Assign the generated matrix to the receiver.
-	receiver.T = T
+	receiver.T = utils.TransposeMatrix(T)
 
 	return U
 

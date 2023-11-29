@@ -58,14 +58,6 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 
 	sender.Init(messages, k, l)
 
-	// print("Messages: ")
-	// for _, msg := range messages {
-	// 	fmt.Printf("\n")
-	// 	fmt.Printf("%d", msg.Message0)
-	// 	fmt.Printf("%d", msg.Message1)
-	// }
-	// fmt.Printf("\n")
-
 	// Sender choose random string S. Receiver chooses seeds
 	sender.ChooseRandomK()
 	receiver.ChooseSeeds()
@@ -82,8 +74,8 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 	// Receiver generates the Matrix T, and the Matrix U and send U to the sender.
 	// The sender generates the Matrix Q from the received U Matrix.
 	// Note, that every column q^i in Q is equal to (s_i * r) ⊕ t^i.
-	U := receiver.GenerateMatrixTAndUEklundh(multithreaded)
-	sender.GenerateMatrixQEklundh(U, multithreaded)
+	U := receiver.GenerateMatrixTAndUEklundh(false)
+	sender.GenerateMatrixQEklundh(U, false)
 
 	// The sender sends (y0_j, y1_j) for every 1 ≤ j ≤ m to the receiver, where y0_j = x0_j ⊕ H(j, q_j) and y1_j = x1_j ⊕ H(j, q_j ⊕ s).
 	// The receiver then computes x^(r_j)_j = y^(rj)_j ⊕ H(j, t_j) for every 1 ≤ j ≤ m. Then outputs (x^(r_1)_1, ..., x^(r_m)_m).
@@ -93,6 +85,14 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 	if len(result) != len(messages) {
 		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
 	}
+
+	// print("Messages: ")
+	// for _, msg := range messages {
+	// 	fmt.Printf("\n")
+	// 	fmt.Printf("%d", msg.Message0)
+	// 	fmt.Printf("%d", msg.Message1)
+	// }
+	// fmt.Printf("\n")
 
 	// print("Result: ")
 	// for _, b := range result {

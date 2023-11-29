@@ -176,13 +176,13 @@ func RandomSelectionBits(m int) []uint8 {
 	return bits
 }
 
-func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
-	var result [][][]byte
+func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
+	var result [][][]uint8
 
-	numMatrices := (cols + rows - 1) / rows // Calculate the number of kxk matrices
+	numMatrices := int((cols + rows - 1) / rows) // Calculate the number of kxk matrices in one dimension
 
 	for i := 0; i < numMatrices; i++ {
-		var smallMatrix [][]byte
+		var smallMatrix [][]uint8
 
 		for _, row := range matrix {
 			start := i * rows
@@ -190,7 +190,7 @@ func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 
 			if end > cols {
 				// Pad the last matrix if it doesn't add up to kxk
-				padding := make([]byte, end-cols)
+				padding := make([]uint8, end-cols)
 				smallMatrix = append(smallMatrix, append(row[start:cols], padding...))
 			} else {
 				smallMatrix = append(smallMatrix, row[start:end])
@@ -201,7 +201,7 @@ func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 	return result
 }
 
-func eklundhTransposeInner(matrix [][]byte) [][]byte {
+func eklundhTransposeInner(matrix [][]uint8) [][]uint8 {
 
 	dimension := len(matrix)
 
@@ -233,19 +233,26 @@ func eklundhTransposeInner(matrix [][]byte) [][]byte {
 }
 
 // Function is responsible for dividing the matrix of m x k into smaller matrices of k x k. Also pads the last matrix if necessary.
-func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
+func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 
 	rows := len(matrix)    // number of rows
 	cols := len(matrix[0]) // number of columns
 
 	matrices := divideMatrix(matrix, rows, cols)
 
+	// print("Matrix and Divided matrices: " + "\n")
+	// for _, row := range matrix {
+	// 	fmt.Println(row)
+	// }
+	// fmt.Println()
+	// printMatrices(matrices)
+
 	if multithreaded {
 		var wg sync.WaitGroup
 		wg.Add(len(matrices)) // goroutines to wait for in waitgroup
 
 		for i, mat := range matrices {
-			go func(i int, mat [][]byte) {
+			go func(i int, mat [][]uint8) {
 				defer wg.Done()
 				matrices[i] = eklundhTransposeInner(mat)
 			}(i, mat) // Pass i and mat as arguments to the anonymous function to avoid race conditions on i
@@ -267,9 +274,9 @@ func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 	}
 
 	// Initialize the final transposed matrix
-	transposed := make([][]byte, cols) // cols rows
+	transposed := make([][]uint8, cols) // cols rows
 	for i := range transposed {
-		transposed[i] = make([]byte, rows) // rows columns
+		transposed[i] = make([]uint8, rows) // rows columns
 	}
 
 	// Stack the transposed matrices vertically
@@ -280,6 +287,14 @@ func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 			currentRow++
 		}
 	}
+
+	// print("Transposed matrices: " + "\n")
+	// printMatrices(matrices)
+
+	// print("Transposed matrix: " + "\n")
+	// for _, row := range transposed {
+	// 	fmt.Println(row)
+	// }
 
 	return transposed
 }
@@ -453,10 +468,8 @@ func TestDivideMatrix() {
 
 func TestEklundhTranspose() {
 	matrix := [][]byte{
-		{10, 11, 12, 13, 1},
-		{20, 21, 22, 23, 2},
-		{30, 31, 32, 33, 3},
-		{40, 41, 42, 43, 4},
+		{1, 1, 2, 3, 4, 5, 6, 7, 8},
+		{9, 9, 10, 11, 12, 13, 14, 15, 16},
 	}
 
 	fmt.Println("Original Matrix:")

@@ -227,7 +227,7 @@ func TestEklundhTransposeSymmetrical(t *testing.T) {
 	}
 }
 
-func TestEklundhTransposeNonSymmetrical(t *testing.T) {
+func TestEklundhTransposeNonSymmetricalMoreColsThanRows(t *testing.T) {
 
 	rows := 128                                // rows same as k parameter in OTExtension (most common case)
 	for cols := 1; cols <= 262144; cols *= 2 { // Test for different matrix sizes from 128x1 to 128x262144 (2^18)
@@ -242,7 +242,7 @@ func TestEklundhTransposeNonSymmetrical(t *testing.T) {
 	}
 }
 
-func TestEklundhTransposeNonSymmetricalSwitched(t *testing.T) {
+func TestEklundhTransposeNonSymmetricalMoreRowsThanCols(t *testing.T) {
 
 	cols := 128                               // rows same as k parameter in OTExtension (most common case)
 	for rows := 1; rows <= 16384; rows *= 2 { // Test for different matrix sizes from 128x1 to 128x131072
@@ -251,10 +251,14 @@ func TestEklundhTransposeNonSymmetricalSwitched(t *testing.T) {
 		expected := utils.TransposeMatrix(matrix)
 		result := utils.EklundhTranspose(matrix, false)
 
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)
+		// Check each element
+		for i := 0; i < rows; i++ {
+			for j := 0; j < cols; j++ {
+				if result[i][j] != expected[i][j] {
+					t.Errorf("Mismatch at [%d][%d] for size %dx%d: got %v, want %v", i, j, rows, cols, result[i][j], expected[i][j])
+				}
+			}
 		}
-
 	}
 }
 

@@ -172,8 +172,7 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8, multithreaded bool) 
 			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
 		}
 	}
-	Q = utils.EklundhTranspose(Q, multithreaded)
-	sender.q = Q
+	sender.q = utils.EklundhTranspose(Q, multithreaded)
 }
 
 func (sender *OTSender) GenerateMatrixQTranspose(U [][]uint8) {
@@ -212,8 +211,7 @@ func (sender *OTSender) GenerateMatrixQTranspose(U [][]uint8) {
 			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
 		}
 	}
-	Q = utils.TransposeMatrix(Q)
-	sender.q = Q
+	sender.q = utils.TransposeMatrix(Q)
 }
 
 func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {
