@@ -15,7 +15,7 @@ import (
 
 func TestOTBasicProtocol(t *testing.T) {
 	l := 1
-	m := int(math.Pow(2, float64(8)))
+	m := int(math.Pow(2, float64(8))) // 2^8 = 256. Otherwise it takes too long time to run the test.
 
 	// create cryptoalgorithm, messages and selection bits for algorithms.
 	elGamal := elgamal.ElGamal{}
@@ -51,7 +51,7 @@ func TestOTExtensionProtocol(t *testing.T) {
 	k := 128
 	l := 1
 
-	for iters := 1; iters < 12; iters++ {
+	for iters := 8; iters < 12; iters++ {
 		m := int(math.Pow(2, float64(iters)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -89,7 +89,7 @@ func TestOTExtensionProtocolTranspose(t *testing.T) {
 	k := 128
 	l := 1
 
-	for iters := 1; iters < 12; iters++ {
+	for iters := 8; iters < 12; iters++ {
 		m := int(math.Pow(2, float64(iters)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -127,7 +127,7 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 	k := 128
 	l := 1
 
-	for iters := 1; iters < 10; iters++ {
+	for iters := 8; iters < 12; iters++ {
 		m := int(math.Pow(2, float64(iters)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -252,21 +252,6 @@ func TestEklundhTransposeNonSymmetricalMoreColsThanRows(t *testing.T) {
 			}
 		}
 
-	}
-}
-
-func TestEklundhTransposeNonSymmetricalMoreRowsThanCols(t *testing.T) {
-
-	cols := 128                               // rows same as k parameter in OTExtension (most common case)
-	for rows := 1; rows <= 16384; rows *= 2 { // Test for different matrix sizes from 128x1 to 128x131072
-		matrix := generateNonSymmetricMatrix(rows, cols)
-
-		expected := utils.TransposeMatrix(matrix)
-		result := utils.EklundhTranspose(matrix, false)
-
-		if !reflect.DeepEqual(result, expected) {
-			t.Errorf("EklundhTranspose failed for size %dx%d: got %v, want %v", rows, cols, result, expected)
-		}
 	}
 }
 

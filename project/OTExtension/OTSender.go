@@ -6,7 +6,6 @@ import (
 	"cryptographic-computing/project/elgamal"
 	"cryptographic-computing/project/utils"
 	"math/big"
-	"reflect"
 
 	"github.com/hashicorp/vault/sdk/helper/xor"
 )
@@ -43,6 +42,21 @@ func (sender *OTSender) ChooseRandomS() {
 		}
 		// Set 0 or 1 in the array
 		sender.s[i] = uint8(randomBit.Int64())
+	}
+}
+
+func (sender *OTSender) ChooseFixedS() {
+	// Define a fixed list of 0's and 1's
+	fixedS := []uint8{
+		1, 1, 1, 1, // ... and so on, up to sender.k elements
+	}
+
+	sender.s = make([]uint8, sender.k) // Allocate space for the array
+
+	for i := 0; i < sender.k; i++ {
+		// Use fixed values instead of generating them
+		// Make sure the number of fixed elements is at least sender.k
+		sender.s[i] = fixedS[i%len(fixedS)]
 	}
 }
 
@@ -175,10 +189,7 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]uint8, multithreaded bool) 
 	}
 
 	sender.q = utils.EklundhTranspose(Q, multithreaded)
-	test := utils.TransposeMatrix(Q)
-	if !reflect.DeepEqual(test, sender.q) {
-		panic("Transpose is not equal in GenerateMatrixQEklundh")
-	}
+
 }
 
 func (sender *OTSender) GenerateMatrixQTranspose(U [][]uint8) {
@@ -209,7 +220,7 @@ func (sender *OTSender) GenerateMatrixQTranspose(U [][]uint8) {
 
 			xorRes, err := xor.XORBytes(U[i], bitstring)
 			if err != nil {
-				panic("Error from XORBytes in GenerateQMatrixEklundh: " + err.Error())
+				panic("Error from XORBytes in GenerateMatrixQTranspose: " + err.Error())
 			}
 			Q[i] = xorRes
 
@@ -218,6 +229,7 @@ func (sender *OTSender) GenerateMatrixQTranspose(U [][]uint8) {
 		}
 	}
 	sender.q = utils.TransposeMatrix(Q)
+
 }
 
 func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {

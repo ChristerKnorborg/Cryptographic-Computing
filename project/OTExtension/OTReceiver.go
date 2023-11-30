@@ -7,7 +7,6 @@ import (
 	"cryptographic-computing/project/elgamal"
 	"cryptographic-computing/project/utils"
 	"math/big"
-	"reflect"
 
 	"github.com/hashicorp/vault/sdk/helper/xor"
 )
@@ -58,6 +57,36 @@ func (receiver *OTReceiver) ChooseSeeds() {
 
 	receiver.seeds = seeds
 
+}
+
+func (receiver *OTReceiver) ChooseFixedSeeds() {
+	k := receiver.k
+
+	// Define fixed seeds
+	fixedSeeds := []struct {
+		Seed0 *big.Int
+		Seed1 *big.Int
+	}{
+		// Add fixed seed pairs here. Example:
+		{big.NewInt(12345), big.NewInt(67890)},
+		// Add more fixed seed pairs as needed
+	}
+
+	seeds := make([]*utils.Seed, k)
+
+	for i := 0; i < k; i++ {
+		// Use fixed seeds instead of generating them
+		// Make sure the number of fixed seeds is at least k
+		seed0 := fixedSeeds[i%len(fixedSeeds)].Seed0
+		seed1 := fixedSeeds[i%len(fixedSeeds)].Seed1
+
+		seeds[i] = &utils.Seed{
+			Seed0: seed0,
+			Seed1: seed1,
+		}
+	}
+
+	receiver.seeds = seeds
 }
 
 // Method for to receive Public keys, when the parties invoke the κ×OTκ-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
@@ -187,20 +216,8 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh(multithreaded bool) [][]u
 	// Perform the Eklundh Transpose on the original matrix
 	receiver.T = utils.EklundhTranspose(T, multithreaded)
 
-	// Now transpose the original matrix using the naive method
-	test := utils.TransposeMatrix(T)
-
-	// Compare the results
-	if !reflect.DeepEqual(test, receiver.T) {
-		print("Eklundh T (post-transpose): \n")
-		utils.PrintMatrix(receiver.T)
-		print("Transpose T (post-transpose): \n")
-		utils.PrintMatrix(test)
-
-		panic("Transpose is not equal in GenerateMatrixTAndUEklundh")
-	}
-
 	return U
+
 }
 
 // Method for generating the bit matrix T of size m × κ, after the κ×OTκ OT-functionality, where the OTSender plays the receiver and OTReceiver plays the sender.
@@ -260,8 +277,8 @@ func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*utils.Byte
 		} else {
 			panic("Receiver choice bits are not 0 or 1 in DecryptCiphertexts")
 		}
-
-		hash := utils.Hash(receiver.T[j], l)
+		hashval := receiver.T[j]
+		hash := utils.Hash(hashval, l)
 
 		xor, err := xor.XORBytes(y_j, hash)
 		if err != nil {

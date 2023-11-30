@@ -19,7 +19,7 @@ func main() {
 	k := 2 // must be a power of 2
 	l := 1
 	//m := int(math.Pow(2, float64(2)))
-	m := 4
+	m := 10
 	// create cryptoalgorithm, messages and selection bits for algorithms.
 	elGamal := elgamal.ElGamal{}
 	elGamal.Init()
@@ -32,7 +32,7 @@ func main() {
 		}
 		messages = append(messages, &msg)
 	}
-
+	OTExtension.OTExtensionProtocolTranspose(k, l, m, selectionBits, messages, elGamal)
 	OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, false)
 
 }

@@ -70,7 +70,11 @@ func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]uint8, error) {
 }
 
 // Hash creates a hash of the input data with a specified byte length.
-func Hash(data []byte, byteLength int) []byte {
+func Hash(originalData []byte, byteLength int) []byte {
+
+	// Create a copy of the original data to avoid modifying it
+	data := make([]byte, len(originalData))
+	copy(data, originalData)
 
 	fullHash := make([]byte, 0, byteLength)
 
@@ -185,7 +189,7 @@ func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
 	}
 
 	// Initialize the result slice with size numMatrices
-	result := make([][][]uint8, 0, numMatrices)
+	result := make([][][]uint8, numMatrices)
 
 	for i := 0; i < numBaseMatrices; i++ {
 		// Initialize smallMatrix for each sub-matrix
@@ -207,7 +211,7 @@ func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
 	// If there is padding, add the last matrix
 	if padding_cols > 0 {
 		// Initialize smallMatrix for the last sub-matrix
-		smallMatrix := make([][]uint8, 0, len(matrix))
+		smallMatrix := make([][]uint8, len(matrix))
 		for _, row := range matrix {
 			start := numBaseMatrices * rows
 			end := start + (cols % rows) // Only take the non-padded elements
@@ -254,9 +258,7 @@ func EklundhTransposeInner(matrix [][]uint8) [][]uint8 {
 }
 
 // Function is responsible for dividing the matrix of m x k into smaller matrices of k x k. Also pads the last matrix if necessary.
-func EklundhTranspose(origMatrix [][]uint8, multithreaded bool) [][]uint8 {
-
-	matrix := DeepCopyMatrix(origMatrix)
+func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 
 	rows := len(matrix)    // number of rows
 	cols := len(matrix[0]) // number of columns
@@ -305,13 +307,13 @@ func EklundhTranspose(origMatrix [][]uint8, multithreaded bool) [][]uint8 {
 		}
 	}
 
-	print("Transposed matrices: " + "\n")
-	printMatrices(matrices)
+	// print("Transposed matrices: " + "\n")
+	// printMatrices(matrices)
 
-	print("Transposed matrix: " + "\n")
-	for _, row := range transposed {
-		fmt.Println(row)
-	}
+	// print("Transposed matrix: " + "\n")
+	// for _, row := range transposed {
+	// 	fmt.Println(row)
+	// }
 
 	return transposed
 }
