@@ -166,41 +166,63 @@ func RandomSelectionBits(m int) []uint8 {
 }
 
 func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
-	// Calculate the number of rows x rows matrices in one dimension
-	numMatrices := int(cols/rows + 1)
+
+	if rows > cols {
+		panic("divideMatrix: cols must be greater than or equal to rows")
+	}
+
+	// Calculate the number of rows x rows matrices
+
+	numBaseMatrices := cols / rows
+	remaining_cols := cols % rows
+	padding_cols := 0
+	if remaining_cols != 0 {
+		padding_cols = rows - remaining_cols
+	}
+	numMatrices := numBaseMatrices // Add one matrix if there is padding
+	if padding_cols > 0 {
+		numMatrices += 1
+	}
 
 	// Initialize the result slice with size numMatrices
 	result := make([][][]uint8, 0, numMatrices)
 
-	for i := 0; i < numMatrices; i++ {
+	for i := 0; i < numBaseMatrices; i++ {
 		// Initialize smallMatrix for each sub-matrix
 		smallMatrix := make([][]uint8, 0, len(matrix))
 
 		for _, row := range matrix {
+
 			start := i * rows
 			end := start + rows
 
-			if end > cols {
-				// Calculate the required padding size
-				paddingSize := end - cols
-				// Initialize padding with size paddingSize
-				padding := make([]uint8, paddingSize)
+			// Append the row slice directly to the smallMatrix
+			smallMatrix = append(smallMatrix, row[start:end])
 
-				// Append the padded row to the smallMatrix
-				smallMatrix = append(smallMatrix, append(row[start:cols], padding...))
-			} else {
-				// Append the row slice directly to the smallMatrix
-				smallMatrix = append(smallMatrix, row[start:end])
-			}
 		}
 		// Append the smallMatrix to the result
 		result = append(result, smallMatrix)
 	}
 
+	// If there is padding, add the last matrix
+	if padding_cols > 0 {
+		// Initialize smallMatrix for the last sub-matrix
+		smallMatrix := make([][]uint8, 0, len(matrix))
+		for _, row := range matrix {
+			start := numBaseMatrices * rows
+			end := start + (cols % rows) // Only take the non-padded elements
+			paddedRow := make([]uint8, rows)
+			copy(paddedRow, row[start:end])
+			// Padding will automatically be zeros in the remaining positions
+			smallMatrix = append(smallMatrix, paddedRow)
+		}
+		result = append(result, smallMatrix)
+
+	}
 	return result
 }
 
-func eklundhTransposeInner(matrix [][]uint8) [][]uint8 {
+func EklundhTransposeInner(matrix [][]uint8) [][]uint8 {
 
 	dimension := len(matrix)
 
@@ -232,22 +254,14 @@ func eklundhTransposeInner(matrix [][]uint8) [][]uint8 {
 }
 
 // Function is responsible for dividing the matrix of m x k into smaller matrices of k x k. Also pads the last matrix if necessary.
-func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
+func EklundhTranspose(origMatrix [][]uint8, multithreaded bool) [][]uint8 {
+
+	matrix := DeepCopyMatrix(origMatrix)
 
 	rows := len(matrix)    // number of rows
 	cols := len(matrix[0]) // number of columns
 
 	matrices := divideMatrix(matrix, rows, cols)
-
-	print("Divided matrices: " + "\n")
-	printMatrices(matrices)
-
-	// print("Matrix and Divided matrices: " + "\n")
-	// for _, row := range matrix {
-	// 	fmt.Println(row)
-	// }
-	// fmt.Println()
-	// printMatrices(matrices)
 
 	if multithreaded {
 		var wg sync.WaitGroup
@@ -256,26 +270,15 @@ func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 		for i, mat := range matrices {
 			go func(i int, mat [][]uint8) {
 				defer wg.Done()
-				matrices[i] = eklundhTransposeInner(mat)
+				matrices[i] = EklundhTransposeInner(mat)
 			}(i, mat) // Pass i and mat as arguments to the anonymous function to avoid race conditions on i
 		}
 
 		wg.Wait() // Wait for all goroutines to complete
 	} else {
 		for i, mat := range matrices {
-			matrices[i] = eklundhTransposeInner(mat)
+			matrices[i] = EklundhTransposeInner(mat)
 		}
-	}
-
-	print("Transposed matrices: " + "\n")
-	printMatrices(matrices)
-
-	// remove padding from the last matrix if necessary
-	padding_rows := cols % rows
-	if padding_rows != 0 {
-		// remove padding_rows from the last matrix
-		lastMatrix := matrices[len(matrices)-1]
-		matrices[len(matrices)-1] = lastMatrix[:padding_rows]
 	}
 
 	// Initialize the final transposed matrix
@@ -284,22 +287,31 @@ func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 		transposed[i] = make([]uint8, rows) // rows columns
 	}
 
+	padding_rows := 0
+	if cols%rows != 0 {
+		padding_rows = rows - (cols % rows)
+	}
+
 	// Stack the transposed matrices vertically
+	iterations := len(matrices)*len(matrices[0]) - padding_rows // Exclude the padding rows
 	currentRow := 0
 	for _, mat := range matrices {
 		for _, row := range mat {
 			transposed[currentRow] = row
 			currentRow++
+			if currentRow == iterations {
+				break
+			}
 		}
 	}
 
-	// print("Transposed matrices: " + "\n")
-	// printMatrices(matrices)
+	print("Transposed matrices: " + "\n")
+	printMatrices(matrices)
 
-	// print("Transposed matrix: " + "\n")
-	// for _, row := range transposed {
-	// 	fmt.Println(row)
-	// }
+	print("Transposed matrix: " + "\n")
+	for _, row := range transposed {
+		fmt.Println(row)
+	}
 
 	return transposed
 }
@@ -419,10 +431,8 @@ func max(a, b int) int {
 
 func TestDivideMatrix() {
 	matrix := [][]byte{
-		{1, 1, 2, 3, 4, 5, 6, 7, 8},
-		{9, 9, 10, 11, 12, 13, 14, 15, 16},
-		{1, 1, 2, 3, 4, 5, 6, 7, 8},
-		{9, 9, 10, 11, 12, 13, 14, 15, 16},
+		{0, 1, 0, 1, 1, 0, 0, 1, 1},
+		{0, 1, 0, 0, 0, 0, 0, 1, 1},
 	}
 
 	rows := len(matrix)
@@ -436,35 +446,6 @@ func TestDivideMatrix() {
 	dividedMatrices := divideMatrix(matrix, rows, cols)
 
 	for _, mat := range dividedMatrices {
-		for _, row := range mat {
-			fmt.Println(row)
-		}
-		fmt.Println()
-	}
-
-	matrix2 := [][]byte{
-		{1, 9},
-		{1, 9},
-		{2, 10},
-		{3, 11},
-		{4, 12},
-		{5, 13},
-		{6, 14},
-		{7, 15},
-		{8, 16},
-	}
-
-	rows2 := len(matrix2)
-	cols2 := len(matrix2[0])
-
-	for _, row := range matrix2 {
-		fmt.Println(row)
-	}
-	fmt.Println()
-
-	dividedMatrices2 := divideMatrix(matrix2, rows2, cols2)
-
-	for _, mat := range dividedMatrices2 {
 		for _, row := range mat {
 			fmt.Println(row)
 		}
@@ -550,4 +531,20 @@ func PrintMatrix(matrix [][]uint8) {
 		fmt.Println(row)
 	}
 	fmt.Println()
+}
+
+func DeepCopyMatrix(matrix [][]uint8) [][]uint8 {
+	numRows := len(matrix)
+	if numRows == 0 {
+		return nil // or return [][]uint8{} if you prefer an empty matrix over nil
+	}
+
+	numCols := len(matrix[0])
+	newMatrix := make([][]uint8, numRows)
+	for i := range matrix {
+		newMatrix[i] = make([]uint8, numCols)
+		copy(newMatrix[i], matrix[i])
+	}
+
+	return newMatrix
 }

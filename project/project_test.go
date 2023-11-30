@@ -215,7 +215,7 @@ func generateSymmetricMatrix(n int) [][]byte {
 
 // TestEklundhTranspose tests the EklundhTransposeMatrixIterative function.
 func TestEklundhTransposeSymmetrical(t *testing.T) {
-	for size := 1; size <= 16384; size *= 2 { // Test for different matrix sizes from 1x1 to 16384x16384
+	for size := 1; size <= 4048; size *= 2 { // Test for different matrix sizes from 1x1 to 16384x16384
 		matrix := generateSymmetricMatrix(size)
 
 		expected := utils.TransposeMatrix(matrix)

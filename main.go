@@ -3,8 +3,7 @@ package main
 import (
 	"cryptographic-computing/project/OTExtension"
 	"cryptographic-computing/project/elgamal"
-	utils "cryptographic-computing/project/utils"
-	"math"
+	"cryptographic-computing/project/utils"
 )
 
 //Bench "cryptographic-computing/project/benchmark"
@@ -12,15 +11,15 @@ import (
 // func main() {
 // 	//Bench.TestMakeDataFixL(24)
 // 	//utils.TestEklundhTranspose()
-// 	utils.TestEklundhTranspose()
+// 	utils.TestDivideMatrix()
 // }
 
 func main() {
 
 	k := 2 // must be a power of 2
 	l := 1
-	m := int(math.Pow(2, float64(2)))
-
+	//m := int(math.Pow(2, float64(2)))
+	m := 4
 	// create cryptoalgorithm, messages and selection bits for algorithms.
 	elGamal := elgamal.ElGamal{}
 	elGamal.Init()

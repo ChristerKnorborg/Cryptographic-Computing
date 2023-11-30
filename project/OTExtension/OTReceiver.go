@@ -184,11 +184,14 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh(multithreaded bool) [][]u
 	// Transpose the matrix T using Eklundh's algorithm
 	// Assign the generated matrix to the receiver.
 
+	// Perform the Eklundh Transpose on the original matrix
 	receiver.T = utils.EklundhTranspose(T, multithreaded)
+
+	// Now transpose the original matrix using the naive method
 	test := utils.TransposeMatrix(T)
+
+	// Compare the results
 	if !reflect.DeepEqual(test, receiver.T) {
-		print("T (pre-transpose): \n")
-		utils.PrintMatrix(T)
 		print("Eklundh T (post-transpose): \n")
 		utils.PrintMatrix(receiver.T)
 		print("Transpose T (post-transpose): \n")
