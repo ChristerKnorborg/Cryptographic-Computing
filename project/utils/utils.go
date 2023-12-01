@@ -2,8 +2,6 @@ package utils
 
 // Import your ElGamal package
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
 	"cryptographic-computing/project/elgamal"
@@ -46,25 +44,19 @@ type ByteCiphertextPair struct {
 	Y1 []byte
 }
 
-func PseudoRandomGenerator(seed *big.Int, bitLength int, iv []byte) ([]byte, error) {
+// PseudoRandomGenerator generates a pseudo-random bit string of a given bit length using sha256 and a seed.
+func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
 	if bitLength <= 0 {
 		return nil, fmt.Errorf("bitLength must be positive")
 	}
-	output := make([]byte, 0, bitLength) // Allocate space for the array
+	output := make([]byte, 0, bitLength)
 
 	// Convert seed to a byte slice
 	seedBytes := seed.Bytes()
-	block, _ := aes.NewCipher(seedBytes)
-	aesgcm, err := cipher.NewGCM(block)
-
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	for len(output) < bitLength {
-		//hash := sha256.Sum256(seedBytes)
-		enc := aesgcm.Seal(nil, nil, seedBytes, nil)
-		for _, b := range enc[:] {
+		hash := sha256.Sum256(seedBytes)
+		for _, b := range hash[:] {
 			for i := 0; i < 8 && len(output) < bitLength; i++ {
 				bit := (b >> (7 - i)) & 1 // Extract each bit
 				output = append(output, byte(bit))
@@ -79,7 +71,7 @@ func PseudoRandomGenerator(seed *big.Int, bitLength int, iv []byte) ([]byte, err
 	return output, nil
 }
 
-// Hash creates a hash of the input data with a specified bit length.
+// Hash creates a hash of the input data with a specified bit length using sha256.
 func Hash(originalData []byte, length int) []byte {
 
 	// Create a copy of the original data to avoid modifying it
@@ -101,8 +93,7 @@ func Hash(originalData []byte, length int) []byte {
 		hash := sha256.Sum256(data)
 		fullHash = append(fullHash, hash[:]...)
 
-		// Modify data slightly for the next iteration to produce a different hash
-		// For example, append a byte that represents the current length of fullHash
+		// We modify data slightly for the next iteration to produce a different hash by appending a byte (the length of the hash in this case)
 		data = append(data, byte(len(fullHash)))
 	}
 	// Truncate the hash to the exact byte length required
@@ -113,7 +104,6 @@ func Hash(originalData []byte, length int) []byte {
 	if remainingBits != 0 {
 		returnHash[byteLength-1] &= (1 << remainingBits) - 1
 	}
-
 	return returnHash
 }
 
@@ -148,7 +138,6 @@ func RandomBits(length int) []byte {
 	if remainingBits != 0 {
 		bits[numBytes-1] &= (1 << remainingBits) - 1
 	}
-
 	return bits
 }
 
@@ -161,28 +150,21 @@ func AllOnesBytes(length int) []byte {
 	return b
 }
 
-// AllTwosBytes generates a slice of bytes of a given length, all set to 2
-func AllTwosBytes(length int) []byte {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = 2
-	}
-	return b
-}
-
 // RandomSelectionBits generates a slice of m random selection bits (0 or 1)
 func RandomSelectionBits(m int) []byte {
 	// Create a new random source and random generator
 	src := mathRand.NewSource(time.Now().UnixNano())
 	rnd := mathRand.New(src)
 
-	bits := make([]byte, m)
-	for i := range bits {
-		bits[i] = byte(rnd.Intn(2)) // Generates a random integer 0 or 1
+	SelectionBits := make([]byte, m)
+	for i := range SelectionBits {
+		SelectionBits[i] = byte(rnd.Intn(2)) // Generate a random byte 0 or 1
 	}
-	return bits
+	return SelectionBits
 }
 
+// divideMatrix divides a matrix of size rows x cols into smaller matrices of size rows x rows.
+// The last matrix is padded with zeros if necessary to create a square matrix of size rows x rows as the other matrices.
 func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 
 	if rows > cols {
@@ -190,14 +172,15 @@ func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 	}
 
 	// Calculate the number of rows x rows matrices
-
 	numBaseMatrices := cols / rows
+	numMatrices := numBaseMatrices
+
+	// Add one matrix if there is padding
 	remaining_cols := cols % rows
 	padding_cols := 0
 	if remaining_cols != 0 {
 		padding_cols = rows - remaining_cols
 	}
-	numMatrices := numBaseMatrices // Add one matrix if there is padding
 	if padding_cols > 0 {
 		numMatrices += 1
 	}
@@ -206,7 +189,7 @@ func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 	result := make([][][]byte, numMatrices)
 
 	for i := 0; i < numBaseMatrices; i++ {
-		// Initialize smallMatrix for each sub-matrix
+		// Initialize smallMatrix for each sub-matrix of size rows x rows
 		smallMatrix := make([][]byte, 0, len(matrix))
 
 		for _, row := range matrix {
@@ -240,6 +223,8 @@ func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 	return result
 }
 
+// EklundhTransposeInner transposes a matrix using Eklundh's algorithm.
+// The matrix must be square and have a dimension that is a power of 2.
 func EklundhTransposeInner(matrix [][]byte) [][]byte {
 
 	dimension := len(matrix)
@@ -259,26 +244,26 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 			for j := 0; j < swapDimension; j++ {
 				for l := 0; l < swapDimension; l++ {
 
+					// Swap the elements in the sub-matrices
 					matrix[i+j][i+swapDimension+l], matrix[i+swapDimension+l][i+j] = matrix[i+swapDimension+l][i+j], matrix[i+j][i+swapDimension+l]
-
 				}
 			}
 		}
 		swapDimension *= 2
 	}
-
 	return matrix
-
 }
 
-// Function is responsible for dividing the matrix of m x k into smaller matrices of k x k. Also pads the last matrix if necessary.
-// Assumes k is a power of 2 else it fails
+// Function is responsible for dividing the matrix of m x k into smaller matrices of k x k.
+// Each of the smaller matrices is then transposed using Eklundh's algorithm.
+// The method required that k is a power of 2 else it fails.
+// The method is multithreaded if multithreaded is set to true. This is done by using goroutines for each sub-matrix.
 func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 
-	rows := len(matrix)    // number of rows
-	cols := len(matrix[0]) // number of columns
+	rows := len(matrix)
+	cols := len(matrix[0])
 
-	matrices := divideMatrix(matrix, rows, cols)
+	matrices := divideMatrix(matrix, rows, cols) // Divide the matrix into smaller matrices of size rows x rows (k x k)
 
 	if multithreaded {
 		var wg sync.WaitGroup
@@ -287,12 +272,13 @@ func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 		for i, mat := range matrices {
 			go func(i int, mat [][]byte) {
 				defer wg.Done()
-				matrices[i] = EklundhTransposeInner(mat)
+				matrices[i] = EklundhTransposeInner(mat) // Transpose each sub-matrix concurrently on a separate goroutine
 			}(i, mat) // Pass i and mat as arguments to the anonymous function to avoid race conditions on i
 		}
-
 		wg.Wait() // Wait for all goroutines to complete
+
 	} else {
+		// Transpose each sub-matrix sequentially on the main thread if multithreaded is false
 		for i, mat := range matrices {
 			matrices[i] = EklundhTransposeInner(mat)
 		}
@@ -304,7 +290,7 @@ func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 		transposed[i] = make([]byte, rows) // rows columns
 	}
 
-	// If padding occurs, calculate amount of rows
+	// If padding, calculate amount of rows that need to be unpadded (not included in the transposed matrix)
 	padding_rows := 0
 	if cols%rows != 0 {
 		padding_rows = rows - (cols % rows)
@@ -315,7 +301,7 @@ func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 	currentRow := 0
 	for _, mat := range matrices {
 		for _, row := range mat {
-			transposed[currentRow] = row
+			transposed[currentRow] = row // Add each row of the sub-matrices to the transposed matrix
 			currentRow++
 
 			// Break the loops before the padded row is reached in mat to avoid index out of range in transposed
@@ -328,7 +314,11 @@ func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 	return transposed
 }
 
-// TransposeMatrix transposes a matrix using Eklundh's algorithm
+// TransposeMatrix transposes a matrix using Eklundh's algorithm.
+// The matrix must be square and have a dimension that is a power of 2.
+// NOTICE: THIS METHOD IS NOT USED IN THE OT EXTENSION PROTOCOL.
+// IT WAS AN EARLIER VERSION OF THE EKLUNDH TRANSPOSE METHOD USING RECURSION,
+// WHICH WAS TERRIBLE AND THEREFORE REPLACED BY THE ITERATIVE VERSION.
 func eklundhTransposeMatrixRecursiveInner(matrix [][]byte) [][]byte {
 
 	rows := len(matrix)
@@ -378,13 +368,13 @@ func eklundhTransposeMatrixRecursiveInner(matrix [][]byte) [][]byte {
 	// 	D = eklundhTransposeMatrix(D)
 	// }()
 	// wg.Wait()
-
 	return mergeSubMatrices(A, B, C, D)
-
 }
 
 // makeSubMatrix creates a sub-matrix from the given indexes of a matrix.
-// Was used for the recursive version of Eklundh's algorithm.
+// NOTICE: THIS METHOD IS NOT USED IN THE OT EXTENSION PROTOCOL.
+// IT WAS AN EARLIER VERSION OF THE EKLUNDH TRANSPOSE METHOD USING RECURSION,
+// WHICH WAS TERRIBLE AND THEREFORE REPLACED BY THE ITERATIVE VERSION.
 func makeSubMatrix(matrix [][]byte, rowStart, rowEnd, colStart, colEnd int) [][]byte {
 
 	subMatrix := make([][]byte, rowEnd-rowStart)
@@ -395,7 +385,9 @@ func makeSubMatrix(matrix [][]byte, rowStart, rowEnd, colStart, colEnd int) [][]
 }
 
 // mergeSubMatrices merges four sub-matrices into a single matrix
-// Was used for the recursive version of Eklundh's algorithm.
+// NOTICE: THIS METHOD IS NOT USED IN THE OT EXTENSION PROTOCOL.
+// IT WAS AN EARLIER VERSION OF THE EKLUNDH TRANSPOSE METHOD USING RECURSION,
+// WHICH WAS TERRIBLE AND THEREFORE REPLACED BY THE ITERATIVE VERSION.
 func mergeSubMatrices(A, B, C, D [][]byte) [][]byte {
 
 	topSideRows := len(A)      // Same as rowsA, rowsB
@@ -486,7 +478,8 @@ func TestEklundhTranspose() {
 
 }
 
-// regular matric transpose.
+// Regular matric transpose using a naive algorithm of O(n^2)
+// Used in the OTExtensionProtocolTranspose for transposing the matrices T and Q.
 func TransposeMatrix(matrix [][]byte) [][]byte {
 	newMatrix := make([][]byte, len(matrix[0]))
 
@@ -497,32 +490,10 @@ func TransposeMatrix(matrix [][]byte) [][]byte {
 		}
 	}
 	return newMatrix
-
-}
-
-// padMatrix pads the given matrix with zeros to make it square
-// Method was used for the recursive version of Eklundh's algorithm.
-func padMatrix(matrix [][]byte, size int) [][]byte {
-	paddedMatrix := make([][]byte, size)
-	for i := range paddedMatrix {
-		paddedMatrix[i] = make([]byte, size)
-		if i < len(matrix) {
-			copy(paddedMatrix[i], matrix[i])
-		}
-	}
-	return paddedMatrix
-}
-
-// Method was used for the recursive version of Eklundh's algorithm.
-func unpadMatrix(matrix [][]byte, rows, cols int) [][]byte {
-	unpaddedMatrix := make([][]byte, rows)
-	for i := range unpaddedMatrix {
-		unpaddedMatrix[i] = matrix[i][:cols]
-	}
-	return unpaddedMatrix
 }
 
 // printMatrices prints a slice of matrices of type [][][]byte.
+// Used for debugging.
 func printMatrices(matrices [][][]byte) {
 	for _, matrix := range matrices {
 		for _, row := range matrix {
@@ -533,27 +504,4 @@ func printMatrices(matrices [][][]byte) {
 		}
 		fmt.Println()
 	}
-}
-
-func PrintMatrix(matrix [][]byte) {
-	for _, row := range matrix {
-		fmt.Println(row)
-	}
-	fmt.Println()
-}
-
-func DeepCopyMatrix(matrix [][]byte) [][]byte {
-	numRows := len(matrix)
-	if numRows == 0 {
-		return nil // or return [][]byte{} if you prefer an empty matrix over nil
-	}
-
-	numCols := len(matrix[0])
-	newMatrix := make([][]byte, numRows)
-	for i := range matrix {
-		newMatrix[i] = make([]byte, numCols)
-		copy(newMatrix[i], matrix[i])
-	}
-
-	return newMatrix
 }
