@@ -188,8 +188,8 @@ func TestPseudoRandomGeneratorVariety(t *testing.T) {
 	}
 }
 
-// equal checks if two slices of uint8 are equal
-func equal(a, b []uint8) bool {
+// equal checks if two slices of byte are equal
+func equal(a, b []byte) bool {
 	if len(a) != len(b) {
 		return false
 	}

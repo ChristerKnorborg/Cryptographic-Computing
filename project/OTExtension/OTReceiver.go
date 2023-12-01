@@ -138,7 +138,7 @@ func (receiver *OTReceiver) GenerateMatrixTAndU() [][]byte {
 		for j := 0; j < m; j++ {
 			T[j][i] = bitstringT[j] // Assign the bit to the matrix T at position (j,i).
 
-			T_idx := receiver.T[j][i]
+			T_idx := T[j][i]
 			G_idx := bitstringU[j]
 			selection_bit := receiver.selectionBits[j]
 			U[j][i] = T_idx ^ G_idx ^ selection_bit

@@ -37,9 +37,9 @@ func main() {
 	/* Outcoment desired protocol that you want to test */
 
 	//result := OTBasic.OTBasicProtocol(l, m, selectionBits, messages, elGamal)
-	//result := OTExtension.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
+	result := OTExtension.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
 	//result := OTExtension.OTExtensionProtocolTranspose(k, l, m, selectionBits, messages, elGamal)
-	result := OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, false)
+	//result := OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, false)
 	//result := OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, true) // multithreaded
 
 	println("")
