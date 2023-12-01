@@ -2,6 +2,8 @@ package utils
 
 // Import your ElGamal package
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"crypto/sha256"
 	"cryptographic-computing/project/elgamal"
@@ -44,7 +46,7 @@ type ByteCiphertextPair struct {
 	Y1 []byte
 }
 
-func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
+func PseudoRandomGenerator(seed *big.Int, bitLength int, iv []byte) ([]byte, error) {
 	if bitLength <= 0 {
 		return nil, fmt.Errorf("bitLength must be positive")
 	}
@@ -52,10 +54,17 @@ func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
 
 	// Convert seed to a byte slice
 	seedBytes := seed.Bytes()
+	block, _ := aes.NewCipher(seedBytes)
+	aesgcm, err := cipher.NewGCM(block)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for len(output) < bitLength {
-		hash := sha256.Sum256(seedBytes)
-		for _, b := range hash[:] {
+		//hash := sha256.Sum256(seedBytes)
+		enc := aesgcm.Seal(nil, nil, seedBytes, nil)
+		for _, b := range enc[:] {
 			for i := 0; i < 8 && len(output) < bitLength; i++ {
 				bit := (b >> (7 - i)) & 1 // Extract each bit
 				output = append(output, byte(bit))
