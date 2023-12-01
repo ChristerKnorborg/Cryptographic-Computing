@@ -26,17 +26,19 @@ type PublicKeyPair struct {
 	MessageKey1 *big.Int
 }
 
-// Struct to store ciphertexts the two messages M0 and M1
+// Struct to store ciphertexts of two messages M0 and M1
 type CiphertextPair struct {
 	Ciphertext0 *elgamal.Ciphertext
 	Ciphertext1 *elgamal.Ciphertext
 }
 
+// Struct to store seeds for the OTExtension protocol in the initial phase.
 type Seed struct {
 	Seed0 *big.Int
 	Seed1 *big.Int
 }
 
+// Struct to store ciphertexts in the OTExtension protocol in the final phase.
 type ByteCiphertextPair struct {
 	Y0 []byte
 	Y1 []byte

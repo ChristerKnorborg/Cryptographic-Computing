@@ -36,11 +36,11 @@ func main() {
 
 	/* Outcoment desired protocol that you want to test */
 
-	//OTBasicResult := OTBasic.OTBasicProtocol(l, m, selectionBits, messages, elGamal)
-	//OTExtensionResult := OTExtension.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
-	//OTExtensionTransposeResult := OTExtension.OTExtensionProtocolTranspose(k, l, m, selectionBits, messages, elGamal)
-	OTExtensionEklundhResult := OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, false)
-	//OTExtensionEklundhResultMultitreaded := OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, true)
+	//result := OTBasic.OTBasicProtocol(l, m, selectionBits, messages, elGamal)
+	//result := OTExtension.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
+	//result := OTExtension.OTExtensionProtocolTranspose(k, l, m, selectionBits, messages, elGamal)
+	result := OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, false)
+	//result := OTExtension.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, true) // multithreaded
 
 	println("")
 	print("Selection bits: ")
@@ -59,7 +59,7 @@ func main() {
 	fmt.Printf("\n")
 
 	print("Result: ")
-	for _, b := range OTExtensionEklundhResult {
+	for _, b := range result {
 		fmt.Printf("\n")
 		fmt.Printf("%d", b)
 	}

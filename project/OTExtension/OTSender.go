@@ -236,25 +236,26 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]byte, multithreaded bool) {
 }
 
 // Method for generating the ciphertexts to be sent to the OTReceiver.
+// The OTSender sends m ciphertext pairs (y0_j, y1_j) of l-bit strings, for every 1 ≤ j ≤ m,
+// where y0_j = x0_j ⊕ H(q_j) and y1_j = x1_j ⊕ H(q_j ⊕ s).
 func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {
 
 	m := sender.m
 	l := sender.l
 
-	// Initialize a list of ciphertext pairs to be sent to the OTReceiver
 	ByteCiphertextPairs := make([]*utils.ByteCiphertextPair, m)
 
 	for j := 0; j < m; j++ {
 		x0_j := sender.messages[j].Message0
 		x1_j := sender.messages[j].Message1
 
-		xor_res, err := xor.XORBytes(sender.q[j], sender.s)
+		xor_res, err := xor.XORBytes(sender.q[j], sender.s) // XOR the j'th row of Q with the Sender's string s.
 		if err != nil {
 			panic("Error from XORBytes in MakeAndSendCiphertexts: " + err.Error())
 		}
 
-		hash0 := utils.Hash(sender.q[j], l)
-		hash1 := utils.Hash(xor_res, l)
+		hash0 := utils.Hash(sender.q[j], l) // Generate hash of length l from the j'th row of Q.
+		hash1 := utils.Hash(xor_res, l)     // Generate hash of length l from the XOR of the j'th row of Q and the Sender's string s.
 
 		y0_j, err1 := xor.XORBytes(x0_j, hash0)
 		y1_j, err2 := xor.XORBytes(x1_j, hash1)
@@ -265,6 +266,5 @@ func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {
 
 		ByteCiphertextPairs[j] = &utils.ByteCiphertextPair{Y0: y0_j, Y1: y1_j}
 	}
-
 	return ByteCiphertextPairs
 }
