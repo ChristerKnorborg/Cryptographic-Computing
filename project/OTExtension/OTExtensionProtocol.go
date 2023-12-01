@@ -87,27 +87,6 @@ func OTExtensionProtocolEklundh(k int, l int, m int, selectionBits []uint8, mess
 		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
 	}
 
-	// print("Selection bits: ")
-	// for _, b := range selectionBits {
-	// 	fmt.Printf("%d", b)
-	// 	print(" ")
-	// }
-	// fmt.Printf("\n")
-
-	// print("Messages: ")
-	// for _, msg := range messages {
-	// 	fmt.Printf("\n")
-	// 	fmt.Printf("%d", msg.Message0)
-	// 	fmt.Printf("%d", msg.Message1)
-	// }
-	// fmt.Printf("\n")
-
-	// print("Result: ")
-	// for _, b := range result {
-	// 	fmt.Printf("\n")
-	// 	fmt.Printf("%d", b)
-	// }
-
 	return result
 
 }
@@ -149,27 +128,6 @@ func OTExtensionProtocolTranspose(k int, l int, m int, selectionBits []uint8, me
 	if len(result) != len(messages) {
 		fmt.Println("Result length is not equal to messages length in OTExtensionProtocol")
 	}
-
-	// print("Selection bits: ")
-	// for _, b := range selectionBits {
-	// 	fmt.Printf("%d", b)
-	// 	print(" ")
-	// }
-	// fmt.Printf("\n")
-
-	// print("Messages: ")
-	// for _, msg := range messages {
-	// 	fmt.Printf("\n")
-	// 	fmt.Printf("%d", msg.Message0)
-	// 	fmt.Printf("%d", msg.Message1)
-	// }
-	// fmt.Printf("\n")
-
-	// print("Result: ")
-	// for _, b := range result {
-	// 	fmt.Printf("\n")
-	// 	fmt.Printf("%d", b)
-	// }
 
 	return result
 

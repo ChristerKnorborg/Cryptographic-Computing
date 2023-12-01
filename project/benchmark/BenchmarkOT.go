@@ -25,9 +25,9 @@ func TestMakeDataFixL(iterations int) {
 	k := 128
 	l := 1
 
-	for i := 2; i < iterations; i++ {
+	for i := 7; i < iterations; i++ {
 
-		m := int(math.Pow(2, float64(i)))
+		m := int(math.Pow(2, float64(7))) // m initally 2^7 = 128 (as k <= m)
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
 		elGamal := elgamal.ElGamal{}
@@ -73,36 +73,3 @@ func TestMakeDataFixL(iterations int) {
 	}
 
 }
-
-/*
-func TestMakeDataFixM(iterations int) {
-	csvFile, err := os.Create("./testdata/fixed_m_data.csv")
-	if err != nil {
-		log.Fatalf("failed creating file: %s", err)
-	}
-	csvwriter := csv.NewWriter(csvFile)
-	_ = csvwriter.Write([]string{"m_size", "time_ot_basic", "time_OT_extension"})
-
-	time_OT_basic := 0
-	time_OT_extension := 0
-
-	for i := 1; i < iterations; i++ {
-
-		num_of_l := math.Pow(2, float64(i))
-
-		time_start := time.Now()
-		// insert OT Basic
-		time_end := int(time.Since(time_start))
-		time_OT_basic = time_end
-
-		time_start = time.Now()
-		// insert OT Extension
-		time_end = int(time.Since(time_start))
-		time_OT_extension = time_end
-
-		_ = csvwriter.Write([]string{strconv.Itoa(int(num_of_l)), strconv.Itoa(time_OT_basic), strconv.Itoa(time_OT_extension)})
-		csvwriter.Flush()
-
-	}
-
-} */
