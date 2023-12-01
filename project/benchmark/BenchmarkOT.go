@@ -1,5 +1,5 @@
 // BenchmarkOT.go
-package OTExtension
+package benchmark
 
 import (
 	OTExt "cryptographic-computing/project/OTExtension"
