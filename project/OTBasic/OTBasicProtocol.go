@@ -7,16 +7,16 @@ import (
 )
 
 // k: Security parameter, l: Byte length of each message, m: Number of messages to be sent and selction bits
-func OTBasicProtocol(l int, m int, selectionBits []uint8, messages []*utils.MessagePair, elGamal elgamal.ElGamal) [][]byte {
+func OTBasicProtocol(l int, m int, selectionBits []byte, messages []*utils.MessagePair, elGamal elgamal.ElGamal) [][]byte {
 
 	receiver := OTReceiver{}
 	sender := OTSender{}
 
 	// Initialize the receiver's selection bits and the sender's messages
 	receiver.Init(selectionBits)
-	sender.Init(messages, m)
+	sender.Init(messages)
 
-	// The receiver makes secret keys and oblivious keys each message to be received based on the selection bits.
+	// The receiver makes secret keys and oblivious keys for each message to be received based on the selection bits.
 	// Then send the public keys to the sender.
 	publicKeys := receiver.Choose(m, &elGamal)
 	sender.ReceiveKeys(publicKeys)

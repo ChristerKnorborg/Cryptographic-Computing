@@ -12,10 +12,10 @@ type OTSender struct {
 	Messages   []*utils.MessagePair   // Messages to be sent, each message consists of 2 messages M0 and M1.
 }
 
-func (sender *OTSender) Init(Messages []*utils.MessagePair, m int) {
+func (sender *OTSender) Init(Messages []*utils.MessagePair) {
 
-	sender.Messages = make([]*utils.MessagePair, m)
-	sender.PublicKeys = make([]*utils.PublicKeyPair, m)
+	sender.Messages = make([]*utils.MessagePair, len(Messages))
+	sender.PublicKeys = make([]*utils.PublicKeyPair, len(Messages))
 	sender.Messages = Messages
 }
 
@@ -37,7 +37,8 @@ func (sender *OTSender) EncryptMessages(elGamal *elgamal.ElGamal) []*utils.Ciphe
 		msg0BigInt.SetBytes(sender.Messages[i].Message0)
 		msg1BigInt.SetBytes(sender.Messages[i].Message1)
 
-		// Encrypt the messages using the public keys received from the OTReceiver
+		// Encrypt the messages using the public keys received from the OTReceiver.
+		// The sender is oblivious to which message is encrypted using which key.
 		cipher0 := elGamal.Encrypt(msg0BigInt, sender.PublicKeys[i].MessageKey0)
 		cipher1 := elGamal.Encrypt(msg1BigInt, sender.PublicKeys[i].MessageKey1)
 
