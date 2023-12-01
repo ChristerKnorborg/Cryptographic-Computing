@@ -94,15 +94,15 @@ func Hash(originalData []byte, length int) []byte {
 		// For example, append a byte that represents the current length of fullHash
 		data = append(data, byte(len(fullHash)))
 	}
-
+	// Truncate the hash to the exact byte length required
 	returnHash := fullHash[:byteLength]
+
 	// Set remaining bits to 0 if length is not multiple of 8
 	remainingBits := length % 8
 	if remainingBits != 0 {
 		returnHash[byteLength-1] &= (1 << remainingBits) - 1
 	}
 
-	// Truncate the hash to the exact byte length required
 	return returnHash
 }
 
@@ -115,8 +115,8 @@ func PrintBinaryString(bytes []byte) {
 	fmt.Println("As binary string:", binaryString)
 }
 
-// RandomBytes generates a slice of random bytes of a given bit length
-func RandomBytes(length int) []byte {
+// RandomBits generates a slice of random bytes of a given bit length
+func RandomBits(length int) []byte {
 
 	var numBytes int
 	if length <= 8 {

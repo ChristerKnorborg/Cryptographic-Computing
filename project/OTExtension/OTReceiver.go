@@ -223,6 +223,7 @@ func (receiver *OTReceiver) GenerateMatrixTAndUEklundh(multithreaded bool) [][]b
 	return U // Send U to the OTSender
 }
 
+// Method for decrypting the ciphertexts received from the OTSender.
 // The receiver computes x^(r_j)_j = y^(r_j)_j ⊕ H(j, t_j) for every 1 ≤ j ≤ m.
 func (receiver *OTReceiver) DecryptCiphertexts(ByteCiphertextPairs []*utils.ByteCiphertextPair) [][]byte {
 

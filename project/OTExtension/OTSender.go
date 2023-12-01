@@ -83,19 +83,20 @@ func (sender *OTSender) Choose(elGamal *elgamal.ElGamal) []*utils.PublicKeyPair 
 			publicKeys[i].MessageKey0 = elGamal.OGen()
 			publicKeys[i].MessageKey1 = elGamal.Gen(sender.secretKeys[i])
 		} else {
-			panic("Receiver choice bits are not 0 or 1 in Choose")
+			panic("Receiver string s bits are not 0 or 1 in Choose")
 		}
 	}
 	return publicKeys
 }
 
-// Method to decrypt the Seeds (messages) sent by the OTReceiver, when invoking the κ×OTκ-functionality, where the OTSender plays the receiver, and OTReceiver plays the sender.
+// Method to decrypt the Seeds (messages) sent by the OTReceiver, for the k regular OTs,
+// where the OTSender plays the receiver, and OTReceiver plays the sender.
 func (sender *OTSender) DecryptSeeds(ciphertextPairs []*utils.CiphertextPair, elGamal *elgamal.ElGamal) {
 
 	// Initialize a list of Seeds to be decrypted
 	plaintextSeeds := make([]*big.Int, len(ciphertextPairs))
 
-	// Decrypt the message based on the receiver's choice bits
+	// Decrypt the message based on the receiver's bits from string s.
 	for i := 0; i < sender.k; i++ {
 
 		if sender.s[i] == 0 {
@@ -103,13 +104,15 @@ func (sender *OTSender) DecryptSeeds(ciphertextPairs []*utils.CiphertextPair, el
 		} else if sender.s[i] == 1 {
 			plaintextSeeds[i] = elGamal.Decrypt(ciphertextPairs[i].Ciphertext1.C1, ciphertextPairs[i].Ciphertext1.C2, sender.secretKeys[i])
 		} else {
-			panic("Receiver choice bits are not 0 or 1 in DecryptMessage")
+			panic("Receiver string s bits are not 0 or 1 in DecryptSeeds")
 		}
 	}
 	sender.seeds = make([]*big.Int, sender.k)
 	sender.seeds = plaintextSeeds
 }
 
+// Method for generating the bit matrix Q of size m × κ.
+// Notice this method is inefficient, since it accesses the entire matrix T (e.g. m x k entries).
 func (sender *OTSender) GenerateMatrixQ(U [][]byte) {
 
 	k := sender.k
@@ -118,7 +121,7 @@ func (sender *OTSender) GenerateMatrixQ(U [][]byte) {
 	// Initialize the matrix Q of size m × κ.
 	Q := make([][]byte, m) // m rows.
 	for i := range Q {
-		Q[i] = make([]byte, k) // k columns per row.
+		Q[i] = make([]byte, k) // k cols per row.
 	}
 
 	// The OTSender defines q^i = (s_i · u^i) ⊕ G(k^(s_i)_i. Note that q^i = (s_i · r) ⊕ t^i)
@@ -130,32 +133,35 @@ func (sender *OTSender) GenerateMatrixQ(U [][]byte) {
 				panic("Error from pseudoRandomGenerator in GenerateQMatrix: " + err.Error())
 			}
 
-			// The reduction where G(k0_i) = G(k1_i) if the bit from string s is 0, can be seen on page 15 in the ALSZ paper.
+			// If the bit from string s is 0, q^i = ⊕ G(k^(0)_i
 			if sender.s[i] == 0 {
 
 				Q[j][i] = bitstring[j]
 
+				// If the bit from string s is 1, q^i = u^i ⊕ G(k^(1)_i
 			} else if sender.s[i] == 1 {
 
 				Q[j][i] = U[j][i] ^ bitstring[j]
 
 			} else {
-				panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
+				panic("Receiver s idx is not 0 or 1 in GenerateQMatrix")
 			}
 		}
 	}
 	sender.q = Q
 }
 
-func (sender *OTSender) GenerateMatrixQEklundh(U [][]byte, multithreaded bool) {
+// A more efficient method for generating the bit matrix Q of size m × κ.
+// It generates the matrix Q row-wise for transposing afterwards.
+func (sender *OTSender) GenerateMatrixQTranspose(U [][]byte) {
 
 	k := sender.k
 	m := sender.m
 
-	// Initialize the matrix Q of size m × κ.
+	// Initialize the matrix Q of size κ × m (transposed later).
 	Q := make([][]byte, k) // m rows.
 	for i := range Q {
-		Q[i] = make([]byte, m) // k columns per row.
+		Q[i] = make([]byte, m) // k col per row.
 	}
 
 	// The OTSender defines q^i = (s_i · u^i) ⊕ G(k^(s_i)_i. Note that q^i = (s_i · r) ⊕ t^i)
@@ -166,11 +172,54 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]byte, multithreaded bool) {
 			panic("Error from pseudoRandomGenerator in GenerateQMatrix: " + err.Error())
 		}
 
-		// The reduction where G(k0_i) = G(k1_i) if the bit from string s is 0, can be seen on page 15 in the ALSZ paper.
+		// If the bit from string s is 0, q^i = ⊕ G(k^(0)_i
 		if sender.s[i] == 0 {
 
 			Q[i] = bitstring
 
+			// If the bit from string s is 1, q^i = u^i ⊕ G(k^(1)_i
+		} else if sender.s[i] == 1 {
+
+			xorRes, err := xor.XORBytes(U[i], bitstring)
+			if err != nil {
+				panic("Error from XORBytes in GenerateMatrixQTranspose: " + err.Error())
+			}
+			Q[i] = xorRes
+
+		} else {
+			panic("Receiver S idx are not 0 or 1 in GenerateMatrixQTranspose")
+		}
+	}
+	sender.q = utils.TransposeMatrix(Q) // Transpose the matrix Q
+}
+
+// An even more efficient method for generating the bit matrix Q of size m × κ.
+// It generates the matrix Q row-wise for transposing afterwards using Eklundh's algorithm.
+func (sender *OTSender) GenerateMatrixQEklundh(U [][]byte, multithreaded bool) {
+
+	k := sender.k
+	m := sender.m
+
+	// Initialize the matrix Q of size m × κ (transposed later).
+	Q := make([][]byte, k) // m rows.
+	for i := range Q {
+		Q[i] = make([]byte, m) // k columns per row.
+	}
+
+	// The OTSender defines q^i = (s_i · u^i) ⊕ G(k^(s_i)_i. Note that q^i = (s_i · r) ⊕ t^i)
+	for i := 0; i < k; i++ {
+
+		bitstring, err := utils.PseudoRandomGenerator(sender.seeds[i], m)
+		if err != nil {
+			panic("Error from pseudoRandomGenerator in GenerateQMatrixEklundh: " + err.Error())
+		}
+
+		// If the bit from string s is 0, q^i = ⊕ G(k^(0)_i
+		if sender.s[i] == 0 {
+
+			Q[i] = bitstring
+
+			// If the bit from string s is 1, q^i = u^i ⊕ G(k^(1)_i
 		} else if sender.s[i] == 1 {
 
 			xorRes, err := xor.XORBytes(U[i], bitstring)
@@ -183,51 +232,10 @@ func (sender *OTSender) GenerateMatrixQEklundh(U [][]byte, multithreaded bool) {
 			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
 		}
 	}
-
-	sender.q = utils.EklundhTranspose(Q, multithreaded)
-
+	sender.q = utils.EklundhTranspose(Q, multithreaded) // Transpose the matrix Q using Eklundh's algorithm
 }
 
-func (sender *OTSender) GenerateMatrixQTranspose(U [][]byte) {
-
-	k := sender.k
-	m := sender.m
-
-	// Initialize the matrix Q of size m × κ.
-	Q := make([][]byte, k) // m rows.
-	for i := range Q {
-		Q[i] = make([]byte, m) // k columns per row.
-	}
-
-	// The OTSender defines q^i = (s_i · u^i) ⊕ G(k^(s_i)_i. Note that q^i = (s_i · r) ⊕ t^i)
-	for i := 0; i < k; i++ {
-
-		bitstring, err := utils.PseudoRandomGenerator(sender.seeds[i], m)
-		if err != nil {
-			panic("Error from pseudoRandomGenerator in GenerateQMatrix: " + err.Error())
-		}
-
-		// The reduction where G(k0_i) = G(k1_i) if the bit from string s is 0, can be seen on page 15 in the ALSZ paper.
-		if sender.s[i] == 0 {
-
-			Q[i] = bitstring
-
-		} else if sender.s[i] == 1 {
-
-			xorRes, err := xor.XORBytes(U[i], bitstring)
-			if err != nil {
-				panic("Error from XORBytes in GenerateMatrixQTranspose: " + err.Error())
-			}
-			Q[i] = xorRes
-
-		} else {
-			panic("Receiver S idx are not 0 or 1 in GenerateQMatrix")
-		}
-	}
-	sender.q = utils.TransposeMatrix(Q)
-
-}
-
+// Method for generating the ciphertexts to be sent to the OTReceiver.
 func (sender *OTSender) MakeAndSendCiphertexts() []*utils.ByteCiphertextPair {
 
 	m := sender.m
