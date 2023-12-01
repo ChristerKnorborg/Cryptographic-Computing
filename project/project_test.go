@@ -24,8 +24,8 @@ func TestOTBasicProtocol(t *testing.T) {
 	var messages []*utils.MessagePair
 	for i := 0; i < m; i++ {
 		msg := utils.MessagePair{
-			Message0: utils.RandomBytes(l),
-			Message1: utils.RandomBytes(l),
+			Message0: utils.RandomBits(l),
+			Message1: utils.RandomBits(l),
 		}
 		messages = append(messages, &msg)
 	}
@@ -61,8 +61,8 @@ func TestOTExtensionProtocol(t *testing.T) {
 		var messages []*utils.MessagePair
 		for i := 0; i < m; i++ {
 			msg := utils.MessagePair{
-				Message0: utils.RandomBytes(l),
-				Message1: utils.RandomBytes(l),
+				Message0: utils.RandomBits(l),
+				Message1: utils.RandomBits(l),
 			}
 			messages = append(messages, &msg)
 		}
@@ -99,8 +99,8 @@ func TestOTExtensionProtocolTranspose(t *testing.T) {
 		var messages []*utils.MessagePair
 		for i := 0; i < m; i++ {
 			msg := utils.MessagePair{
-				Message0: utils.RandomBytes(l),
-				Message1: utils.RandomBytes(l),
+				Message0: utils.RandomBits(l),
+				Message1: utils.RandomBits(l),
 			}
 			messages = append(messages, &msg)
 		}
@@ -137,8 +137,8 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 		var messages []*utils.MessagePair
 		for i := 0; i < m; i++ {
 			msg := utils.MessagePair{
-				Message0: utils.RandomBytes(l),
-				Message1: utils.RandomBytes(l),
+				Message0: utils.RandomBits(l),
+				Message1: utils.RandomBits(l),
 			}
 			messages = append(messages, &msg)
 		}

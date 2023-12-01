@@ -18,7 +18,7 @@ import (
 func main() {
 
 	k := 2 // must be a power of 2
-	l := 1
+	l := 8
 	m := int(math.Pow(2, float64(2)))
 
 	// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -28,8 +28,8 @@ func main() {
 	var messages []*utils.MessagePair
 	for i := 0; i < m; i++ {
 		msg := utils.MessagePair{
-			Message0: utils.RandomBytes(l),
-			Message1: utils.RandomBytes(l),
+			Message0: utils.RandomBits(l),
+			Message1: utils.RandomBits(l),
 		}
 		messages = append(messages, &msg)
 	}

@@ -9,7 +9,6 @@ import (
 	"log"
 	"math/big"
 	mathRand "math/rand"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -43,11 +42,11 @@ type ByteCiphertextPair struct {
 	Y1 []byte
 }
 
-func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]uint8, error) {
+func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
 	if bitLength <= 0 {
 		return nil, fmt.Errorf("bitLength must be positive")
 	}
-	output := make([]uint8, 0, bitLength) // Allocate space for the array
+	output := make([]byte, 0, bitLength) // Allocate space for the array
 
 	// Convert seed to a byte slice
 	seedBytes := seed.Bytes()
@@ -57,7 +56,7 @@ func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]uint8, error) {
 		for _, b := range hash[:] {
 			for i := 0; i < 8 && len(output) < bitLength; i++ {
 				bit := (b >> (7 - i)) & 1 // Extract each bit
-				output = append(output, uint8(bit))
+				output = append(output, byte(bit))
 			}
 		}
 
@@ -69,12 +68,19 @@ func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]uint8, error) {
 	return output, nil
 }
 
-// Hash creates a hash of the input data with a specified byte length.
-func Hash(originalData []byte, byteLength int) []byte {
+// Hash creates a hash of the input data with a specified bit length.
+func Hash(originalData []byte, length int) []byte {
 
 	// Create a copy of the original data to avoid modifying it
 	data := make([]byte, len(originalData))
 	copy(data, originalData)
+
+	var byteLength int
+	if length <= 8 {
+		byteLength = 1
+	} else {
+		byteLength = (length + 7) / 8 // Calculate the number of bytes needed to represent the given number of bits
+	}
 
 	fullHash := make([]byte, 0, byteLength)
 
@@ -89,8 +95,15 @@ func Hash(originalData []byte, byteLength int) []byte {
 		data = append(data, byte(len(fullHash)))
 	}
 
+	returnHash := fullHash[:byteLength]
+	// Set remaining bits to 0 if length is not multiple of 8
+	remainingBits := length % 8
+	if remainingBits != 0 {
+		returnHash[byteLength-1] &= (1 << remainingBits) - 1
+	}
+
 	// Truncate the hash to the exact byte length required
-	return fullHash[:byteLength]
+	return returnHash
 }
 
 // PrintBinaryString prints the binary representation of a []byte slice.
@@ -102,40 +115,30 @@ func PrintBinaryString(bytes []byte) {
 	fmt.Println("As binary string:", binaryString)
 }
 
-// XOR takes a variable number of arguments (strings and ints),
-// performs a bitwise XOR operation on all of them, and returns the result as a string.
-func XOR(args ...interface{}) (string, error) {
-	var xorResult int
+// RandomBytes generates a slice of random bytes of a given bit length
+func RandomBytes(length int) []byte {
 
-	for _, arg := range args {
-		switch v := arg.(type) {
-		case string:
-			val, err := strconv.Atoi(v)
-			if err != nil {
-				return "", err
-			}
-			xorResult ^= val
-		case int:
-			xorResult ^= v
-		case uint8:
-			xorResult ^= int(v)
-		default:
-			return "", fmt.Errorf("unsupported type")
-		}
+	var numBytes int
+	if length <= 8 {
+		numBytes = 1
+	} else {
+		numBytes = (length + 7) / 8 // Calculate the number of bytes needed to represent the given number of bits
 	}
 
-	return strconv.Itoa(xorResult), nil
-}
+	bits := make([]byte, numBytes)
 
-// RandomBytes generates a slice of random bytes of a given length
-func RandomBytes(length int) []byte {
-	b := make([]byte, length)
-	_, err := rand.Read(b)
-	// Handle the error here. In production code, you might want to pass it up the call stack
+	_, err := rand.Read(bits)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return b
+
+	// Set remaining bits to 0 if length is not multiple of 8
+	remainingBits := length % 8
+	if remainingBits != 0 {
+		bits[numBytes-1] &= (1 << remainingBits) - 1
+	}
+
+	return bits
 }
 
 // AllOnesBytes generates a slice of bytes of a given length, all set to 1
@@ -157,19 +160,19 @@ func AllTwosBytes(length int) []byte {
 }
 
 // RandomSelectionBits generates a slice of m random selection bits (0 or 1)
-func RandomSelectionBits(m int) []uint8 {
+func RandomSelectionBits(m int) []byte {
 	// Create a new random source and random generator
 	src := mathRand.NewSource(time.Now().UnixNano())
 	rnd := mathRand.New(src)
 
-	bits := make([]uint8, m)
+	bits := make([]byte, m)
 	for i := range bits {
-		bits[i] = uint8(rnd.Intn(2)) // Generates a random integer 0 or 1
+		bits[i] = byte(rnd.Intn(2)) // Generates a random integer 0 or 1
 	}
 	return bits
 }
 
-func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
+func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 
 	if rows > cols {
 		panic("divideMatrix: cols must be greater than or equal to rows")
@@ -189,11 +192,11 @@ func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
 	}
 
 	// Initialize the result slice with size numMatrices
-	result := make([][][]uint8, numMatrices)
+	result := make([][][]byte, numMatrices)
 
 	for i := 0; i < numBaseMatrices; i++ {
 		// Initialize smallMatrix for each sub-matrix
-		smallMatrix := make([][]uint8, 0, len(matrix))
+		smallMatrix := make([][]byte, 0, len(matrix))
 
 		for _, row := range matrix {
 
@@ -211,11 +214,11 @@ func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
 	// If there is padding, add the last matrix
 	if padding_cols > 0 {
 		// Initialize smallMatrix for the last sub-matrix
-		smallMatrix := make([][]uint8, len(matrix))
+		smallMatrix := make([][]byte, len(matrix))
 		for _, row := range matrix {
 			start := numBaseMatrices * rows
 			end := start + (cols % rows) // Only take the non-padded elements
-			paddedRow := make([]uint8, rows)
+			paddedRow := make([]byte, rows)
 			copy(paddedRow, row[start:end])
 			// Padding will automatically be zeros in the remaining positions
 			smallMatrix = append(smallMatrix, paddedRow)
@@ -226,7 +229,7 @@ func divideMatrix(matrix [][]uint8, rows int, cols int) [][][]uint8 {
 	return result
 }
 
-func EklundhTransposeInner(matrix [][]uint8) [][]uint8 {
+func EklundhTransposeInner(matrix [][]byte) [][]byte {
 
 	dimension := len(matrix)
 
@@ -258,7 +261,8 @@ func EklundhTransposeInner(matrix [][]uint8) [][]uint8 {
 }
 
 // Function is responsible for dividing the matrix of m x k into smaller matrices of k x k. Also pads the last matrix if necessary.
-func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
+// Assumes k is a power of 2 else it fails
+func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 
 	rows := len(matrix)    // number of rows
 	cols := len(matrix[0]) // number of columns
@@ -270,7 +274,7 @@ func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 		wg.Add(len(matrices)) // goroutines to wait for in waitgroup
 
 		for i, mat := range matrices {
-			go func(i int, mat [][]uint8) {
+			go func(i int, mat [][]byte) {
 				defer wg.Done()
 				matrices[i] = EklundhTransposeInner(mat)
 			}(i, mat) // Pass i and mat as arguments to the anonymous function to avoid race conditions on i
@@ -284,11 +288,12 @@ func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 	}
 
 	// Initialize the final transposed matrix
-	transposed := make([][]uint8, cols) // cols rows
+	transposed := make([][]byte, cols) // cols rows
 	for i := range transposed {
-		transposed[i] = make([]uint8, rows) // rows columns
+		transposed[i] = make([]byte, rows) // rows columns
 	}
 
+	// If padding occurs, calculate amount of rows
 	padding_rows := 0
 	if cols%rows != 0 {
 		padding_rows = rows - (cols % rows)
@@ -301,19 +306,13 @@ func EklundhTranspose(matrix [][]uint8, multithreaded bool) [][]uint8 {
 		for _, row := range mat {
 			transposed[currentRow] = row
 			currentRow++
+
+			// Break the loops before the padded row is reached in mat to avoid index out of range in transposed
 			if currentRow == iterations {
 				break
 			}
 		}
 	}
-
-	// print("Transposed matrices: " + "\n")
-	// printMatrices(matrices)
-
-	// print("Transposed matrix: " + "\n")
-	// for _, row := range transposed {
-	// 	fmt.Println(row)
-	// }
 
 	return transposed
 }
@@ -497,10 +496,7 @@ func padMatrix(matrix [][]byte, size int) [][]byte {
 	for i := range paddedMatrix {
 		paddedMatrix[i] = make([]byte, size)
 		if i < len(matrix) {
-			//for j, val := range matrix[i] {
-			//paddedMatrix[i][j] = val
 			copy(paddedMatrix[i], matrix[i])
-			//}
 		}
 	}
 	return paddedMatrix
@@ -528,23 +524,23 @@ func printMatrices(matrices [][][]byte) {
 	}
 }
 
-func PrintMatrix(matrix [][]uint8) {
+func PrintMatrix(matrix [][]byte) {
 	for _, row := range matrix {
 		fmt.Println(row)
 	}
 	fmt.Println()
 }
 
-func DeepCopyMatrix(matrix [][]uint8) [][]uint8 {
+func DeepCopyMatrix(matrix [][]byte) [][]byte {
 	numRows := len(matrix)
 	if numRows == 0 {
-		return nil // or return [][]uint8{} if you prefer an empty matrix over nil
+		return nil // or return [][]byte{} if you prefer an empty matrix over nil
 	}
 
 	numCols := len(matrix[0])
-	newMatrix := make([][]uint8, numRows)
+	newMatrix := make([][]byte, numRows)
 	for i := range matrix {
-		newMatrix[i] = make([]uint8, numCols)
+		newMatrix[i] = make([]byte, numCols)
 		copy(newMatrix[i], matrix[i])
 	}
 
