@@ -51,7 +51,7 @@ func TestOTExtensionProtocol(t *testing.T) {
 	k := 128
 	l := 1
 
-	for iters := 8; iters < 12; iters++ {
+	for iters := 8; iters < 12; iters++ { // k is 128 as we require k <= m
 		m := int(math.Pow(2, float64(iters)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -89,7 +89,7 @@ func TestOTExtensionProtocolTranspose(t *testing.T) {
 	k := 128
 	l := 1
 
-	for iters := 8; iters < 12; iters++ {
+	for iters := 8; iters < 12; iters++ { // k is 128 as we require k <= m
 		m := int(math.Pow(2, float64(iters)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -127,7 +127,7 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 	k := 128
 	l := 1
 
-	for iters := 8; iters < 12; iters++ {
+	for iters := 8; iters < 12; iters++ { // k is 128 as we require k <= m
 		m := int(math.Pow(2, float64(iters)))
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
@@ -179,7 +179,7 @@ func TestPseudoRandomGeneratorVariety(t *testing.T) {
 				t.Errorf("Output length is incorrect for seed %d and length %d. Expected %d, got %d", seedVal, length, length, len(output))
 			}
 
-			// Additional consistency check: Generate again with the same seed and compare outputs
+			// Additional consistency check. Generate again with the same seed and compare outputs
 			output2, _ := utils.PseudoRandomGenerator(seed, length)
 			if !equal(output, output2) {
 				t.Errorf("Inconsistent outputs for seed %d and length %d", seedVal, length)
@@ -230,7 +230,7 @@ func TestEklundhTransposeSymmetrical(t *testing.T) {
 func TestEklundhTransposeNonSymmetricalMoreColsThanRows(t *testing.T) {
 
 	rows := 128                                  // rows same as k parameter in OTExtension (most common case)
-	for cols := 128; cols <= 262144; cols *= 2 { // Test for different matrix sizes from 128x128 to 128x262144 (2^18)
+	for cols := 128; cols <= 262144; cols *= 2 { // Test for different matrix sizes from 128x128 to 128x262144 (2^18). We require rows <= cols (m <= k in OTExtension)
 		matrix := generateNonSymmetricMatrix(rows, cols)
 
 		expected := utils.TransposeMatrix(matrix)
