@@ -17,7 +17,7 @@ func main() {
 
 	// benchmark.EklundhTranspose(matrix, false)
 
-	k := 4 // 2^2 = 4 for a 4x4 matrix
+	k := 8 // 2^2 = 4 for a 4x4 matrix
 
 	matrix := make([][]byte, k)
 	for i := range matrix {

@@ -2,6 +2,7 @@ package benchmark
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -67,6 +68,47 @@ func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 }
 
 func EklundhTransposeInner(matrix [][]byte) [][]byte {
+	dimension := len(matrix)
+
+	if dimension == 1 {
+		return matrix
+	}
+
+	// swapDimension is the dimension of the sub-matrix that is being swapped.
+	// It starts at 1 and doubles each iteration until it reaches k. E.g. 1, 2, 4, 8, 16, ...
+	swapDimension := 1 // Incremented by power of 2 each iteration
+	for swapDimension < dimension {
+		for i1 := swapDimension; i1 < dimension; i1 += swapDimension * 2 {
+			for i2 := 0; i2 < swapDimension; i2++ {
+
+				// Index rows with values to be swapped
+				//topRow := matrix[i1+i2]
+				//bottomRow := matrix[i1+i2+swapDimension]
+
+				// OUTCOMMENT TO SEE THE SWAPPING ORDER
+				println("")
+				fmt.Println("topRow: ", strconv.Itoa(i1+i2), "bottomRow: ", strconv.Itoa(i1+i2+swapDimension))
+
+				for j1 := swapDimension; j1 < dimension; j1 += swapDimension * 2 {
+					for j2 := 0; j2 < swapDimension; j2++ {
+
+						// OUTCOMMENT TO SEE THE SWAPPING ORDER
+						fmt.Println("Currently swapping: leftIndex: [][]", strconv.Itoa(i1+i2+swapDimension), strconv.Itoa(j1+j2), "rightIndex: [][] ",
+							strconv.Itoa(i1+i2), strconv.Itoa(j1+j2+swapDimension))
+
+					}
+				}
+			}
+		}
+		// OUTCOMMENT TO SEE THE SWAPPING ORDER
+		//println("")
+		swapDimension *= 2
+	}
+
+	return matrix
+}
+
+func EklundhTransposeInnerSøren(matrix [][]byte) [][]byte {
 	dimension := len(matrix)
 
 	if dimension == 1 {
