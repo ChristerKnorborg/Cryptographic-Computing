@@ -81,27 +81,30 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 		for i1 := swapDimension; i1 < dimension; i1 += swapDimension * 2 {
 			for i2 := 0; i2 < swapDimension; i2++ {
 
-				// Index rows with values to be swapped
-				//topRow := matrix[i1+i2]
-				//bottomRow := matrix[i1+i2+swapDimension]
+				// // Index rows with values to be swapped
+				// topRow := make([]byte, swapDimension)
+				// bottomRow := make([]byte, swapDimension)
+				// topRow = copy(topRow, matrix[i1+i2-swapDimension])
+				// bottomRow = copy(bottomRow, matrix[i1+i2])
 
 				// OUTCOMMENT TO SEE THE SWAPPING ORDER
 				println("")
-				fmt.Println("topRow: ", strconv.Itoa(i1+i2), "bottomRow: ", strconv.Itoa(i1+i2+swapDimension))
+				//fmt.Println("bottomRow: ", strconv.Itoa(i1+i2), "topRow: ", strconv.Itoa(i1+i2-swapDimension))
 
 				for j1 := swapDimension; j1 < dimension; j1 += swapDimension * 2 {
 					for j2 := 0; j2 < swapDimension; j2++ {
 
 						// OUTCOMMENT TO SEE THE SWAPPING ORDER
-						fmt.Println("Currently swapping: leftIndex: [][]", strconv.Itoa(i1+i2+swapDimension), strconv.Itoa(j1+j2), "rightIndex: [][] ",
-							strconv.Itoa(i1+i2), strconv.Itoa(j1+j2+swapDimension))
+						fmt.Println("Currently swapping: leftIndex: [][]", strconv.Itoa(i1+i2), strconv.Itoa(j1+j2-swapDimension), "rightIndex: [][] ",
+							strconv.Itoa(i1+i2-swapDimension), strconv.Itoa(j1+j2))
 
 					}
 				}
 			}
 		}
 		// OUTCOMMENT TO SEE THE SWAPPING ORDER
-		//println("")
+		println("")
+		println("")
 		swapDimension *= 2
 	}
 
