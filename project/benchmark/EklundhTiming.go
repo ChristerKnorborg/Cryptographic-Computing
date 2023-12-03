@@ -66,10 +66,7 @@ func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 	return result
 }
 
-// EklundhTransposeInner transposes a matrix using Eklundh's algorithm.
-// The matrix must be square and have a dimension that is a power of 2.
 func EklundhTransposeInner(matrix [][]byte) [][]byte {
-
 	dimension := len(matrix)
 
 	if dimension == 1 {
@@ -78,22 +75,35 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 
 	// swapDimension is the dimension of the sub-matrix that is being swapped.
 	// It starts at 1 and doubles each iteration until it reaches k. E.g. 1, 2, 4, 8, 16, ...
-	swapDimension := 1
-
+	swapDimension := 1 // Incremented by power of 2 each iteration
 	for swapDimension < dimension {
 
-		for i := 0; i < dimension; i += 2 * swapDimension { // number of sub-matrices to swap in each iteration is k/(2*swapDimension)
-
-			for j := 0; j < swapDimension; j++ {
-				for l := 0; l < swapDimension; l++ {
-
-					// Swap the elements in the sub-matrices
-					matrix[i+j][i+swapDimension+l], matrix[i+swapDimension+l][i+j] = matrix[i+swapDimension+l][i+j], matrix[i+j][i+swapDimension+l]
-				}
+	Yeehaw:
+		for i := 0; i < dimension; i++ {
+			var j int
+			if i < swapDimension {
+				j = i
+			} else {
+				j = i + (i * swapDimension)
 			}
 
+			fmt.Println("I:", i)
+			fmt.Println("J:", j)
+			if dimension < (j+swapDimension) || dimension < j {
+				fmt.Println("J too large and breaks", j)
+				break Yeehaw
+			}
+
+			topRow := make([]byte, swapDimension)
+			bottomRow := make([]byte, swapDimension)
+			copy(topRow, matrix[j])                  // Row of the top sub-matrix currently being swapped
+			copy(bottomRow, matrix[j+swapDimension]) // Row of the bottom sub-matrix currently being swapped
+
+			fmt.Println(topRow)
+			fmt.Println(bottomRow)
 		}
 		swapDimension *= 2
+
 	}
 	return matrix
 }

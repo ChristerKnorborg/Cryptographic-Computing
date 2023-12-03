@@ -1,24 +1,31 @@
 package main
 
-import (
-	"cryptographic-computing/project/benchmark"
-	"cryptographic-computing/project/utils"
-	"math"
-)
+import "cryptographic-computing/project/benchmark"
 
 // Outcomented benchmarking functions. Generates a csv file with the results.
 func main() {
 	//benchmark.TestMakeDataFixL(24)
 
-	//Make large matrix for Eklundh
-	k := int(math.Pow(2, float64(7)))  // 2 ^ 7 = 128
-	M := int(math.Pow(2, float64(24))) // 2 ^ 26 = 67108864
+	// //Make large matrix for Eklundh
+	// k := int(math.Pow(2, float64(2))) // 2 ^ 7 = 128
+	// M := int(math.Pow(2, float64(2))) // 2 ^ 26 = 67108864
+
+	// matrix := make([][]byte, k)
+	// for i := 0; i < k; i++ {
+	// 	matrix[i] = utils.RandomSelectionBits(M)
+	// }
+
+	// benchmark.EklundhTranspose(matrix, false)
+
+	k := 4 // 2^2 = 4 for a 4x4 matrix
 
 	matrix := make([][]byte, k)
-	for i := 0; i < k; i++ {
-		matrix[i] = utils.RandomSelectionBits(M)
+	for i := range matrix {
+		matrix[i] = make([]byte, k)
+		for j := range matrix[i] {
+			matrix[i][j] = byte(i*k + j + 1)
+		}
 	}
-
 	benchmark.EklundhTranspose(matrix, false)
 }
 

@@ -226,7 +226,6 @@ func divideMatrix(matrix [][]byte, rows int, cols int) [][][]byte {
 // EklundhTransposeInner transposes a matrix using Eklundh's algorithm.
 // The matrix must be square and have a dimension that is a power of 2.
 func EklundhTransposeInner(matrix [][]byte) [][]byte {
-
 	dimension := len(matrix)
 
 	if dimension == 1 {
@@ -238,12 +237,9 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 	swapDimension := 1
 
 	for swapDimension < dimension {
-
 		for i := 0; i < dimension; i += 2 * swapDimension { // number of sub-matrices to swap in each iteration is k/(2*swapDimension)
-
-			for j := 0; j < swapDimension; j++ {
-				for l := 0; l < swapDimension; l++ {
-
+			for l := 0; l < swapDimension; l++ {
+				for j := 0; j < swapDimension; j++ {
 					// Swap the elements in the sub-matrices
 					matrix[i+j][i+swapDimension+l], matrix[i+swapDimension+l][i+j] = matrix[i+swapDimension+l][i+j], matrix[i+j][i+swapDimension+l]
 				}
