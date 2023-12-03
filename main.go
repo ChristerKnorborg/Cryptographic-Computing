@@ -4,7 +4,7 @@ import "cryptographic-computing/project/benchmark"
 
 // Outcomented benchmarking functions. Generates a csv file with the results.
 func main() {
-	//benchmark.TestMakeDataFixL(24)
+	benchmark.TestMakeDataFixL(18)
 
 	// //Make large matrix for Eklundh
 	// k := int(math.Pow(2, float64(2))) // 2 ^ 7 = 128
@@ -17,16 +17,6 @@ func main() {
 
 	// benchmark.EklundhTranspose(matrix, false)
 
-	k := 8 // 2^2 = 4 for a 4x4 matrix
-
-	matrix := make([][]byte, k)
-	for i := range matrix {
-		matrix[i] = make([]byte, k)
-		for j := range matrix[i] {
-			matrix[i][j] = byte(i*k + j + 1)
-		}
-	}
-	benchmark.EklundhTranspose(matrix, false)
 }
 
 // Main function can be used to test the different protocols manually

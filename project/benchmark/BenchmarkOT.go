@@ -24,14 +24,14 @@ func TestMakeDataFixL(iterations int) {
 
 	k := 128
 	l := 1
-
+	elGamal := elgamal.ElGamal{}
+	elGamal.Init()
 	for i := 7; i < iterations; i++ {
 
 		m := int(math.Pow(2, float64(7))) // m initally 2^7 = 128 (as k <= m)
 
 		// create cryptoalgorithm, messages and selection bits for algorithms.
-		elGamal := elgamal.ElGamal{}
-		elGamal.Init()
+
 		selectionBits := utils.RandomSelectionBits(m)
 		var messages []*utils.MessagePair
 		for i := 0; i < m; i++ {
