@@ -234,20 +234,20 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 
 	// swapDimension is the dimension of the sub-matrix that is being swapped.
 	// It starts at 1 and doubles each iteration until it reaches k. E.g. 1, 2, 4, 8, 16, ...
-	swapDimension := 1 // Incremented by power of 2 each iteration
 
+	swapDimension := 1 // Incremented by power of 2 each iteration
 	for swapDimension < dimension {
 		for i1 := swapDimension; i1 < dimension; i1 += swapDimension * 2 {
 			for i2 := 0; i2 < swapDimension; i2++ {
 
-				// // Index rows with values to be swapped
 				topRow := matrix[i1+i2-swapDimension]
 				bottomRow := matrix[i1+i2]
 
 				for j1 := swapDimension; j1 < dimension; j1 += swapDimension * 2 {
 					for j2 := 0; j2 < swapDimension; j2++ {
 
-						topRow[j1+j2], bottomRow[j1+j2-swapDimension] = bottomRow[j1+j2-swapDimension], topRow[j1+j2]
+						topRow[j1+j2], bottomRow[j1+j2-swapDimension] =
+							bottomRow[j1+j2-swapDimension], topRow[j1+j2]
 					}
 				}
 			}
@@ -262,23 +262,32 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 // The method required that k is a power of 2 else it fails.
 // The method is multithreaded if multithreaded is set to true. This is done by using goroutines for each sub-matrix.
 func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
-
 	rows := len(matrix)
 	cols := len(matrix[0])
 
 	matrices := divideMatrix(matrix, rows, cols) // Divide the matrix into smaller matrices of size rows x rows (k x k)
 
 	if multithreaded {
-		var wg sync.WaitGroup
-		wg.Add(len(matrices)) // goroutines to wait for in waitgroup
+		const numThreads = 8
+		chunkSize := (len(matrices) + numThreads - 1) / numThreads // Calculate chunk size for each thread
 
-		for i, mat := range matrices {
-			go func(i int, mat [][]byte) {
+		var wg sync.WaitGroup
+		wg.Add(numThreads)
+
+		for i := 0; i < numThreads; i++ {
+			go func(i int) {
 				defer wg.Done()
-				matrices[i] = EklundhTransposeInner(mat) // Transpose each sub-matrix concurrently on a separate goroutine
-			}(i, mat) // Pass i and mat as arguments to the anonymous function to avoid race conditions on i
+				start := i * chunkSize
+				end := start + chunkSize
+				if end > len(matrices) {
+					end = len(matrices)
+				}
+				for j := start; j < end; j++ {
+					matrices[j] = EklundhTransposeInner(matrices[j]) // Transpose each sub-matrix
+				}
+			}(i)
 		}
-		wg.Wait() // Wait for all goroutines to complete
+		wg.Wait() // Wait for all goroutines
 
 	} else {
 		// Transpose each sub-matrix sequentially on the main thread if multithreaded is false
@@ -293,21 +302,20 @@ func EklundhTranspose(matrix [][]byte, multithreaded bool) [][]byte {
 		transposed[i] = make([]byte, rows) // rows columns
 	}
 
-	// If padding, calculate amount of rows that need to be unpadded (not included in the transposed matrix)
+	// Calculate padding
 	padding_rows := 0
 	if cols%rows != 0 {
 		padding_rows = rows - (cols % rows)
 	}
 
 	// Stack the transposed matrices vertically
-	iterations := len(matrices)*len(matrices[0]) - padding_rows // Exclude the padding rows
+	iterations := len(matrices)*len(matrices[0]) - padding_rows
 	currentRow := 0
 	for _, mat := range matrices {
 		for _, row := range mat {
-			transposed[currentRow] = row // Add each row of the sub-matrices to the transposed matrix
+			transposed[currentRow] = row
 			currentRow++
 
-			// Break the loops before the padded row is reached in mat to avoid index out of range in transposed
 			if currentRow == iterations {
 				break
 			}

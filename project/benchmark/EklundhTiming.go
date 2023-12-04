@@ -97,27 +97,11 @@ func EklundhTransposeInnerTest(matrix [][]byte) [][]byte {
 
 				// OUTCOMMENT TO SEE THE SWAPPING ORDER
 				//println("")
-<<<<<<< HEAD
-=======
 				//fmt.Println("bottomRow: ", strconv.Itoa(i1+i2), "topRow: ", strconv.Itoa(i1+i2-swapDimension))
->>>>>>> 370b9a26d410cad61c0e73eb8e1901f891409447
 
 				for j1 := swapDimension; j1 < dimension; j1 += swapDimension * 2 {
 					for j2 := 0; j2 < swapDimension; j2++ {
 
-<<<<<<< HEAD
-						// Perform element-wise swap between topRow and bottomRow
-						topRow[j1+j2], bottomRow[j1+j2-swapDimension] = bottomRow[j1+j2-swapDimension], topRow[j1+j2]
-
-						// OUTCOMMENT TO SEE THE SWAPPING ORDER
-						// fmt.Println("Currently swapping: leftIndex: [][]", strconv.Itoa(i1+i2), strconv.Itoa(j1+j2-swapDimension), "rightIndex: [][] ",
-						// 	strconv.Itoa(i1+i2-swapDimension), strconv.Itoa(j1+j2))
-					}
-				}
-				// Write the swapped rows back to the matrix
-				copy(matrix[i1+i2-swapDimension], topRow)
-				copy(matrix[i1+i2], bottomRow)
-=======
 						// OUTCOMMENT TO SEE THE SWAPPING ORDER
 						//fmt.Println("Currently swapping: leftIndex: [][]", strconv.Itoa(i1+i2), strconv.Itoa(j1+j2-swapDimension), "rightIndex: [][] ",
 						//strconv.Itoa(i1+i2-swapDimension), strconv.Itoa(j1+j2))
@@ -126,7 +110,6 @@ func EklundhTransposeInnerTest(matrix [][]byte) [][]byte {
 				}
 				matrix[i1+i2-swapDimension] = topRow
 				matrix[i1+i2] = bottomRow
->>>>>>> 370b9a26d410cad61c0e73eb8e1901f891409447
 			}
 		}
 		// OUTCOMMENT TO SEE THE SWAPPING ORDER
@@ -139,8 +122,6 @@ func EklundhTransposeInnerTest(matrix [][]byte) [][]byte {
 	for _, row := range matrix {
 		for _, element := range row {
 			fmt.Printf("%d ", element) // Add a space after each element
-<<<<<<< HEAD
-=======
 		}
 		fmt.Printf("\n") // New line after each row
 	}
@@ -184,7 +165,6 @@ func EklundhTransposeInnerSøren(matrix [][]byte) [][]byte {
 
 			fmt.Println(topRow)
 			fmt.Println(bottomRow)
->>>>>>> 370b9a26d410cad61c0e73eb8e1901f891409447
 		}
 		fmt.Printf("\n") // New line after each row
 	}

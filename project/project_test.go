@@ -161,6 +161,44 @@ func TestOTExtensionProtocolEklundh(t *testing.T) {
 
 }
 
+func TestOTExtensionProtocolEklundhMultithreaded(t *testing.T) {
+	k := 128
+	l := 1
+
+	for iters := 8; iters < 12; iters++ { // k is 128 as we require k <= m
+		m := int(math.Pow(2, float64(iters)))
+
+		// create cryptoalgorithm, messages and selection bits for algorithms.
+		elGamal := elgamal.ElGamal{}
+		elGamal.Init()
+		selectionBits := utils.RandomSelectionBits(m)
+		var messages []*utils.MessagePair
+		for i := 0; i < m; i++ {
+			msg := utils.MessagePair{
+				Message0: utils.RandomBits(l),
+				Message1: utils.RandomBits(l),
+			}
+			messages = append(messages, &msg)
+		}
+
+		plaintext := OTExt.OTExtensionProtocolEklundh(k, l, m, selectionBits, messages, elGamal, true)
+
+		// Check if the plaintext is correct
+		for i := 0; i < m; i++ {
+			if selectionBits[i] == 0 {
+				if !bytes.Equal(plaintext[i], messages[i].Message0) {
+					t.Errorf("Plaintext is not for selection bit case 0 with plaintext %d and message pair %d, %d for 2^ %d", plaintext[i], messages[i].Message0, messages[i].Message1, iters)
+				}
+			} else {
+				if !bytes.Equal(plaintext[i], messages[i].Message1) {
+					t.Errorf("Plaintext is not for selection bit case 1 with plaintext %d and message pair %d, %d for 2^ %d", plaintext[i], messages[i].Message0, messages[i].Message1, iters)
+				}
+			}
+		}
+	}
+
+}
+
 // TestPseudoRandomGeneratorVariety tests the PseudoRandomGenerator function with a variety of seed sizes and output lengths.
 func TestPseudoRandomGeneratorVariety(t *testing.T) {
 	// Define a range of different seed values and output lengths
