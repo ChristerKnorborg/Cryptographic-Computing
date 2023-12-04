@@ -22,16 +22,19 @@ func TestMakeDataFixL(iterations int) {
 	csvwriter := csv.NewWriter(csvFile)
 	_ = csvwriter.Write([]string{"m_size", "time_OT_Basic", "time_OT_Extension", "time_OT_Extension_Transpose", "time_OT_Extension_Eklundh", "time_OT_Extension_Eklundh_Multithreaded"})
 
+	fmt.Println("Calculating El Gamal Parameters")
+	elGamal := elgamal.ElGamal{}
+	elGamal.Init()
 	k := 128
 	l := 1
 
 	for i := 7; i < iterations; i++ {
 
-		m := int(math.Pow(2, float64(7))) // m initally 2^7 = 128 (as k <= m)
+		fmt.Println("Running iteration: 2^", i)
 
-		// create cryptoalgorithm, messages and selection bits for algorithms.
-		elGamal := elgamal.ElGamal{}
-		elGamal.Init()
+		m := int(math.Pow(2, float64(i))) // m initally 2^7 = 128 (as k <= m)
+
+		// create cmessages and selection bits for algorithms.
 		selectionBits := utils.RandomSelectionBits(m)
 		var messages []*utils.MessagePair
 		for i := 0; i < m; i++ {
@@ -48,14 +51,14 @@ func TestMakeDataFixL(iterations int) {
 		// time_OT_Basic := fmt.Sprintf("%.2f", time_end)
 		time_OT_Basic := "0"
 
-		time_start := time.Now()
+		/* time_start := time.Now()
 		OTExt.OTExtensionProtocol(k, l, m, selectionBits, messages, elGamal)
-		time_end := time.Since(time_start).Seconds()
-		time_OT_Extension := fmt.Sprintf("%.2f", time_end)
+		time_end := time.Since(time_start).Seconds() */
+		time_OT_Extension := "0" //fmt.Sprintf("%.2f", time_end)
 
-		time_start = time.Now()
+		time_start := time.Now()
 		OTExt.OTExtensionProtocolTranspose(k, l, m, selectionBits, messages, elGamal)
-		time_end = time.Since(time_start).Seconds()
+		time_end := time.Since(time_start).Seconds()
 		time_OT_Extension_Transpose := fmt.Sprintf("%.2f", time_end)
 
 		time_start = time.Now()
