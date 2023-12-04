@@ -2,7 +2,6 @@ package benchmark
 
 import (
 	"fmt"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -74,6 +73,15 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 		return matrix
 	}
 
+	fmt.Println("Matrix:")
+	for _, row := range matrix {
+		for _, element := range row {
+			fmt.Printf("%d ", element) // Add a space after each element
+		}
+		fmt.Printf("\n") // New line after each row
+	}
+	fmt.Printf("\n")
+
 	// swapDimension is the dimension of the sub-matrix that is being swapped.
 	// It starts at 1 and doubles each iteration until it reaches k. E.g. 1, 2, 4, 8, 16, ...
 	swapDimension := 1 // Incremented by power of 2 each iteration
@@ -82,31 +90,42 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 			for i2 := 0; i2 < swapDimension; i2++ {
 
 				// // Index rows with values to be swapped
-				// topRow := make([]byte, swapDimension)
-				// bottomRow := make([]byte, swapDimension)
-				// topRow = copy(topRow, matrix[i1+i2-swapDimension])
-				// bottomRow = copy(bottomRow, matrix[i1+i2])
+				topRow := make([]byte, dimension)
+				bottomRow := make([]byte, dimension)
+				copy(topRow, matrix[i1+i2-swapDimension])
+				copy(bottomRow, matrix[i1+i2])
 
 				// OUTCOMMENT TO SEE THE SWAPPING ORDER
-				println("")
+				//println("")
 				//fmt.Println("bottomRow: ", strconv.Itoa(i1+i2), "topRow: ", strconv.Itoa(i1+i2-swapDimension))
 
 				for j1 := swapDimension; j1 < dimension; j1 += swapDimension * 2 {
 					for j2 := 0; j2 < swapDimension; j2++ {
 
 						// OUTCOMMENT TO SEE THE SWAPPING ORDER
-						fmt.Println("Currently swapping: leftIndex: [][]", strconv.Itoa(i1+i2), strconv.Itoa(j1+j2-swapDimension), "rightIndex: [][] ",
-							strconv.Itoa(i1+i2-swapDimension), strconv.Itoa(j1+j2))
-
+						//fmt.Println("Currently swapping: leftIndex: [][]", strconv.Itoa(i1+i2), strconv.Itoa(j1+j2-swapDimension), "rightIndex: [][] ",
+						//strconv.Itoa(i1+i2-swapDimension), strconv.Itoa(j1+j2))
+						topRow[j1+j2], bottomRow[j1+j2-swapDimension] = bottomRow[j1+j2-swapDimension], topRow[j1+j2]
 					}
 				}
+				matrix[i1+i2-swapDimension] = topRow
+				matrix[i1+i2] = bottomRow
 			}
 		}
 		// OUTCOMMENT TO SEE THE SWAPPING ORDER
-		println("")
-		println("")
+		// println("")
+		// println("")
 		swapDimension *= 2
 	}
+
+	fmt.Println("Result:")
+	for _, row := range matrix {
+		for _, element := range row {
+			fmt.Printf("%d ", element) // Add a space after each element
+		}
+		fmt.Printf("\n") // New line after each row
+	}
+	fmt.Printf("\n")
 
 	return matrix
 }
