@@ -250,8 +250,6 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 						topRow[j1+j2], bottomRow[j1+j2-swapDimension] = bottomRow[j1+j2-swapDimension], topRow[j1+j2]
 					}
 				}
-				matrix[i1+i2-swapDimension] = topRow
-				matrix[i1+i2] = bottomRow
 			}
 		}
 		swapDimension *= 2
