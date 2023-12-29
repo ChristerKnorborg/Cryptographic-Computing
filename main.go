@@ -27,9 +27,9 @@ import (
 // and confirm that they output the correct messages depending on the selection bits.
 func main() {
 
-	k := 128 // must be a power of 2
-	l := 8
-	m := int(math.Pow(2, float64(8)))
+	k := 128                          // must be a power of 2
+	l := 8                            // bits in each message (represented as byte array)
+	m := int(math.Pow(2, float64(8))) // Number of randomly generated messages.
 
 	// create cryptoalgorithm, messages and selection bits for algorithms.
 	elGamal := elgamal.ElGamal{}

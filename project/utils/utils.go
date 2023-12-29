@@ -2,9 +2,11 @@ package utils
 
 // Import your ElGamal package
 import (
+	"crypto/aes"
 	"crypto/rand"
 	"crypto/sha256"
 	"cryptographic-computing/project/elgamal"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"math/big"
@@ -44,8 +46,9 @@ type ByteCiphertextPair struct {
 	Y1 []byte
 }
 
-// PseudoRandomGenerator generates a pseudo-random bit string of a given bit length using sha256 and a seed.
-func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
+// DEPRECATED TEST METHOD
+// PseudoRandomGenerator replacement that generates a bit string of a given bit length using sha256 and a seed.
+func PseudoRandomGeneratorTEST(seed *big.Int, bitLength int) ([]byte, error) {
 	if bitLength <= 0 {
 		return nil, fmt.Errorf("bitLength must be positive")
 	}
@@ -66,6 +69,46 @@ func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
 		// Increment the seed
 		seed = new(big.Int).Add(seed, big.NewInt(1))
 		seedBytes = seed.Bytes()
+	}
+
+	return output, nil
+}
+
+// PseudoRandomGenerator generates a pseudo-random bit string of a given bit length using AES in CTR mode.
+// The method uses a big int seed which is converted to a 16-byte slice for AES-128.
+func PseudoRandomGenerator(seed *big.Int, bitLength int) ([]byte, error) {
+	if bitLength <= 0 {
+		return nil, fmt.Errorf("bitLength must be positive")
+	}
+
+	// Convert seed to a 16-byte slice for AES-128 and Right-align seed bytes in the slice due to conversion from big int,
+	// where leading zeros are removed.
+	seedBytes := make([]byte, 16)
+	copy(seedBytes[16-len(seed.Bytes()):], seed.Bytes())
+
+	// Create the AES cipher object with the seed
+	block, err := aes.NewCipher(seedBytes)
+	if err != nil {
+		return nil, fmt.Errorf("error creating AES cipher: %v", err)
+	}
+
+	output := make([]byte, 0, bitLength)
+	counter := uint64(0)       // Initialize counter to 0
+	buffer := make([]byte, 16) // Buffer for the AES block
+
+	for len(output) < bitLength {
+		// Increment the counter and encrypt it
+		counter++
+		binary.BigEndian.PutUint64(buffer[8:], counter) // Fill buffer with the counter value
+		block.Encrypt(buffer, buffer)                   // Encrypt buffer to produce a pseudo-random block of 16 bytes
+
+		// Extract each bit and store it in its own byte
+		for _, b := range buffer {
+			for i := 0; i < 8 && len(output) < bitLength; i++ {
+				bit := (b >> (7 - i)) & 1
+				output = append(output, byte(bit))
+			}
+		}
 	}
 
 	return output, nil
@@ -235,7 +278,7 @@ func EklundhTransposeInner(matrix [][]byte) [][]byte {
 	// swapDimension is the dimension of the sub-matrix that is being swapped.
 	// It starts at 1 and doubles each iteration until it reaches k. E.g. 1, 2, 4, 8, 16, ...
 
-	swapDimension := 1 // Incremented by power of 2 each iteration
+	swapDimension := 1 // Multiply by 2 each iteration
 	for swapDimension < dimension {
 		for i1 := swapDimension; i1 < dimension; i1 += swapDimension * 2 {
 			for i2 := 0; i2 < swapDimension; i2++ {
